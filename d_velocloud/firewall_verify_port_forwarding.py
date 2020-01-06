@@ -20,11 +20,11 @@ SSH_PORT = None
 SSH_RULE = None
 
 
-def set_globals(edge_id: int, enterprise_id: int, ssh_port: int) -> None:
+def set_globals(edge_id, enterprise_id, ssh_port) -> None:
     global EDGE_ID, ENTERPRISE_ID, SSH_PORT
-    EDGE_ID = edge_id
-    ENTERPRISE_ID = enterprise_id
-    SSH_PORT = ssh_port
+    EDGE_ID = int(edge_id)
+    ENTERPRISE_ID = int(enterprise_id)
+    SSH_PORT = int(ssh_port)
 
 
 def is_ssh_rule_present() -> None:
