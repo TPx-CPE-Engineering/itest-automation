@@ -179,8 +179,3 @@ def get_module_from_edge_specific_profile(module_name: str) -> ConfigurationModu
             return module
 
     return ConfigurationModule()
-
-
-if __name__ == "__main__":
-    set_globals(edge_id=8, enterprise_id=1)
-
