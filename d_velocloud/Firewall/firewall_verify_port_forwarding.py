@@ -1,17 +1,6 @@
 #!/usr/bin/env python3
-import velocloud
 from velocloud.models import *
-from velocloud.rest import ApiException
-
-# Operator Login
-client = velocloud.ApiClient(host="cpevc.lab-sv.telepacific.com")
-api = velocloud.AllApi(api_client=client)
-
-try:
-    client.authenticate(username="juan.brena@tpx.com", password="1Maule1!", operator=True)
-except ApiException as login_exception:
-    print(login_exception)
-    exit()
+from Login.operator_login import api as vc_api
 
 # Globals
 EDGE_ID = None
@@ -77,7 +66,7 @@ def remove_ssh_rule() -> None:
     param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=ENTERPRISE_ID,
                                                    update=firewall_module)
 
-    res = api.configurationUpdateConfigurationModule(param)
+    res = vc_api.configurationUpdateConfigurationModule(param)
     print(res)
 
 
@@ -97,7 +86,7 @@ def add_ssh_rule() -> None:
     param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=ENTERPRISE_ID,
                                                    update=firewall_module)
 
-    res = api.configurationUpdateConfigurationModule(param)
+    res = vc_api.configurationUpdateConfigurationModule(param)
     print(res)
 
 
@@ -115,7 +104,7 @@ def get_module_from_edge_specific_profile(module_name: str) -> ConfigurationModu
 
     # Get Config Stack
     param = EdgeGetEdgeConfigurationStack(edgeId=EDGE_ID, enterpriseId=ENTERPRISE_ID)
-    config_stack = api.edgeGetEdgeConfigurationStack(param)
+    config_stack = vc_api.edgeGetEdgeConfigurationStack(param)
 
     # Config Stack consists of 2 Profiles. Edge Specific Profile is in index 0 and Enterprise Profile is in index 1
     # Get Edge Specific Profile
