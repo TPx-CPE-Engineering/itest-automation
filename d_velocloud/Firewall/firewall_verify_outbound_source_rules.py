@@ -23,7 +23,7 @@ def set_globals(edge_id, enterprise_id, ssh_port) -> None:
     SSH_PORT = int(ssh_port)
 
 
-def is_deny_source_address_rule_present() -> None:
+def is_deny_source_address_rule_present() -> bool:
     """
     Checks the edge's firewall to see if the rule to block all CPE traffic is present
 
@@ -70,11 +70,11 @@ def is_deny_source_address_rule_present() -> None:
                 rule['action']['allow_or_deny'] == outbound_source_rule_action:
             d = {'is_deny_source_address_rule_present': 'yes'}
             print(d)
-            return
+            return True
 
     d = {'is_deny_source_address_rule_present': 'no'}
     print(d)
-    return
+    return False
 
 
 def add_deny_source_address_rule() -> None:
