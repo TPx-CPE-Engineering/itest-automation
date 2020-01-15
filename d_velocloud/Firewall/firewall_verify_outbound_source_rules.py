@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from velocloud.models import *
-from Login.operator_login import api
+from Login.operator_login import api as vc_api
 
 """
 Test case: Verify Outbound source rules
@@ -153,7 +153,7 @@ def add_deny_source_address_rule() -> None:
     # Push change
     param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=ENTERPRISE_ID,
                                                    update=edges_firewall)
-    res = api.configurationUpdateConfigurationModule(param)
+    res = vc_api.configurationUpdateConfigurationModule(param)
     print(res)
 
 
@@ -208,7 +208,7 @@ def remove_deny_source_address_rule() -> None:
 
             param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=ENTERPRISE_ID,
                                                            update=edges_firewall)
-            res = api.configurationUpdateConfigurationModule(param)
+            res = vc_api.configurationUpdateConfigurationModule(param)
             print(res)
             return
 
@@ -263,7 +263,7 @@ def get_module_from_edge_specific_profile(module_name: str) -> ConfigurationModu
 
     # Get Config Stack
     param = EdgeGetEdgeConfigurationStack(edgeId=EDGE_ID, enterpriseId=ENTERPRISE_ID)
-    config_stack = api.edgeGetEdgeConfigurationStack(param)
+    config_stack = vc_api.edgeGetEdgeConfigurationStack(param)
 
     # Config Stack consists of 2 Profiles. Edge Specific Profile is in index 0 and Enterprise Profile is in index 1
     # Get Edge Specific Profile
@@ -279,4 +279,3 @@ def get_module_from_edge_specific_profile(module_name: str) -> ConfigurationModu
 if __name__ == '__main__':
     set_globals(edge_id=8, enterprise_id=1, ssh_port=2202)
     add_deny_source_address_rule()
-
