@@ -28,7 +28,7 @@ def is_deny_source_address_rule_present() -> bool:
     Checks the edge's firewall to see if the rule to block all CPE traffic is present
 
     Looks through the edge's Voice segment outbound firewall rules for a rule that has the following conditions:
-    1. rule's name is 'iTest Block Everything'
+    1. rule's name is 'iTest Block CPE Traffic'
     2. rule's source IP (sip) equals CPE's IP
     3. rule's action is to 'Deny'
     A print statement in json format is displayed whether or not rule is present.
@@ -213,7 +213,6 @@ def remove_deny_source_address_rule() -> None:
             return
 
     print('No deny source address rule found')
-    exit()
 
 
 def get_cpe_lan_ip() -> str:
