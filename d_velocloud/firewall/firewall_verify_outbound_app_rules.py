@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from velocloud.models import *
-from login.operator_login import api as vc_api
+from login.operator_login import velocloud_api as vc_api
 
 # Globals
 EDGE_ID = None
