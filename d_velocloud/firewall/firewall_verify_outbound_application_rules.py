@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 from velocloud.models import *
-from login.operator_login import velocloud_api as vc_api
+from my_velocloud.operator_login import velocloud_api as api
+from my_velocloud.base_edge import BaseEdge
 
 # Globals
-EDGE_ID = None
-ENTERPRISE_ID = None
+EDGE = None
+
+
+class Edge(BaseEdge):
+    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
+        super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
 
 
 def set_globals(edge_id, enterprise_id) -> None:
-    global EDGE_ID, ENTERPRISE_ID
-    EDGE_ID = int(edge_id)
-    ENTERPRISE_ID = int(enterprise_id)
+    global EDGE
+    EDGE = Edge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=0)
 
 
 def is_icmp_block_outbound_app_rule_present():
@@ -20,11 +24,11 @@ def is_icmp_block_outbound_app_rule_present():
     The rule will be within the 'Voice' segment in the edge's firewall data and will be named 'iTest ICMP Block'
     """
 
-    global EDGE_ID, ENTERPRISE_ID
+    global EDGE
 
     d = {'is_outbound_application_rule_present': None}
 
-    edges_firewall = get_module_from_edge_specific_profile(module_name="firewall")
+    edges_firewall = EDGE.get_module_from_edge_specific_profile(module_name="firewall")
 
     voice_segment_outbound_rules = None
 
@@ -49,7 +53,7 @@ def add_icmp_block_outbound_app_rule():
 
     Adds the rule into the Voice segment. If no Voice segment is found then an error will print out and exit
     """
-    global EDGE_ID, ENTERPRISE_ID
+    global EDGE
 
     icmp_block_rule = {
                       "name": "iTest ICMP Block",
@@ -80,7 +84,7 @@ def add_icmp_block_outbound_app_rule():
                       "loggingEnabled": "False"
                       }
 
-    firewall_module = get_module_from_edge_specific_profile(module_name="firewall")
+    firewall_module = EDGE.get_module_from_edge_specific_profile(module_name="firewall")
 
     # Locate Voice segment
     # Append rule to segment
@@ -88,10 +92,10 @@ def add_icmp_block_outbound_app_rule():
     for seg in firewall_module.data['segments']:
         if seg['segment']['name'] == 'Voice':
             seg['outbound'].append(icmp_block_rule)
-            param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=ENTERPRISE_ID,
+            param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=EDGE.enterprise_id,
                                                            update=firewall_module)
 
-            res = vc_api.configurationUpdateConfigurationModule(param)
+            res = api.configurationUpdateConfigurationModule(param)
             print(res)
             return
 
@@ -108,12 +112,12 @@ def remove_icmp_block_outbound_app_rule():
     Looks through the Outbound Application rules and removes the rule we added when add_icmp_block_outbound_app_rule
     was called.
     """
-    global EDGE_ID, ENTERPRISE_ID
+    global EDGE
 
     voice_segment_name = 'Voice'
     icmp_block_rule_name = 'iTest ICMP Block'
 
-    firewall_module = get_module_from_edge_specific_profile(module_name="firewall")
+    firewall_module = EDGE.get_module_from_edge_specific_profile(module_name="firewall")
 
     # Locate Voice segment
     # Remove rule from segment
@@ -123,9 +127,10 @@ def remove_icmp_block_outbound_app_rule():
             for rule in seg['outbound']:
                 if rule['name'] == icmp_block_rule_name:
                     seg['outbound'].remove(rule)
-                    param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=ENTERPRISE_ID,
+                    param = ConfigurationUpdateConfigurationModule(id=firewall_module.id,
+                                                                   enterpriseId=EDGE.enterprise_id,
                                                                    update=firewall_module)
-                    res = vc_api.configurationUpdateConfigurationModule(param)
+                    res = api.configurationUpdateConfigurationModule(param)
                     print(res)
                     return
 
@@ -133,30 +138,3 @@ def remove_icmp_block_outbound_app_rule():
     d = {'error': 'No Voice Segment found', 'rows': 0}
     print(d)
     exit()
-
-
-def get_module_from_edge_specific_profile(module_name: str) -> ConfigurationModule:
-    """
-    Return a specific module from Edge's edge specific profile
-
-    Possible modules: controlPlane, deviceSettings, firewall, QOS, WAN
-
-    Enter the name of the module you want to get in module_name
-
-    Returns empty ConfigurationModule if module is not found
-    """
-    global EDGE_ID, ENTERPRISE_ID
-
-    # Get Config Stack
-    param = EdgeGetEdgeConfigurationStack(edgeId=EDGE_ID, enterpriseId=ENTERPRISE_ID)
-    config_stack = vc_api.edgeGetEdgeConfigurationStack(param)
-
-    # Config Stack consists of 2 Profiles. Edge Specific Profile is in index 0 and Enterprise Profile is in index 1
-    # Get Edge Specific Profile
-    edge_specific_profile: EdgeGetEdgeConfigurationStackResultItem = config_stack[0]
-
-    for module in edge_specific_profile.modules:
-        if module.name == module_name:
-            return module
-
-    return ConfigurationModule()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from velocloud.models import *
-from login.operator_login import velocloud_api as vc_api
+from my_velocloud.operator_login import velocloud_api as api
+from my_velocloud.base_edge import BaseEdge
 
 """
 Test case: Verify Outbound source rules
@@ -11,16 +12,17 @@ Usage: Configure outbound rule to deny all traffic based on source address
 """
 
 # Globals
-EDGE_ID = None
-ENTERPRISE_ID = None
-SSH_PORT = None
+EDGE = None
+
+
+class Edge(BaseEdge):
+    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
+        super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
 
 
 def set_globals(edge_id, enterprise_id, ssh_port) -> None:
-    global EDGE_ID, ENTERPRISE_ID, SSH_PORT
-    EDGE_ID = int(edge_id)
-    ENTERPRISE_ID = int(enterprise_id)
-    SSH_PORT = int(ssh_port)
+    global EDGE
+    EDGE = Edge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port))
 
 
 def is_deny_source_address_rule_present() -> bool:
@@ -44,7 +46,7 @@ def is_deny_source_address_rule_present() -> bool:
     """
 
     # Get Edge's global variables
-    global EDGE_ID, ENTERPRISE_ID, SSH_PORT
+    global EDGE
 
     # Set name for Voice Segment
     voice_segment_name = 'Voice'
@@ -55,7 +57,7 @@ def is_deny_source_address_rule_present() -> bool:
     outbound_source_rule_action = 'deny'
 
     # Get Edge's firewall module
-    edges_firewall = get_module_from_edge_specific_profile(module_name="firewall")
+    edges_firewall = EDGE.get_module_from_edge_specific_profile(module_name="firewall")
 
     # Locate Voice Segment
     voice_segment = None
@@ -98,7 +100,7 @@ def add_deny_source_address_rule() -> None:
     """
 
     # Get Edge's global variables
-    global EDGE_ID, ENTERPRISE_ID
+    global EDGE
 
     # Voice segment name
     voice_segment_name = 'Voice'
@@ -139,7 +141,7 @@ def add_deny_source_address_rule() -> None:
                                 }
 
     # Get edges firewall module
-    edges_firewall = get_module_from_edge_specific_profile(module_name='firewall')
+    edges_firewall = EDGE.get_module_from_edge_specific_profile(module_name="firewall")
 
     # Find Voice segment
     voice_segment = None
@@ -151,9 +153,9 @@ def add_deny_source_address_rule() -> None:
     voice_segment['outbound'].append(outbound_source_rule)
 
     # Push change
-    param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=ENTERPRISE_ID,
+    param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=EDGE.enterprise_id,
                                                    update=edges_firewall)
-    res = vc_api.configurationUpdateConfigurationModule(param)
+    res = api.configurationUpdateConfigurationModule(param)
     print(res)
 
 
@@ -178,7 +180,7 @@ def remove_deny_source_address_rule() -> None:
     """
 
     # Get Edge's global variables
-    global EDGE_ID, ENTERPRISE_ID
+    global EDGE
 
     # Voice segment name
     voice_segment_name = 'Voice'
@@ -189,7 +191,7 @@ def remove_deny_source_address_rule() -> None:
     outbound_source_rule_action = 'deny'
 
     # Get edges firewall module
-    edges_firewall = get_module_from_edge_specific_profile(module_name='firewall')
+    edges_firewall = EDGE.get_module_from_edge_specific_profile(module_name="firewall")
 
     # Find Voice segment
     voice_segment = None
@@ -206,9 +208,9 @@ def remove_deny_source_address_rule() -> None:
                 rule['action']['allow_or_deny'] == outbound_source_rule_action:
             voice_segment['outbound'].remove(rule)
 
-            param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=ENTERPRISE_ID,
+            param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=EDGE.enterprise_id,
                                                            update=edges_firewall)
-            res = vc_api.configurationUpdateConfigurationModule(param)
+            res = api.configurationUpdateConfigurationModule(param)
             print(res)
             return
 
@@ -228,53 +230,21 @@ def get_cpe_lan_ip() -> str:
     :return: LAN IP
     """
 
-    global EDGE_ID, ENTERPRISE_ID, SSH_PORT
+    global EDGE
 
     # TCP decimal value
     tcp = 6
     lan_port = 22
 
-    edges_firewall = get_module_from_edge_specific_profile(module_name="firewall")
+    edges_firewall = EDGE.get_module_from_edge_specific_profile(module_name="firewall")
 
     for rule in edges_firewall.data['inbound']:
         if 'itest' in rule['name'].lower() and \
                 rule['match']['proto'] == tcp and \
-                rule['match']['dport_high'] == SSH_PORT and \
-                rule['match']['dport_low'] == SSH_PORT and \
+                rule['match']['dport_high'] == EDGE.ssh_port and \
+                rule['match']['dport_low'] == EDGE.ssh_port and \
                 rule['action']['nat']['lan_port'] == lan_port:
             return rule['action']['nat']['lan_ip']
 
     print('No rule found')
     exit()
-
-
-def get_module_from_edge_specific_profile(module_name: str) -> ConfigurationModule:
-    """
-    Return a specific module from Edge's edge specific profile
-
-    Possible modules: controlPlane, deviceSettings, firewall, QOS, WAN
-
-    Enter the name of the module you want to get in module_name
-
-    Returns empty ConfigurationModule if module is not found
-    """
-    global EDGE_ID, ENTERPRISE_ID
-
-    # Get Config Stack
-    param = EdgeGetEdgeConfigurationStack(edgeId=EDGE_ID, enterpriseId=ENTERPRISE_ID)
-    config_stack = vc_api.edgeGetEdgeConfigurationStack(param)
-
-    # Config Stack consists of 2 Profiles. Edge Specific Profile is in index 0 and Enterprise Profile is in index 1
-    # Get Edge Specific Profile
-    edge_specific_profile: EdgeGetEdgeConfigurationStackResultItem = config_stack[0]
-
-    for module in edge_specific_profile.modules:
-        if module.name == module_name:
-            return module
-
-    return ConfigurationModule()
-
-
-if __name__ == '__main__':
-    set_globals(edge_id=8, enterprise_id=1, ssh_port=2202)
-    add_deny_source_address_rule()
