@@ -8,6 +8,7 @@ class BaseEdge:
         self.id = edge_id
         self.enterprise_id = enterprise_id
         self.ssh_port = ssh_port
+        self.voice_segment_name = 'Voice'
         self.configuration_stack = self.get_configuration_stack()
         self.edge_specific_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[0]
         self.enterprise_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[1]
@@ -45,3 +46,19 @@ class BaseEdge:
                 return module
 
         return ConfigurationModule()
+
+    @staticmethod
+    def get_segment_from_module(segment_name: str, module: ConfigurationModule) -> dict:
+        """
+        Gets the segment based on name from the given module
+
+        Searches through the passed module for a segment who's name matches segment_name
+        If no segment found, returns an empty dictionary
+        """
+
+        for seg in module.data['segments']:
+            if seg['segment']['name'] == segment_name:
+                return seg
+
+        print('No segment named: {} found in module {}'.format(segment_name, module.name))
+        return {}
