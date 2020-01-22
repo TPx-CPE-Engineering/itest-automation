@@ -62,3 +62,34 @@ class BaseEdge:
 
         print('No segment named: {} found in module {}'.format(segment_name, module.name))
         return {}
+
+    def get_wan_settings_links(self) -> [dict]:
+        """
+        Gets the Edge's WAN settings links in a list of dict
+
+        Searching through the WAN module's data and collect the important information from
+        the links
+
+        WAN:
+            data:
+                networks: ...
+                links:
+                    LOOKING HERE AND RETURNING IMPORTANT INFORMATION
+        """
+
+        # Get WAN module
+        wan_module = self.get_module_from_edge_specific_profile(module_name='WAN')
+
+        # Declare list
+        links = []
+
+        # Loop through the wan's links and get their name, interfaces, link type, and public ip
+        for wan_link in wan_module.data['links']:
+            d = {'name': wan_link['name'],
+                 'interfaces': wan_link['interfaces'],
+                 'link_type': wan_link['mode'] + ' ' + wan_link['type'],
+                 'public_ip': wan_link['publicIpAddress']
+                 }
+            links.append(d)
+
+        return links
