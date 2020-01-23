@@ -24,7 +24,6 @@ def is_ssh_rule_present() -> None:
     Check if edge contains the SSH Port Forwarding rule
 
     """
-    global EDGE
 
     d = {'is_ssh_rule_present': None}
 
@@ -54,9 +53,8 @@ def remove_ssh_rule() -> None:
     Remove SSH rule
 
     Removes SSH
-    SSH rule is saved before removing into the SSH_RULE global variable
+    SSH rule is saved in EDGE.cpe_ssh_port_forwarding rule then removed from the Edge firewall rules.
     """
-    global EDGE
 
     # Get Edge's firewall module
     firewall_module: ConfigurationModule = EDGE.get_module_from_edge_specific_profile(module_name='firewall')
@@ -80,7 +78,10 @@ def add_ssh_rule() -> None:
 
     SSH rule is saved in the SSH_RULE global variable when it was removed
     """
-    global EDGE
+
+    if not EDGE.cpe_ssh_port_forwarding_rule:
+        print('No rule saved. Please add CPE ssh port forwarding rule manually.')
+        return
 
     # Get Edge's firewall module
     firewall_module: ConfigurationModule = EDGE.get_module_from_edge_specific_profile(module_name='firewall')
@@ -95,5 +96,5 @@ def add_ssh_rule() -> None:
 
 
 if __name__ == "__main__":
-    set_globals(edge_id=4, enterprise_id=1, ssh_port=2201)
+    set_globals(edge_id=4, enterprise_id=1, ssh_port=2202)
     is_ssh_rule_present()
