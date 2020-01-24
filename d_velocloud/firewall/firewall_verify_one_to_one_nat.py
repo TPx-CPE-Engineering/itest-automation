@@ -3,8 +3,14 @@ from velocloud.models import *
 from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
+"""
+Test Case: Verify 1:1 NAT
+Expected Results: Verify CPE replies to a snmpwalk request when 1:1 NAT rule is enabled on the SD-WAN
+Usage: Enable 1:1 NAT rule for CPE on SD-WAN, execute a snmpwalk request to the SD-WAN's public WAN IP, and verify CPE replies.
+"""
 
-class Edge(BaseEdge):
+
+class FirewallOneToOneNatEdge(BaseEdge):
     def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
 
@@ -232,12 +238,12 @@ class Edge(BaseEdge):
 
 
 # Globals
-EDGE: Edge
+EDGE: FirewallOneToOneNatEdge
 
 
 def set_globals(edge_id, enterprise_id, ssh_port) -> None:
     global EDGE
-    EDGE = Edge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port))
+    EDGE = FirewallOneToOneNatEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port))
 
 
 def is_one_to_one_nat_rule_present():
@@ -250,6 +256,10 @@ def add_one_to_one_nat_rule():
 
 def remove_one_to_one_nat_rule():
     EDGE.remove_one_to_one_nat_rule()
+
+
+def print_sdwan_public_wan_ip():
+    print(EDGE.one_to_one_nat_rule_outside_ip)
 
 
 if __name__ == '__main__':
