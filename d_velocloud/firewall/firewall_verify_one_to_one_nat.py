@@ -11,9 +11,9 @@ Usage: Enable 1:1 NAT rule for CPE on SD-WAN, execute a snmpwalk request to the 
 
 
 class FirewallOneToOneNatEdge(BaseEdge):
-    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int, wan_ip: str):
+    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int, public_ip: str):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
-        self.wan_ip = wan_ip
+        self.public_ip = public_ip
 
         self.one_to_one_nat_rule_name = None
         self.one_to_one_nat_rule_outside_ip = None
@@ -53,12 +53,12 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         # Set the NAT rule's outside ip and interface
         """
-        Look through the WAN Settings to find the link who has publicIpAddress as wan_ip.
+        Look through the WAN Settings to find the link who has publicIpAddress as Edge's public ip.
         Once you find the correct WAN link, extract its interface and public ip
         """
         wan_links = self.get_wan_settings_links()
         for wan_link in wan_links:
-            if wan_link['publicIpAddress'] == self.wan_ip:
+            if wan_link['publicIpAddress'] == self.public_ip:
                 self.one_to_one_nat_rule_outside_ip = wan_link['publicIpAddress']
                 """
                 Velocloud sets the links interfaces as a list. 
@@ -242,9 +242,9 @@ class FirewallOneToOneNatEdge(BaseEdge):
 EDGE: FirewallOneToOneNatEdge
 
 
-def set_globals(edge_id, enterprise_id, ssh_port, wan_ip) -> None:
+def set_globals(edge_id, enterprise_id, public_ip, ssh_port) -> None:
     global EDGE
-    EDGE = FirewallOneToOneNatEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port), wan_ip=wan_ip)
+    EDGE = FirewallOneToOneNatEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), public_ip=public_ip, ssh_port=int(ssh_port))
 
 
 def is_one_to_one_nat_rule_present():
@@ -264,4 +264,4 @@ def print_sdwan_public_wan_ip():
 
 
 if __name__ == '__main__':
-    set_globals(edge_id=4, enterprise_id=1, ssh_port=2202, wan_ip="216.241.61.7")
+    set_globals(edge_id=4, enterprise_id=1, ssh_port=2202, public_ip="216.241.61.7")
