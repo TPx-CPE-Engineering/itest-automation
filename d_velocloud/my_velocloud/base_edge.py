@@ -82,3 +82,34 @@ class BaseEdge:
 
         # Return WAN links
         return wan_module.data['links']
+
+    def get_cpe_ssh_port_forwarding_rule(self) -> dict:
+        """
+        Get Edge's CPE SSH port forwarding rule
+
+        This rule holds information needed for other tests.
+        """
+
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Filter through the firewall and look for a port forwarding rule that has:
+        # 1. 'port_forwarding' as its Type
+        # 1. 'tcp' as its Protocol
+        # 2. self.ssh_port as its WAN Port(s)
+        # 3. '22' as its LAN Port
+
+        tcp_proto = 6
+
+        for inbound_rule in firewall_module.data['inbound']:
+            if inbound_rule['action']['type'] == 'port_forwarding' and \
+                    inbound_rule['match']['proto'] == tcp_proto and \
+                    inbound_rule['match']['dport_low'] == self.ssh_port and \
+                    inbound_rule['match']['dport_high'] == self.ssh_port and \
+                    inbound_rule['action']['nat']['lan_port'] == 22:
+
+                return inbound_rule
+
+        # If no cpe ssh rule found return an empty dict
+        print('Traceback: No CPE SSH Port Forwarding Rule found')
+        return {}
