@@ -55,16 +55,59 @@ class FirewallSNMPEdge(BaseEdge):
         # This rule holds information needed to add snmp port forwarding rule
         cpe_ssh_rule = self.get_cpe_ssh_port_forwarding_rule()
 
-        # Set rules properties
-        rule_name = 'iTest SNMP'
+        # Set properties for snmp rule
+        rule_name = 'SNMP added by iTest'
         rule_protocol = 17  # UDP Protocol
         rule_interface = cpe_ssh_rule['action']['interface']
         rule_wan_port = 1161
         rule_lan_ip = cpe_ssh_rule['action']['nat']['lan_ip']
         rule_lan_port = 161
-        rule_segment = cpe_ssh_rule['action']['segmentId']
+        rule_segment_id = cpe_ssh_rule['action']['segmentId']
 
+        # Set up snmp rule
+        snmp_port_forwarding_rule = {
+                                    "name": rule_name,
+                                    "loggingEnabled": False,
+                                    "match": {
+                                              "appid": -1,
+                                              "classid": -1,
+                                              "dscp": -1,
+                                              "sip": "any",
+                                              "sport_high": -1,
+                                              "sport_low": -1,
+                                              "ssm": "any",
+                                              "svlan": -1,
+                                              "os_version": -1,
+                                              "hostname": "",
+                                              "dip": "any",
+                                              "dport_low": rule_wan_port,
+                                              "dport_high": rule_wan_port,
+                                              "dsm": "any",
+                                              "dvlan": -1,
+                                              "proto": rule_protocol
+                                            },
+                                    "action": {
+                                              "type": "port_forwarding",
+                                              "segmentId": rule_segment_id,
+                                              "nat": {
+                                                    "lan_ip": rule_lan_ip,
+                                                    "lan_port": rule_lan_port
+                                                    },
+                                              "interface": rule_interface,
+                                              "subinterfaceId": -1
+                                            }
+                                    }
 
+        # Get firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Add rule to firewall module
+        firewall_module.data['inbound'].append(snmp_port_forwarding_rule)
+
+        # Push change
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
+        res = api.configurationUpdateConfigurationModule(param)
+        print(res)
 
 
     def remove_snmp_port_forwarding_rule(self):
