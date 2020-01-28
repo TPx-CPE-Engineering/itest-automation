@@ -11,8 +11,9 @@ Usage: Enable 1:1 NAT rule for CPE on SD-WAN, execute a snmpwalk request to the 
 
 
 class FirewallOneToOneNatEdge(BaseEdge):
-    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
+    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int, wan_ip: str):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
+        self.wan_ip = wan_ip
 
         self.one_to_one_nat_rule_name = None
         self.one_to_one_nat_rule_outside_ip = None
@@ -52,15 +53,15 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         # Set the NAT rule's outside ip and interface
         """
-        Look through the WAN Settings to find the link whose name contains the string 'wan' and is public wired.
+        Look through the WAN Settings to find the link who has publicIpAddress as wan_ip.
         Once you find the correct WAN link, extract its interface and public ip
         """
         wan_links = self.get_wan_settings_links()
         for wan_link in wan_links:
-            if 'wan' in wan_link['name'].lower() and wan_link['link_type'].lower() == 'public wired':
-                self.one_to_one_nat_rule_outside_ip = wan_link['public_ip']
+            if wan_link['publicIpAddress'] == self.wan_ip:
+                self.one_to_one_nat_rule_outside_ip = wan_link['publicIpAddress']
                 """
-                For some reason, Velocloud sets the links interfaces as a list. 
+                Velocloud sets the links interfaces as a list. 
                 For the most part, its a single item list though, so the first item in the list will be used.
                 """
                 self.one_to_one_nat_rule_interface = wan_link['interfaces'][0]
@@ -241,9 +242,9 @@ class FirewallOneToOneNatEdge(BaseEdge):
 EDGE: FirewallOneToOneNatEdge
 
 
-def set_globals(edge_id, enterprise_id, ssh_port) -> None:
+def set_globals(edge_id, enterprise_id, ssh_port, wan_ip) -> None:
     global EDGE
-    EDGE = FirewallOneToOneNatEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port))
+    EDGE = FirewallOneToOneNatEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port), wan_ip=wan_ip)
 
 
 def is_one_to_one_nat_rule_present():
@@ -263,5 +264,4 @@ def print_sdwan_public_wan_ip():
 
 
 if __name__ == '__main__':
-    set_globals(edge_id=4, enterprise_id=1, ssh_port=2202)
-    remove_one_to_one_nat_rule()
+    set_globals(edge_id=4, enterprise_id=1, ssh_port=2202, wan_ip="216.241.61.7")
