@@ -39,16 +39,15 @@ class FirewallSNMPEdge(BaseEdge):
 
     def add_snmp_port_forwarding_rule(self) -> None:
         """
-        Adds a port forwarding rule to the Edge to forward SNMP traffic
+        Adds a SNMP port forwarding rule named 'SNMP added by iTest'
 
-        Rule will have the following properties:
-        Name: iTest SNMP
+        The rule will also have the following configured:
         Protocol: UDP
-        Interface: Main Public Wired Interface
-        WAN Port(s): 1161
+        Interface: use same interface CPE SSH port forwarding rule is on
+        WAN Port: 1161
         LAN IP: CPE's LAN IP
-        LAN Port: 161
-        Segment: Voice segment
+        LAN Port: 22
+        Segment: Voice
         """
 
         # Get CPE SSH Port Forwarding Rule
@@ -109,21 +108,157 @@ class FirewallSNMPEdge(BaseEdge):
         res = api.configurationUpdateConfigurationModule(param)
         print(res)
 
+    def remove_snmp_port_forwarding_rule(self) -> None:
+        """
+        Removes SNMP port forwarding rule named 'SNMP added by iTest'
 
-    def remove_snmp_port_forwarding_rule(self):
-        print('todo')
+        Rule was added my add_snmp_port_forwarding_rule()
+        """
 
-    def is_snmp_port_forwarding_rule_present(self):
-        print('todo')
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
 
-    def add_deny_snmp_firewall_rule(self):
-        print('todo')
+        # Search through firewalls inbound rules and remove the rule named 'SNMP added by iTest'
+        for inbound_rule in firewall_module.data['inbound']:
+            if inbound_rule['name'] == 'SNMP added by iTest':
+                firewall_module.data['inbound'].remove(inbound_rule)
+                break
+
+        # Push change
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
+        res = api.configurationUpdateConfigurationModule(param)
+        print(res)
+
+    def is_snmp_port_forwarding_rule_present(self) -> None:
+        """
+        Prints yes or no (in json format) whether SNMP port forwarding rule named 'SNMP added by iTest' is present on the Edge
+
+        Uses the name 'SNMP added by iTest' to check whether the snmp rule added by add_snmp_port_forwarding rule is
+        present
+        """
+
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Search through firewalls inbound rules and remove the rule named 'SNMP added by iTest'
+        for inbound_rule in firewall_module.data['inbound']:
+            if inbound_rule['name'] == 'SNMP added by iTest':
+                d = {'is_snmp_port_forwarding_rule_present': 'yes'}
+                print(d)
+                return
+
+        d = {'is_snmp_port_forwarding_rule_present': 'no'}
+        print(d)
+        return
+
+    def add_deny_snmp_firewall_rule(self) -> None:
+        """
+        Adds a firewall rule to deny all snmp traffic named "SNMP deny all added by iTest"
+        """
+
+        # Set properties for deny snmp firewall rule
+        rule_name = "SNMP deny all added by iTest"
+        rule_snmp_application_id = 190
+        rule_action = 'deny'
+
+        deny_snmp_rule = {
+                            "name": rule_name,
+                            "match": {
+                                    "appid": rule_snmp_application_id,
+                                    "classid": -1,
+                                    "dscp": -1,
+                                    "sip": "any",
+                                    "smac": "any",
+                                    "sport_high": -1,
+                                    "sport_low": -1,
+                                    "ssm": "255.255.255.255",
+                                    "svlan": -1,
+                                    "os_version": -1,
+                                    "hostname": "",
+                                    "dip": "any",
+                                    "dport_low": -1,
+                                    "dport_high": -1,
+                                    "dsm": "255.255.255.255",
+                                    "dvlan": -1,
+                                    "proto": -1,
+                                    "s_rule_type": "prefix",
+                                    "d_rule_type": "prefix"
+                                    },
+                            "action": {
+                                "allow_or_deny": rule_action
+                            },
+                            "loggingEnabled": "False"
+                            }
+
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Get Voice Segment within Firewall module
+        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name, module=firewall_module)
+
+        # Append snmp rule to Voice Segment Outbound Firewall Rules
+        firewall_voice_segment['outbound'].append(deny_snmp_rule)
+
+        # Set api parameters
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
+
+        # Push change
+        res = api.configurationUpdateConfigurationModule(param)
+
+        # Print result
+        print(res)
+        return
 
     def remove_deny_snmp_firewall_rule(self):
-        print('todo')
+        """
+        Removes firewall rule added named "SNMP deny all added by iTest"
+
+        Rule was added by add_deny_snmp_firewall_rule
+        """
+
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Get Voice Segment within Firewall module
+        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name, module=firewall_module)
+
+        # Search through Firewall Voice Segment to locate snmp rule, once found, remove rule
+        for outbound_rule in firewall_voice_segment['outbound']:
+            if outbound_rule['name'] == "SNMP deny all added by iTest":
+                firewall_voice_segment['outbound'].remove(outbound_rule)
+                break
+
+        # Set api parameters
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
+
+        # Push change
+        res = api.configurationUpdateConfigurationModule(param)
+
+        # Print result
+        print(res)
+        return
 
     def is_deny_snmp_firewall_rule_present(self):
-        print('todo')
+        """
+        Prints yes or no whether the firewall rule to deny snmp traffic named "SNMP deny all added by iTest" is present
+        """
+
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Get Voice Segment within Firewall module
+        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name, module=firewall_module)
+
+        # Search through Firewall Voice Segment to see if snmp rule is present
+        for outbound_rule in firewall_voice_segment['outbound']:
+            if outbound_rule['name'] == "SNMP deny all added by iTest":
+                d = {"is_deny_snmp_firewall_rule_present": 'yes'}
+                print(d)
+                return
+
+        d = {"is_deny_snmp_firewall_rule_present": 'no'}
+        print(d)
+        return
 
 
 # Globals
@@ -135,7 +270,7 @@ def add_snmp_port_forwarding_rule():
 
 
 def remove_snmp_port_forwarding_rule():
-    EDGE.add_snmp_port_forwarding_rule()
+    EDGE.remove_snmp_port_forwarding_rule()
 
 
 def is_snmp_port_forwarding_rule_present():
