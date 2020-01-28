@@ -74,22 +74,11 @@ class BaseEdge:
             data:
                 networks: ...
                 links:
-                    LOOKING HERE AND RETURNING IMPORTANT INFORMATION
+                    RETURN ALL LINKS FOUND HERE
         """
 
         # Get WAN module
         wan_module = self.get_module_from_edge_specific_profile(module_name='WAN')
 
-        # Declare list
-        links = []
-
-        # Loop through the wan's links and get their name, interfaces, link type, and public ip
-        for wan_link in wan_module.data['links']:
-            d = {'name': wan_link['name'],
-                 'interfaces': wan_link['interfaces'],
-                 'link_type': wan_link['mode'] + ' ' + wan_link['type'],
-                 'public_ip': wan_link['publicIpAddress']
-                 }
-            links.append(d)
-
-        return links
+        # Return WAN links
+        return wan_module.data['links']
