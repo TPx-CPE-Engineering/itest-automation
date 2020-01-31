@@ -4,13 +4,17 @@ from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
 """
-Test Case: Verify SNMP queries to the Edge, are denied if SNMP deny all is configured
-Expected Results: All SNMP queries dropped
-Usage: Configure firewall to deny all SNMP traffic (default) and attempt to get a response through snmpwalk
+Test Case: Verify SNMP queries to the Edge, are denied if SNMP Access 'Deny All' is checked
+Expected Results: All SNMP queries to the Edge be dropped
+Usage: Confirm SNMP Settings v2c is enabled. Configure Edge's Firewall SNMP Access to 'Deny All'. Use snmpwalk to 
+confirm SNMP queries are dropped. 
 
 Details:
-Add a port forwarding rule SNMP 1161 -> 161 using CPE's LAN IP
-Test 
+Ensure SNMP Settings v2c is enabled. You can find that in Edge's Device tab, scroll down to SNMP Settings. Port set to
+161, community set to "tpc1n0c", and Allowed IPs: "Any" checked. 
+
+Test by setting Edge's Firewall SNMP Access to "Deny All". Using another computer, execute a snmpwalk command and confirm
+you get a "No Response from [IP]" message. 
 """
 
 
