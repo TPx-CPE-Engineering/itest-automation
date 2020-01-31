@@ -4,7 +4,7 @@ from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
 """
-Test Case: Verify SNMP queries are denied if SNMP deny all is configured
+Test Case: Verify SNMP queries to the Edge, are denied if SNMP deny all is configured
 Expected Results: All SNMP queries dropped
 Usage: Configure firewall to deny all SNMP traffic (default) and attempt to get a response through snmpwalk
 
