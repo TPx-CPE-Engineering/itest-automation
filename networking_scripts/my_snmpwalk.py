@@ -1,7 +1,7 @@
 from pysnmp import hlapi
 
 
-def get_sys_description(target: str) -> None:
+def get_sys_description(target: str, port: int = 161, community_string: str = 'tpc1n0c') -> None:
     """
     Prints (in json format) the sysDescription of target by performing a SNMP query
 
@@ -10,10 +10,9 @@ def get_sys_description(target: str) -> None:
     Written on: 2/5/2020
     Revised on:
     """
-
     sys_description = '1.3.6.1.2.1.1.1.0'
     try:
-        response = snmp_get(target=target, oids=[sys_description], credentials=hlapi.CommunityData('tpc1n0c'))
+        response = snmp_get(target=target, oids=[sys_description], credentials=hlapi.CommunityData(community_string), port=port)
         d = {'SNMPv2-MIB::sysDescr.0': response[sys_description]}
         print(d)
     except RuntimeError:
