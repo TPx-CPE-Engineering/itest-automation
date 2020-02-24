@@ -63,9 +63,9 @@ class DNSEdge(BaseEdge):
 
     def set_conditional_dns_forwarding_to_none(self):
         """
-        Enables Edge Override and Sets Edge's Conditional DNS Forwarding to '[none]'
+        Sets Enterprise Conditional DNS Forwarding to '[none]'
 
-        Edge > Device > DNS Settings > Conditional DNS Forwarding > [none]
+        Configure > Profiles > CPE Engineering Base Profile 3.3 > Device > DNS Settings > Conditional DNS Forwarding > [none]
         """
 
         # Get Edge's Device Specific deviceSettings module (ds)
@@ -73,6 +73,9 @@ class DNSEdge(BaseEdge):
 
         # Get ds data
         ds_module_data = device_settings_module.data
+
+        # Get ds refs
+        ds_module_refs = device_settings_module.refs
 
         # Filter through ds segments and grab 'Global Segment'
         ds_global_segment = None
@@ -89,6 +92,19 @@ class DNSEdge(BaseEdge):
 
         # Apply DNS configuration to ds Global Segment
         ds_global_segment['dns'] = dns_none_settings
+
+        dns_primary_provider_ref = [{
+                                "ref": "deviceSettings:dns:primaryProvider",
+                                "configurationId": 11,
+                                "moduleId": 61,
+                                "segmentObjectId": 15,
+                                "segmentLogicalId": "5dcc72f7-ed23-4bb1-9b7a-c5269d651a05",
+                                "enterpriseObjectId": 13,
+                                "logicalId": "914f84b4-b7e2-43e7-93fa-ae37428bc0eb"
+                            }]
+
+        # Update Refs
+        ds_module_refs['deviceSettings:dns:primaryProvider'] = dns_primary_provider_ref
 
         # Set api parameters
         param = {'enterpriseId': self.enterprise_id,
