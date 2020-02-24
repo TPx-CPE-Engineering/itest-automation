@@ -47,6 +47,29 @@ class BaseEdge:
 
         return ConfigurationModule()
 
+    def get_module_from_enterprise_profile(self, module_name: str) -> ConfigurationModule:
+        """
+        Return a specific module from Edge's Enterprise Profile
+
+        Possible modules: 'controlPlane', 'deviceSettings', 'firewall', 'QOS', 'WAN'
+        Enter the name of the module you want to get in module_name
+        Returns empty ConfigurationModule class if module is not found
+        """
+
+        if not (module_name == 'controlPlane' or module_name == 'deviceSettings' or module_name == 'firewall' or
+                module_name == 'QOS' or module_name == 'WAN'):
+            print('Module name error. Module not one of the following:'
+                  '\'controlPlane\', \'devicesSettings\', \'firewall\', \'QOS\', \'WAN\'.'
+                  'Your selection: {}'.format(module_name))
+
+            return ConfigurationModule()
+
+        for module in self.enterprise_profile.modules:
+            if module.name == module_name:
+                return module
+
+        return ConfigurationModule()
+
     @staticmethod
     def get_segment_from_module(segment_name: str, module: ConfigurationModule) -> dict:
         """
