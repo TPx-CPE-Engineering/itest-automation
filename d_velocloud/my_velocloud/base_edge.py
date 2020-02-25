@@ -13,6 +13,15 @@ class BaseEdge:
         self.edge_specific_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[0]
         self.enterprise_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[1]
 
+    def refresh_configuration_stack(self):
+        """
+        Refreshes Configuration Stack for Edge
+        """
+        param = EdgeGetEdgeConfigurationStack(edgeId=self.id, enterpriseId=self.enterprise_id)
+        self.configuration_stack = api.edgeGetEdgeConfigurationStack(param)
+        self.edge_specific_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[0]
+        self.enterprise_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[1]
+
     def get_configuration_stack(self):
         """
         Gets the Edge's Configuration Stack
