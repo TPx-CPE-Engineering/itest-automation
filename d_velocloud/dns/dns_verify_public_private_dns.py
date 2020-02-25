@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
+from my_velocloud.operator_login import velocloud_api as api, ApiException
 from my_velocloud.base_edge import BaseEdge
-import time
 
 """
 Written by: juan.brena@tpx.com
@@ -29,93 +27,89 @@ class DNSEdge(BaseEdge):
     def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
 
-    def set_conditional_dns_forwarding_to_default(self):
+    def set_conditional_dns_forwarding_to_lab_dns(self):
         """
-        Sets Edge's Conditional DNS Forwarding to default which should be to Lab DNS
+        Sets DNS Conditional DNS Forwarding to Lab DNS on the Enterprise Configuration Profile
 
-        This is done by removing Edge Override, thus Edge will default to Enterprise profile
+        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings > Conditional DNS Forwarding > Lab DNS
         """
 
-        # Get Edge's Device Specific Device Settings module
-        device_settings_module = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+        self.refresh_configuration_stack()
 
-        # Filter through Device Setting's (ds) segments and grab Global Segment
-        ds_global_segment = None
-        for seg in device_settings_module.data['segments']:
-            if seg['segment']['name'] == 'Global Segment':
-                ds_global_segment = seg
+        # Get Enterprise's deviceSettings (ds) module
+        enterprise_ds_module = self.get_module_from_enterprise_profile(module_name='deviceSettings').to_dict()
 
-        # Pop 'dns' key to remove
-        if not ds_global_segment.pop('dns', None):
-            d = {'error': None, 'rows': 0, 'message': "Conditional DNS Forwarding already set to Default"}
-            print(d)
-            return
+        ds_module_refs = enterprise_ds_module['refs']
 
-        # Set api parameters
-        print('ID: {}'.format(device_settings_module.id))
-        param = ConfigurationUpdateConfigurationModule(id=device_settings_module.id, enterpriseId=self.enterprise_id, update=device_settings_module)
+        lab_dns_settings = {'configurationId': 10,
+                            'enterpriseObjectId': 2967,
+                            'logicalId': '1649888d-cbf9-419a-aff0-fc01c0f87003',
+                            'moduleId': 57,
+                            'ref': 'deviceSettings:dns:privateProviders',
+                            'segmentLogicalId': '5dcc72f7-ed23-4bb1-9b7a-c5269d651a05',
+                            'segmentObjectId': 15
+                            }
 
-        # Push change
-        res = api.configurationUpdateConfigurationModule(param)
+        if 'deviceSettings:dns:privateProviders' not in ds_module_refs.keys():
+            ds_module_refs['deviceSettings:dns:privateProviders'] = lab_dns_settings
 
-        # Print response
-        print(res)
+            param = {'id': enterprise_ds_module['id'], 'enterpriseId': self.enterprise_id, '_update': enterprise_ds_module}
+
+            # Push change
+            try:
+                res = api.configurationUpdateConfigurationModule(param)
+                print(res)
+            except ApiException as e:
+                print(e)
 
     def set_conditional_dns_forwarding_to_none(self):
         """
-        Sets Enterprise Conditional DNS Forwarding to '[none]'
+        Sets DNS Conditional DNS Forwarding to [none] on the Enterprise Configuration Profile
 
-        Configure > Profiles > CPE Engineering Base Profile 3.3 > Device > DNS Settings > Conditional DNS Forwarding > [none]
+        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings > Conditional DNS Forwarding > [none]
         """
+        self.refresh_configuration_stack()
 
-        # Get Edge's Device Specific deviceSettings module (ds)
-        device_settings_module = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+        # Get Enterprise's deviceSettings (ds) module
+        enterprise_ds_module = self.get_module_from_enterprise_profile(module_name='deviceSettings').to_dict()
 
-        # Get ds data
-        ds_module_data = device_settings_module.data
+        ds_module_refs = enterprise_ds_module['refs']
 
-        # Get ds refs
-        ds_module_refs = device_settings_module.refs
+        if not ds_module_refs.pop('deviceSettings:dns:privateProviders', None):
+            return
 
-        # Filter through ds segments and grab 'Global Segment'
-        ds_global_segment = None
-        for seg in ds_module_data['segments']:
-            if seg['segment']['name'] == 'Global Segment':
-                ds_global_segment = seg
-
-        # Set configuration settings so Conditional DNS Forwarding be set to '[none]'
-        # Within GUI: Edge > Device > DNS Settings > Enable 'Enable Edge Override' > Set Conditional DNS Forwarding to [none]
-        dns_none_settings = {'primaryProvider': {'ref': 'deviceSettings:dns:primaryProvider'},
-                             'backupProvider': {'ref': 'deviceSettings:dns:backupProvider'},
-                             'privateProviders': {'ref': 'deviceSettings:dns:privateProviders'},
-                             'override': True}
-
-        # Apply DNS configuration to ds Global Segment
-        ds_global_segment['dns'] = dns_none_settings
-
-        dns_primary_provider_ref = [{
-                                "ref": "deviceSettings:dns:primaryProvider",
-                                "configurationId": 11,
-                                "moduleId": 61,
-                                "segmentObjectId": 15,
-                                "segmentLogicalId": "5dcc72f7-ed23-4bb1-9b7a-c5269d651a05",
-                                "enterpriseObjectId": 13,
-                                "logicalId": "914f84b4-b7e2-43e7-93fa-ae37428bc0eb"
-                            }]
-
-        # Update Refs
-        ds_module_refs['deviceSettings:dns:primaryProvider'] = dns_primary_provider_ref
-
-        # Set api parameters
-        param = {'enterpriseId': self.enterprise_id,
-                 'id': device_settings_module.id,
-                 '_update': {'data': ds_module_data}}
+        param = {'id': enterprise_ds_module['id'], 'enterpriseId': self.enterprise_id, '_update': enterprise_ds_module}
 
         # Push change
-        res = api.configurationUpdateConfigurationModule(param)
+        try:
+            res = api.configurationUpdateConfigurationModule(param)
+            print(res)
+        except ApiException as e:
+            print(e)
 
-        # Print response
-        print(res)
+    def is_conditional_dns_forwarding_set_to_lab_dns(self):
+        """
+        Prints yes or no (in json format) whether the Edge's Enterprise Configuration Profile's DNS Conditional Forwarding set to Lab DNS
+
+        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings> Conditional DNS Forwarding > Lab DNS
+        """
+
+        self.refresh_configuration_stack()
+
+        # Get Enterprise's deviceSettings (ds) module
+        enterprise_ds_module = self.get_module_from_enterprise_profile(module_name='deviceSettings').to_dict()
+
+        # Get refs
+        ds_module_refs = enterprise_ds_module['refs']
+
+        # Check for private provider
+        d = {'is_conditional_dns_forwarding_set_to_lab_dns': None}
+        if 'deviceSettings:dns:privateProviders' in ds_module_refs.keys():
+            d['is_conditional_dns_forwarding_set_to_lab_dns'] = 'yes'
+        else:
+            d['is_conditional_dns_forwarding_set_to_lab_dns'] = 'no'
+
+        print(d)
 
 
 EDGE: DNSEdge
@@ -126,15 +120,18 @@ def create_edge(edge_id, enterprise_id, ssh_port) -> None:
     EDGE = DNSEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port))
 
 
-def set_conditional_dns_forwarding_to_default():
-    EDGE.set_conditional_dns_forwarding_to_default()
+def set_conditional_dns_forwarding_to_lab_dns():
+    EDGE.set_conditional_dns_forwarding_to_lab_dns()
 
 
 def set_conditional_dns_forwarding_to_none():
     EDGE.set_conditional_dns_forwarding_to_none()
 
 
+def is_conditional_dns_forwarding_set_to_lab_dns():
+    EDGE.is_conditional_dns_forwarding_set_to_lab_dns()
+
+
 if __name__ == '__main__':
     create_edge(edge_id='1', enterprise_id='1', ssh_port='2201')
-    set_conditional_dns_forwarding_to_none()
-
+    is_conditional_dns_forwarding_set_to_lab_dns()
