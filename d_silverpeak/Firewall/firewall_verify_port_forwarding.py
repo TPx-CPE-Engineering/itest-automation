@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from silverpeak import *
+from my_silverpeak import operator_login
 
 # Login
-sp = Silverpeak(user='juan.brena', user_pass='1Maule1!', sp_server='cpesp.lab-sv.telepacific.com', disable_warnings=True)
+sp = operator_login.login()
 
 # Globals
 EDGE_ID = None
@@ -28,8 +29,7 @@ def is_ssh_rule_present() -> None:
     It looks for a rule that has ..
     1. 'tcp' has its protocol
     2. Its destination port is equal to global SSH_PORT
-    3. Its translated port is equal to global SSH_PORT
-    4. The word 'itest' is in the rule's comments
+    3. The string 'itest' is in the rule's comments
     """
 
     global EDGE_ID, SSH_PORT
@@ -41,8 +41,9 @@ def is_ssh_rule_present() -> None:
     inbound_port_forwarding_rules = res.data
 
     for rule in inbound_port_forwarding_rules:
-        if rule['protocol'] == 'tcp' and rule['destPort'] == SSH_PORT and rule['targetPort'] == SSH_PORT and 'itest' \
-                in rule['comment'].lower():
+        print(rule)
+        print('\n')
+        if rule['protocol'] == 'tcp' and rule['destPort'] == SSH_PORT and 'itest' in rule['comment'].lower():
             d['is_ssh_rule_present'] = 'yes'
             print(d)
             return
@@ -58,8 +59,7 @@ def remove_ssh_rule():
     It removes the SSH rule that has..
     1. 'tcp' has its protocol
     2. Its destination port is equal to global SSH_PORT
-    3. Its translated port is equal to global SSH_PORT
-    4. The word 'itest' is in the rule's comments
+    3. The string 'itest' is in the rule's comments
     """
 
     global EDGE_ID, SSH_PORT, SSH_RULE
@@ -69,8 +69,7 @@ def remove_ssh_rule():
     inbound_port_forwarding_rules = res.data
 
     for rule in inbound_port_forwarding_rules:
-        if rule['protocol'] == 'tcp' and rule['destPort'] == SSH_PORT and rule['targetPort'] == SSH_PORT and 'itest' \
-                in rule['comment'].lower():
+        if rule['protocol'] == 'tcp' and rule['destPort'] == SSH_PORT and 'itest' in rule['comment'].lower():
             SSH_RULE = rule
             inbound_port_forwarding_rules.remove(rule)
 
@@ -108,8 +107,11 @@ def add_ssh_rule():
     if res.error:
         d = {'error': res.error}
         print(d)
-        return
     else:
         d = {'error': None}
         print(d)
-        return
+
+
+if __name__ == '__main__':
+    set_globals(edge_id="5.NE", enterprise_id=None, ssh_port="2201")
+    is_ssh_rule_present()
