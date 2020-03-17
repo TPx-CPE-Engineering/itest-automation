@@ -41,8 +41,6 @@ def is_ssh_rule_present() -> None:
     inbound_port_forwarding_rules = res.data
 
     for rule in inbound_port_forwarding_rules:
-        print(rule)
-        print('\n')
         if rule['protocol'] == 'tcp' and rule['destPort'] == SSH_PORT and 'itest' in rule['comment'].lower():
             d['is_ssh_rule_present'] = 'yes'
             print(d)
