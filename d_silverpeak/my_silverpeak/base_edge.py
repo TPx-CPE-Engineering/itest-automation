@@ -1,3 +1,8 @@
+"""
+Base Edge template for Silverpeak automation
+"""
+
+
 class BaseEdge:
     def __init__(self, edge_id, enterprise_id, ssh_port):
         self.edge_id = edge_id
