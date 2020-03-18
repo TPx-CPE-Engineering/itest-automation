@@ -74,7 +74,7 @@ def add_deny_source_address_rule() -> None:
                                          "logging": "disable",
                                          "logging_priority": "0"
                                          },
-                                "comment": "iTest deny CPE outbound traffic",
+                                "comment": "iTest deny outbound traffic from source IP {} (CPE LAN IP)".format(cpe_lan_ip),
                                 "gms_marked": False,
                                 "set": {"action": "allow"
                                         }
