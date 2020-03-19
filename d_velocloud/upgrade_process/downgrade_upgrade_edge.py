@@ -3,6 +3,7 @@ from velocloud.models import *
 from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 import time
+from datetime import datetime
 
 """
 Written by: juan.brena@tpx.com
@@ -24,7 +25,7 @@ Monitor progress in Event log (Monitor > Events).
 """
 
 # Used to get events from this epoch
-EPOCH = None
+EPOCH = int()
 
 
 class UpgradeDowngradeEdge(BaseEdge):
@@ -120,7 +121,7 @@ class UpgradeDowngradeEdge(BaseEdge):
 
     def downgrade_edge(self):
         """
-        Downgrades Edges to a lower version than its current operator profile version
+        Downgrades Edge to a lower version than its current operator profile version
         """
 
         d = {'Downgrading Edge to': self.downgrade_operator_profile['name']}
@@ -130,6 +131,21 @@ class UpgradeDowngradeEdge(BaseEdge):
         param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id, 'configurationId': self.downgrade_operator_profile['id']}
 
         # Execute Downgrade api call
+        res = api.edgeSetEdgeOperatorConfiguration(param)
+
+        # Print results
+        print(res)
+
+    def restore_edge_to_original_firmware(self):
+        """
+        Restores Edge to its orignal firmware version
+        """
+        print({"Restoring Edge to": self.current_operator_profile['name']})
+
+        # Set api parameters
+        param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id, 'configurationId': self.current_operator_profile['id']}
+
+        # Execute Upgrade api call
         res = api.edgeSetEdgeOperatorConfiguration(param)
 
         # Print results
@@ -158,7 +174,9 @@ class UpgradeDowngradeEdge(BaseEdge):
         software_update = False
         edge_restart = False
         edge_online = False
+        event_messages = []
         for event in reversed(edge_events.data):
+            event_messages.append(event.message)
             if "Applied new configuration for imageUpdate" in event.message:
                 configuration_applied = True
                 continue
@@ -186,6 +204,7 @@ class UpgradeDowngradeEdge(BaseEdge):
             d["Edge Upgrade Events Status"] = 'Failed'
 
         print(d)
+        print({"All Event Messages since {}".format(get_datetime_str_from_epoch()): event_messages})
 
     def print_firmware_relevant_edge_events(self):
         """
@@ -283,12 +302,22 @@ def downgrade_edge():
     EDGE.downgrade_edge()
 
 
+def restore_edge_to_original_firmware():
+    global EPOCH
+    EPOCH = int(round(time.time() * 1000))
+    EDGE.restore_edge_to_original_firmware()
+
+
 def check_for_edge_downgrade_upgrade_events():
     EDGE.check_for_edge_downgrade_upgrade_events()
 
 
 def print_firmware_relevant_edge_events():
     EDGE.print_firmware_relevant_edge_events()
+
+
+def get_datetime_str_from_epoch():
+    return datetime.fromtimestamp(EPOCH/1000).strftime('%Y-%m-%d %H:%M:%S')
 
 
 if __name__ == '__main__':
