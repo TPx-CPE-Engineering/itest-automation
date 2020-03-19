@@ -46,7 +46,8 @@ def add_firewall_outbound_rule_with_destination_ip(destination_ip):
                                 "self": 1500,
                                 "misc": {"rule": "enable",
                                          "logging": "disable",
-                                         "logging_priority": "0"
+                                         "logging_priority": "0",
+                                         "tag": "iTest"
                                          },
                                 "comment": "iTest deny outbound traffic to destination IP {}".format(destination_ip),
                                 "gms_marked": False,

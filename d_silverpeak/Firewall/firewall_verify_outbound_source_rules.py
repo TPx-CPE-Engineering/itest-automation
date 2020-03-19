@@ -29,13 +29,20 @@ Edge: SPEdge
 
 
 def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
+    """
+    Creates Silver Peak Edge object
+    :param edge_id: Silver Peak Edge ID
+    :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
+    :param ssh_port: SSH Port for CPE sitting behind Silver Peak Edge
+    :return: None
+    """
     global Edge
     Edge = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
 
 
 def get_cpe_lan_ip() -> str:
     """
-    Gets the CPE LAN IP by looking at the port forwarding rules and basing it on the ssh port
+    Get the CPE's LAN IP (sitting behind Silverpeak Edge) by looking at the port forwarding rules and basing it on port, protocol, and comment
     :return: CPE LAN IP or an empty str
     """
 
@@ -56,7 +63,7 @@ def get_cpe_lan_ip() -> str:
 
 def add_deny_source_address_rule() -> None:
     """
-    Will add a ZB Firewall rule to block traffic from source ip: CPE IP
+    Add a firewall rule to block traffic from source ip: CPE IP on zone One to Default with priority 1500
     """
     # Get LAN IP of CPE behind Silverpeak
     cpe_lan_ip = get_cpe_lan_ip()
@@ -72,7 +79,8 @@ def add_deny_source_address_rule() -> None:
                                 "self": 1500,
                                 "misc": {"rule": "enable",
                                          "logging": "disable",
-                                         "logging_priority": "0"
+                                         "logging_priority": "0",
+                                         "tag": "iTest"
                                          },
                                 "comment": "iTest deny outbound traffic from source IP {} (CPE LAN IP)".format(cpe_lan_ip),
                                 "gms_marked": False,
@@ -104,6 +112,10 @@ def add_deny_source_address_rule() -> None:
 
 
 def remove_deny_source_address_rule():
+    """
+    Remove firewall rule to block traffic from source ip: CPE IP which is on zone One to Default with priority 1500
+    :return:
+    """
     # Get Edge's Security Policy Rules data
     security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
 
@@ -131,6 +143,10 @@ def remove_deny_source_address_rule():
 
 
 def is_deny_source_address_rule_present():
+    """
+    Prints yes or no (in json format) whether firewall rule to block traffic from source ip: CPE IP on zone One to Default with priority 1500 is present
+    :return:
+    """
     # Get Edge's Security Policy Rules data
     security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
 
