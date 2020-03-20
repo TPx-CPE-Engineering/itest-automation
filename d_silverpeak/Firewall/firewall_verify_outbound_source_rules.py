@@ -25,7 +25,7 @@ class SPEdge(SPBaseEdge):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
 
 
-Edge: SPEdge
+EDGE: SPEdge
 
 
 def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
@@ -36,8 +36,8 @@ def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
     :param ssh_port: SSH Port for CPE sitting behind Silver Peak Edge
     :return: None
     """
-    global Edge
-    Edge = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
+    global EDGE
+    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
 
 
 def get_cpe_lan_ip() -> str:
@@ -47,18 +47,18 @@ def get_cpe_lan_ip() -> str:
     """
 
     # Get Port Forwarding Rules
-    url = sp.base_url + '/portForwarding/' + Edge.edge_id
+    url = sp.base_url + '/portForwarding/' + EDGE.edge_id
     res = sp._get(sp.session, url=url, headers=None, timeout=10)
     port_forwarding_rules = res.data
 
     # Locate the SSH Port Forwarding Rules based on it its protocol destination port and it has itest in the comments
     for rule in port_forwarding_rules:
-        if rule['protocol'] == 'tcp' and rule['destPort'] == Edge.ssh_port and 'itest' in rule['comment'].lower():
+        if rule['protocol'] == 'tcp' and rule['destPort'] == EDGE.ssh_port and 'itest' in rule['comment'].lower():
             return rule['targetIp']
 
     # If rule is not found then raise a KeyError
     raise KeyError("A SSH Inbound Forwarding Rule with Protocol = TCP, Destination Port = {}, and string 'itest' in the Comment was not found.".format(
-        Edge.ssh_port))
+        EDGE.ssh_port))
 
 
 def add_deny_source_address_rule() -> None:
@@ -69,10 +69,9 @@ def add_deny_source_address_rule() -> None:
     cpe_lan_ip = get_cpe_lan_ip()
 
     # Add subnet
-    cpe_lan_ip = cpe_lan_ip + '/24'
+    cpe_lan_ip = cpe_lan_ip + '/32'
 
     # Setup Deny Source Address rule
-    # TODO change action to deny once you want to truly test
     deny_source_address_rule = {"match": {"acl": "",
                                           "src_ip": cpe_lan_ip
                                           },
@@ -84,12 +83,12 @@ def add_deny_source_address_rule() -> None:
                                          },
                                 "comment": "iTest deny outbound traffic from source IP {} (CPE LAN IP)".format(cpe_lan_ip),
                                 "gms_marked": False,
-                                "set": {"action": "allow"
+                                "set": {"action": "deny"
                                         }
                                 }
 
     # Get Edge's Security Policy Rules data
-    security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
+    security_policy_rules = sp.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Add new rule to Security Policy Rules
     # Add to 12_0 since that is 'One to Default'
@@ -100,7 +99,7 @@ def add_deny_source_address_rule() -> None:
     data = json.dumps(data)
 
     # Call API call
-    result = sp.post_sec_policy(applianceID=Edge.edge_id, secPolData=data)
+    result = sp.post_sec_policy(applianceID=EDGE.edge_id, secPolData=data)
 
     # Check results
     if result.status_code == 204:
@@ -117,7 +116,7 @@ def remove_deny_source_address_rule():
     :return:
     """
     # Get Edge's Security Policy Rules data
-    security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
+    security_policy_rules = sp.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Delete rule
     try:
@@ -131,7 +130,7 @@ def remove_deny_source_address_rule():
     data = json.dumps(data)
 
     # Call API call
-    result = sp.post_sec_policy(applianceID=Edge.edge_id, secPolData=data)
+    result = sp.post_sec_policy(applianceID=EDGE.edge_id, secPolData=data)
 
     # Check results
     if result.status_code == 204:
@@ -148,7 +147,7 @@ def is_deny_source_address_rule_present():
     :return:
     """
     # Get Edge's Security Policy Rules data
-    security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
+    security_policy_rules = sp.get_sec_policy(applianceID=EDGE.edge_id).data
 
     deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None).get('1500', None)
 

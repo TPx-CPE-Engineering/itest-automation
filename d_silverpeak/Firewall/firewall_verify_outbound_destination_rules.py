@@ -4,7 +4,7 @@ import json
 
 """
 Silver Peak Test Plan v2
-General Edge Functions
+General EDGE Functions
 ZB Firewall
 Author: juan.brena@tpx.com
 Date: 3/18/2020
@@ -25,7 +25,7 @@ class SPEdge(SPBaseEdge):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
 
 
-Edge: SPEdge
+EDGE: SPEdge
 
 
 def add_firewall_outbound_rule_with_destination_ip(destination_ip):
@@ -36,10 +36,9 @@ def add_firewall_outbound_rule_with_destination_ip(destination_ip):
     """
 
     # Add subnet to destination ip
-    destination_ip += "/24"
+    destination_ip += "/32"
 
     # Setup Deny Source Address rule
-    # TODO change action to deny once you want to truly test
     deny_source_address_rule = {"match": {"acl": "",
                                           "dst_ip": destination_ip
                                           },
@@ -51,12 +50,12 @@ def add_firewall_outbound_rule_with_destination_ip(destination_ip):
                                          },
                                 "comment": "iTest deny outbound traffic to destination IP {}".format(destination_ip),
                                 "gms_marked": False,
-                                "set": {"action": "allow"
+                                "set": {"action": "deny"
                                         }
                                 }
 
-    # Get Edge's Security Policy Rules data
-    security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
+    # Get EDGE's Security Policy Rules data
+    security_policy_rules = sp.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Add new rule to Security Policy Rules
     # Add to 12_0 since that is 'One to Default'
@@ -67,7 +66,7 @@ def add_firewall_outbound_rule_with_destination_ip(destination_ip):
     data = json.dumps(data)
 
     # Call API call
-    result = sp.post_sec_policy(applianceID=Edge.edge_id, secPolData=data)
+    result = sp.post_sec_policy(applianceID=EDGE.edge_id, secPolData=data)
 
     # Check results
     if result.status_code == 204:
@@ -85,8 +84,8 @@ def remove_firewall_outbound_rule_with_destination_ip(destination_ip):
     :return: None
     """
 
-    # Get Edge's Security Policy Rules data
-    security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
+    # Get EDGE's Security Policy Rules data
+    security_policy_rules = sp.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Delete rule
     try:
@@ -100,7 +99,7 @@ def remove_firewall_outbound_rule_with_destination_ip(destination_ip):
     data = json.dumps(data)
 
     # Call API call
-    result = sp.post_sec_policy(applianceID=Edge.edge_id, secPolData=data)
+    result = sp.post_sec_policy(applianceID=EDGE.edge_id, secPolData=data)
 
     # Check results
     if result.status_code == 204:
@@ -117,8 +116,8 @@ def is_firewall_outbound_rule_with_destination_ip_present(destination_ip):
     :param destination_ip: Not needed for Silver Peak but kept to reuse iTest test case
     :return: None
     """
-    # Get Edge's Security Policy Rules data
-    security_policy_rules = sp.get_sec_policy(applianceID=Edge.edge_id).data
+    # Get EDGE's Security Policy Rules data
+    security_policy_rules = sp.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Attempt to get Zone base Firewall rule with priority 1500 on One to Default zone
     deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None).get('1500', None)
@@ -134,14 +133,14 @@ def is_firewall_outbound_rule_with_destination_ip_present(destination_ip):
 
 def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
     """
-    Creates Silver Peak Edge object
-    :param edge_id: Silver Peak Edge ID
+    Creates Silver Peak EDGE object
+    :param edge_id: Silver Peak EDGE ID
     :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
-    :param ssh_port: SSH Port for CPE sitting behind Silver Peak Edge
+    :param ssh_port: SSH Port for CPE sitting behind Silver Peak EDGE
     :return: None
     """
-    global Edge
-    Edge = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
+    global EDGE
+    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
 
 
 if __name__ == '__main__':
