@@ -38,6 +38,10 @@ def create_edge(edge_id: str, enterprise_id: str, ssh_port: str):
     global EDGE
     EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
 
+    # Verify if FW Zone 'ONE id:12' is set for Interface 'lan0'
+    if not EDGE.is_testing_fw_zone_set_for_testing_interface():
+        EDGE.set_testing_fw_zone_for_testing_interface()
+
 
 def add_firewall_rule_deny_source_ip_acl() -> None:
     """
@@ -79,11 +83,9 @@ def add_firewall_rule_deny_source_ip_acl() -> None:
 
     # Check results
     if result.status_code == 204:
-        d = {'call': 'add_firewall_rule_deny_source_ip_acl', 'error': None, 'rows': 1}
-        print(d)
+        print({'error': None, 'rows': 1})
     else:
-        d = {'call': 'add_firewall_rule_deny_source_ip_acl', 'error': result.error, 'rows': 0}
-        print(d)
+        print({'error': result.error, 'rows': 0})
 
 
 def remove_firewall_rule_deny_source_ip_acl():
@@ -100,7 +102,7 @@ def remove_firewall_rule_deny_source_ip_acl():
         del security_policy_rules['map1']['12_0']['prio']['1500']
     except KeyError:
         # If KeyError then entry does not exists therefore you can say rule was successfully removed
-        print({'call': 'remove_firewall_rule_deny_source_ip_acl', 'error': None, 'rows': 0})
+        print({'error': None, 'rows': 0})
         return
 
     # Setup Data for API call
@@ -112,9 +114,9 @@ def remove_firewall_rule_deny_source_ip_acl():
 
     # Check results
     if result.status_code == 204:
-        print({'call': 'remove_firewall_rule_deny_source_ip_acl', 'error': None, 'rows': 1})
+        print({'error': None, 'rows': 1})
     else:
-        print({'call': 'remove_firewall_rule_deny_source_ip_acl', 'error': result.error, 'rows': 0})
+        print({'error': result.error, 'rows': 0})
 
 
 def is_acl_source_ip_entry_present():
@@ -134,12 +136,14 @@ def is_acl_source_ip_entry_present():
         cpe_lan_ip = EDGE.get_cpe_lan_ip() + '/32'
 
         if acl_one_source_ip == cpe_lan_ip:
-            print({"is acl source ip entry present": "yes"})
+            # print({'response': 'yes'})
+            print('yes')
         else:
-            print({"is acl source ip entry present": "no"})
+            # print({'response': 'no'})
+            print('no')
     else:
-        print({"is acl source ip entry present": "no"})
-
+        # print({'response': 'no'})
+        print('no')
 # def add_acl_source_ip_entry():
 #     """
 #     Add a ACL entry named "ONE-source_ip" to Edge to deny all traffic based on source address.
@@ -230,8 +234,11 @@ def is_acl_source_ip_entry_present():
 #         print({'call': 'remove_acl_source_ip_entry', 'error': res.error, 'rows': 0})
 
 
+def is_firewall_zone_set_to_one():
+
+    EDGE.set_testing_fw_zone_for_testing_interface()
+
+
 if __name__ == '__main__':
-    create_edge(edge_id='7.NE', enterprise_id='0', ssh_port="2201")
-    # add_acl_source_ip_entry()
-    # add_firewall_rule_deny_source_ip_acl()
-    is_acl_source_ip_entry_present()
+    create_edge(edge_id='18.NE', enterprise_id='0', ssh_port="2203")
+    is_firewall_zone_set_to_one()
