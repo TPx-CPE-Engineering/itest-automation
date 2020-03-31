@@ -1,6 +1,7 @@
 from my_silverpeak import operator_login
 import json
 import time
+import requests.exceptions
 
 """
 Base Edge template for Silverpeak automation
@@ -98,15 +99,28 @@ class SPBaseEdge:
 
         deployment = json.dumps(deployment)
 
-        response = self.api.post_deployment_data(applianceID=self.edge_id, deploymentData=deployment)
+        self.api.post_deployment_data(applianceID=self.edge_id, deploymentData=deployment, timeout=240)
+        time.sleep(10)
 
-        if self.debug:
-            print(response)
+        # if self.debug:
+        #     print(response)
 
-        if response.status_code == 200:
-            print(response.data)
-        else:
-            print(response)
+        while True:
+            deployment = None
+            try:
+                deployment = self.api.get_deployment_data(applianceID=self.edge_id).data
+            except requests.exceptions.ReadTimeout:
+                pass
+
+            if deployment is not None:
+                if self.is_fw_zone_set_for_interface(fw_zone=fw_zone, interface=interface):
+                    print('FW Zone config applied')
+                else:
+                    print('Error applying FW Zone config')
+                break
+
+            print('Applying FW Zone config...')
+            time.sleep(5)
 
     def is_fw_zone_set_for_interface(self, fw_zone, interface):
         """
