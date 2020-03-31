@@ -38,10 +38,6 @@ def create_edge(edge_id: str, enterprise_id: str, ssh_port: str):
     global EDGE
     EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
 
-    # Verify if FW Zone 'ONE id:12' is set for Interface 'lan0'
-    if not EDGE.is_testing_fw_zone_set_for_testing_interface():
-        EDGE.set_testing_fw_zone_for_testing_interface()
-
 
 def add_firewall_rule_deny_source_ip_acl() -> None:
     """
@@ -144,6 +140,7 @@ def is_acl_source_ip_entry_present():
     else:
         # print({'response': 'no'})
         print('no')
+
 # def add_acl_source_ip_entry():
 #     """
 #     Add a ACL entry named "ONE-source_ip" to Edge to deny all traffic based on source address.
@@ -234,11 +231,5 @@ def is_acl_source_ip_entry_present():
 #         print({'call': 'remove_acl_source_ip_entry', 'error': res.error, 'rows': 0})
 
 
-def is_firewall_zone_set_to_one():
-
-    EDGE.set_testing_fw_zone_for_testing_interface()
-
-
 if __name__ == '__main__':
     create_edge(edge_id='18.NE', enterprise_id='0', ssh_port="2203")
-    is_firewall_zone_set_to_one()
