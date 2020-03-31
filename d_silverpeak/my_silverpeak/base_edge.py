@@ -145,7 +145,6 @@ class SPBaseEdge:
 
         # Check if the appliance with matching Deployment Param has self.testing_fw_zone as its FW Zone
         for appliance in appliances:
-            print(appliance)
             if appliance['label'] == interface['label']['id'] and \
                     interface['comment'].lower() in appliance['comment'].lower():
                 if appliance['zone'] == fw_zone['id']:
