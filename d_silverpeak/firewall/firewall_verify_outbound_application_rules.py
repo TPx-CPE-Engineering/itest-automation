@@ -36,6 +36,9 @@ def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
     global EDGE
     EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
 
+    if not EDGE.is_fw_zone_set_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface):
+        EDGE.set_fw_zone_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface)
+
 
 def add_icmp_block_outbound_app_rule():
     """
@@ -134,5 +137,4 @@ def is_icmp_block_outbound_app_rule_present():
 
 
 if __name__ == '__main__':
-    set_globals(edge_id='7.NE', enterprise_id='0', ssh_port="2201")
-    add_icmp_block_outbound_app_rule()
+    set_globals(edge_id='18.NE', enterprise_id='0', ssh_port="2203")
