@@ -99,14 +99,16 @@ class RebootEdge:
         :return: None
         """
         live_mode_token = self.get_live_mode_token()
-        response = self.client.call_api(method='liveMode/requestLiveActions', params={'token': live_mode_token,
-                                                                                      'actions': [
-                                                                                          {'action': 'reboot',
-                                                                                           'parameters': {}
-                                                                                           }
-                                                                                        ]})
-        # Print response to debug
-        # print(response)
+        try:
+            response = self.client.call_api(method='liveMode/requestLiveActions', params={'token': live_mode_token,
+                                                                                          'actions': [
+                                                                                              {'action': 'reboot',
+                                                                                               'parameters': {}
+                                                                                               }
+                                                                                            ]})
+            print({'error': None, 'rows': 1})
+        except ApiException as e:
+            print({'error': e, 'rows': 0})
 
     def get_events(self, interval_start=None):
         """
@@ -160,6 +162,8 @@ def find_shut_and_start_event_time_difference():
             break
 
     while True:
+        events = EDGE.get_events(interval_start=EPOCH)
+
         for event in reversed(events):
             if event['event'] == 'MGD_START' and 'Management Daemon Started' in event['message']:
                 has_online_event['result'] = True
@@ -170,15 +174,7 @@ def find_shut_and_start_event_time_difference():
         if has_online_event['result']:
             break
         else:
-            print('sleeping...')
             time.sleep(10)
-
-    # for event in reversed(events):
-    #     if event['event'] == 'MGD_START' and 'Management Daemon Started' in event['message']:
-    #         has_online_event['result'] = True
-    #         utc_dt = datetime.strptime(event['eventTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
-    #         has_online_event['event time'] = (utc_dt - datetime(1970, 1, 1)).total_seconds()
-    #         break
 
     # If both events are found, print out the time it took between events
     if has_shutting_down_event['result'] and has_online_event['result']:
@@ -196,7 +192,7 @@ def find_shut_and_start_event_time_difference():
             print({'error': "'Online' Event not found"})
 
 
-def find_shut_and_edge_up_event_time_difference():
+def find_shut_and_edge_interface_up_event_time_difference():
     """
     Find the time difference between the Edges 'Shutting down' event and 'Edge up' event
     :return: Prints time difference
@@ -205,7 +201,7 @@ def find_shut_and_edge_up_event_time_difference():
 
     # Look for 'shutting down' and 'edge interface up' event and return time between
     has_shutting_down_event = {'result': False, 'event time': None}
-    has_edge_up_event = {'result': False, 'event time': None, 'message': None}
+    has_edge_interface_up_event = {'result': False, 'event time': None, 'message': None}
 
     for event in reversed(events):
         if event['event'] == 'MGD_EXITING' and event['message'] == 'Management Daemon Exiting on signal 0':
@@ -215,38 +211,48 @@ def find_shut_and_edge_up_event_time_difference():
             break
 
     while True:
+        events = EDGE.get_events(interval_start=EPOCH)
+
         for event in reversed(events):
-            if event['event'] == 'EDGE_UP':
-                has_edge_up_event['result'] = True
+            if event['event'] == 'EDGE_INTERFACE_UP':
+                has_edge_interface_up_event['result'] = True
                 utc_dt = datetime.strptime(event['eventTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                has_edge_up_event['event time'] = (utc_dt - datetime(1970, 1, 1)).total_seconds()
+                has_edge_interface_up_event['event time'] = (utc_dt - datetime(1970, 1, 1)).total_seconds()
                 break
 
-        if has_edge_up_event['result']:
+        if has_edge_interface_up_event['result']:
             break
         else:
-            print('sleeping...')
             time.sleep(10)
 
-    # for event in reversed(events):
-    #     if event['event'] == 'EDGE_UP':
-    #         has_edge_up_event['result'] = True
-    #         utc_dt = datetime.strptime(event['eventTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
-    #         has_edge_up_event['event time'] = (utc_dt - datetime(1970, 1, 1)).total_seconds()
-    #         break
-
-    if has_shutting_down_event['result'] and has_edge_up_event['result']:
-        converted_online = datetime.fromtimestamp(has_edge_up_event['event time'])
+    if has_shutting_down_event['result'] and has_edge_interface_up_event['result']:
+        converted_online = datetime.fromtimestamp(has_edge_interface_up_event['event time'])
         converted_shut = datetime.fromtimestamp(has_shutting_down_event['event time'])
         total_seconds = (converted_online - converted_shut).total_seconds()
         minutes = int(total_seconds / 60)
         seconds = total_seconds % 60
-        print("Time between Edge 'Shutting down' and 'Edge up' events: {} minutes {} seconds, ({}s)".format(minutes, seconds, total_seconds))
+        print("Time between Edge 'Shutting down' and 'Edge Interface Up' events: {} minutes {} seconds, ({}s)".format(minutes, seconds, total_seconds))
+
+
+def print_all_edge_reboot_events():
+    """
+    Prints all edge events, as a list, starting from when the reboot started
+    :return: None
+    """
+
+    events = EDGE.get_events(interval_start=EPOCH)
+
+    events_list = []
+
+    for event in reversed(events):
+        events_list.append(event['message'])
+
+    print(events_list)
 
 
 if __name__ == '__main__':
     create_edge(edge_id=1, enterprise_id=1, ssh_port=2201)
     reboot_edge()
-    time.sleep(300)
+    time.sleep(120)
     find_shut_and_start_event_time_difference()
-    find_shut_and_edge_up_event_time_difference()
+    find_shut_and_edge_interface_up_event_time_difference()
