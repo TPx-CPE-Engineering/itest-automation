@@ -25,16 +25,15 @@ class SPEdge(SPBaseEdge):
 EDGE: SPEdge
 
 
-def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
+def set_globals(edge_id: str, enterprise_id: str):
     """
     Creates Silver Peak EDGE object
     :param edge_id: Silver Peak EDGE ID
     :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
-    :param ssh_port: SSH Port for CPE sitting behind Silver Peak EDGE
     :return: None
     """
     global EDGE
-    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
+    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=0)
 
     if not EDGE.is_fw_zone_set_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface):
         EDGE.set_fw_zone_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface)
@@ -95,7 +94,7 @@ def remove_icmp_block_outbound_app_rule():
     try:
         del security_policy_rules['map1']['12_0']['prio']['1500']
     except KeyError:
-        # If KeyError, rule does not exist therefore removal was sucessful
+        # If KeyError, rule does not exist therefore removal was successful
         print({'error': None, 'rows': 0})
         return
 
@@ -130,11 +129,11 @@ def is_icmp_block_outbound_app_rule_present():
     # Checking rule...
     if not deny_source_address_rule:
         # If rule is None, then rule does not exists
-        print({"is icmp block outbound app rule present": 'no'})
+        print({"is_outbound_application_rule_present": 'no'})
     else:
         # If rule is not None, then rule exist
-        print({"is icmp block outbound app rule present": 'yes'})
+        print({"is_outbound_application_rule_present": 'yes'})
 
 
 if __name__ == '__main__':
-    set_globals(edge_id='18.NE', enterprise_id='0', ssh_port="2203")
+    set_globals(edge_id='18.NE', enterprise_id='0')

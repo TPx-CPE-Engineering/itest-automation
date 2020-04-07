@@ -99,7 +99,7 @@ class SPBaseEdge:
 
         deployment = json.dumps(deployment)
 
-        self.api.post_deployment_data(applianceID=self.edge_id, deploymentData=deployment, timeout=240)
+        self.api.post_deployment_data(applianceID=self.edge_id, deploymentData=deployment)
         time.sleep(10)
 
         # if self.debug:
