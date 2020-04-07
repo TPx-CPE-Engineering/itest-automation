@@ -122,9 +122,9 @@ def is_deny_source_address_rule_present():
     deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None).get('1500', None)
 
     if not deny_source_address_rule:
-        print({"is deny source address rule present": 'no'})
+        print({"is_deny_source_address_rule_present": 'no'})
     else:
-        print({"is deny source address rule present": 'yes'})
+        print({"is_deny_source_address_rule_present": 'yes'})
 
 
 if __name__ == '__main__':
