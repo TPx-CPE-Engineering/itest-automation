@@ -6,6 +6,22 @@ import re
 import urllib3
 urllib3.disable_warnings()
 
+"""
+Written by: juan.brena@tpx.com
+Date: 4/7/2020
+
+Test Case #1
+Test Case: Reboot edge using VCO's remote actions. Note the time until edge communication is restored after power cycle
+Expected Results: Device management to restore in a reasonable time
+Usage: Check VCO Event log for edge "shutting down" and "online" events to determine the time the edge was not reachable due to reboot. 
+Also look for links bouncing following reboot.
+
+Test Case #2
+Test Case: Note the time until customer traffic is restored after power cycle
+Expected Results: Device traffic to restore in a reasonable time
+Usage: Check VCO Event log for edge "shutting down" and "edge interface up" events to determine the time the edge was not reachable due to reboot. 
+"""
+
 
 class ApiException(Exception):
     pass
@@ -250,9 +266,9 @@ def print_all_edge_reboot_events():
     print(events_list)
 
 
-if __name__ == '__main__':
-    create_edge(edge_id=1, enterprise_id=1, ssh_port=2201)
-    reboot_edge()
-    time.sleep(120)
-    find_shut_and_start_event_time_difference()
-    find_shut_and_edge_interface_up_event_time_difference()
+# if __name__ == '__main__':
+#     # create_edge(edge_id=1, enterprise_id=1, ssh_port=2201)
+#     # reboot_edge()
+#     # time.sleep(120)
+#     # find_shut_and_start_event_time_difference()
+#     # find_shut_and_edge_interface_up_event_time_difference()
