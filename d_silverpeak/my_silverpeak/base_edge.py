@@ -37,6 +37,9 @@ class SPBaseEdge:
                                'ip/mask': None,
                                'comment': 'itest'}
 
+        self.RealTime_overlay = {'name': 'RealTime',
+                                 'id': 1}
+
     def get_cpe_lan_ip(self):
         """
         Get the CPE's LAN IP (sitting behind Silverpeak Edge) by looking at the port forwarding rules and looking for port, protocol, and comment
@@ -197,3 +200,43 @@ class SPBaseEdge:
             if self.debug:
                 print("Label {}: id{} does not exists".format(interface['label']['name'], interface['label']['id']))
             return False
+
+    def is_fw_zone_set_for_overlay(self, fw_zone, overlay):
+        """
+        Verifies if FW Zone is set for Overlay
+        :param fw_zone: FW ZONE id
+        :param overlay: Overlay id
+        :return: bool
+        """
+
+        overlay = self.api.get_overlay_data(overlayID=overlay['id']).data
+
+        if overlay['zoneId'] == fw_zone['id']:
+            return True
+        else:
+            return False
+
+    def set_fw_zone_for_overlay(self, fw_zone, overlay):
+        """
+        Sets fw zone as Overlay's FW Zone
+        :param fw_zone: FW Zone to set to
+        :param overlay: Overlay
+        :return: None
+        """
+
+        # Get overlays
+        overlays = self.api.get_overlay_regions_data().data
+
+        # Verify you are modifying the correct Overlay
+        if not overlays['1']['0']['name'] == overlay['name']:
+            print("{} is not Priority #1 in Overlays".format(overlay['name']))
+            return
+
+        # Update overlay fw zone id
+        overlays['1']['0']['zoneId'] = fw_zone['id']
+        overlays = json.dumps(overlays)
+
+        response = self.api.put_overlay_regions_data(overlayRegionData=overlays)
+
+        if not response.status_code == 204:
+            print(response)
