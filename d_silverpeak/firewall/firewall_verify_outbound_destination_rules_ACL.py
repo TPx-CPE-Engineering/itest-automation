@@ -77,10 +77,10 @@ def add_firewall_rule_deny_destination_ip_acl() -> None:
 
     # Check results
     if result.status_code == 204:
-        d = {'call': 'add_firewall_rule_deny_destination_ip_acl', 'error': None, 'rows': 1}
+        d = {'error': None, 'rows': 1}
         print(d)
     else:
-        d = {'call': 'add_firewall_rule_deny_destination_ip_acl', 'error': result.error, 'rows': 0}
+        d = {'error': result.error, 'rows': 0}
         print(d)
 
 
@@ -99,7 +99,7 @@ def remove_firewall_rule_deny_destination_ip_acl():
         del security_policy_rules['map1']['12_0']['prio']['1500']
     except KeyError:
         # If KeyError then entry does not exists therefore firewall rule was successfully removed
-        print({'call': 'remove_firewall_rule_deny_destination_ip_acl', 'error': None, 'rows': 0})
+        print({'error': None, 'rows': 0})
         return
 
     # Setup Data for API call
@@ -111,9 +111,9 @@ def remove_firewall_rule_deny_destination_ip_acl():
 
     # Check results
     if result.status_code == 204:
-        print({'call': 'remove_firewall_rule_deny_destination_ip_acl', 'error': None, 'rows': 1})
+        print({'error': None, 'rows': 1})
     else:
-        print({'call': 'remove_firewall_rule_deny_destination_ip_acl', 'error': result.error, 'rows': 0})
+        print({'error': result.error, 'rows': 0})
 
 
 def is_acl_destination_ip_entry_present():
@@ -132,11 +132,11 @@ def is_acl_destination_ip_entry_present():
         acl_one_destination_ip = acl_one_destination_ip_entry.get('entry', None).get('1000', None).get('dst_ip', None)
 
         if acl_one_destination_ip == DESTINATION_IP_BLOCKED + '/32':
-            print({"is acl destination ip entry present": "yes"})
+            print("yes")
         else:
-            print({"is acl destination ip entry present": "no"})
+            print("no")
     else:
-        print({"is acl destination ip entry present": "no"})
+        print("no")
 
 
 # Functions to apply ACL but we are assuming they will already be configured
