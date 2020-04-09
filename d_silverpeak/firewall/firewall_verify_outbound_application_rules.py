@@ -35,6 +35,11 @@ def set_globals(edge_id: str, enterprise_id: str):
     global EDGE
     EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=0)
 
+    # Set REAL TIME overlay FW Zone to ONE
+    if not EDGE.is_fw_zone_set_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay):
+        EDGE.set_fw_zone_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay)
+
+    # SET LAN0 interface FW Zone to ONE
     if not EDGE.is_fw_zone_set_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface):
         EDGE.set_fw_zone_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface)
 
