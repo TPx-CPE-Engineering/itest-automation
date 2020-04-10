@@ -672,7 +672,34 @@ class Silverpeak(object):
             timeout=timeout
         )
 
-    # MINE
+    def get_port_forwarding_rules(self, applianceID):
+        """
+        Get inbound port forwarding rules from appliance
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+        url = '{}/portForwarding/{}'.format(
+            self.base_url, applianceID)
+
+        return self._get(self.session, url)
+
+    def post_port_forwarding_rules(self, applianceID, portForwardingData):
+        """
+        Update inbound port forwarding rules of appliance
+        :param applianceID: The node ID of the appliance
+        :param portForwardingData: port forwarding rules config in json format
+        :return: Result name tuple
+        """
+
+        url = '{}/appliance/rest/{}/portForwarding2'.format(
+            self.base_url, applianceID)
+
+        return self._post(
+            session=self.session,
+            url=url,
+            headers={'Content-Type': 'application/json'},
+            data=portForwardingData
+        )
 
     def get_interface_labels(self, type=None, active=None):
         """
