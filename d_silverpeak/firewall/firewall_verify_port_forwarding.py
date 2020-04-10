@@ -1,15 +1,13 @@
 #!/usr/bin/env python
-from silverpeak import *
-from my_silverpeak import operator_login
+from my_silverpeak.base_edge import SPBaseEdge
 
-# Login
-sp = operator_login.login()
 
-# Globals
-EDGE_ID = None
-ENTERPRISE_ID = None
-SSH_PORT = None
-SSH_RULE = None
+class SPEdge(SPBaseEdge):
+    def __init__(self, edge_id, enterprise_id, ssh_port):
+        super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port, auto_operator_login=True)
+        self.ssh_rule = None
+
+EDGE: SPEdge
 
 
 def set_globals(edge_id, enterprise_id, ssh_port):
@@ -17,10 +15,9 @@ def set_globals(edge_id, enterprise_id, ssh_port):
     Set the globals for the test case.
     Remember to set the type in here
     """
-    global EDGE_ID, ENTERPRISE_ID, SSH_PORT
-    EDGE_ID = edge_id
-    ENTERPRISE_ID = enterprise_id
-    SSH_PORT = str(ssh_port)
+
+    global EDGE
+    EDGE = SPEdge(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=str(ssh_port))
 
 
 def is_ssh_rule_present() -> None:
@@ -32,16 +29,14 @@ def is_ssh_rule_present() -> None:
     3. The string 'itest' is in the rule's comments
     """
 
-    global EDGE_ID, SSH_PORT
-
     d = {'is_ssh_rule_present': None}
 
-    url = sp.base_url + '/portForwarding/' + EDGE_ID
-    res = sp._get(sp.session, url=url, headers=None, timeout=10)
+    url = EDGE.api.base_url + '/portForwarding/' + EDGE.edge_id
+    res = EDGE.api._get(EDGE.api.session, url=url, headers=None, timeout=10)
     inbound_port_forwarding_rules = res.data
 
     for rule in inbound_port_forwarding_rules:
-        if rule['protocol'] == 'tcp' and rule['destPort'] == SSH_PORT and 'itest' in rule['comment'].lower():
+        if rule['protocol'] == 'tcp' and rule['destPort'] == EDGE.ssh_port and 'itest' in rule['comment'].lower():
             d['is_ssh_rule_present'] = 'yes'
             print(d)
             return
@@ -60,19 +55,17 @@ def remove_ssh_rule():
     3. The string 'itest' is in the rule's comments
     """
 
-    global EDGE_ID, SSH_PORT, SSH_RULE
-
-    url = sp.base_url + '/portForwarding/' + EDGE_ID
-    res = sp._get(sp.session, url=url, headers=None, timeout=10)
+    url = EDGE.api.base_url + '/portForwarding/' + EDGE.edge_id
+    res = EDGE.api._get(EDGE.api.session, url=url, headers=None, timeout=10)
     inbound_port_forwarding_rules = res.data
 
     for rule in inbound_port_forwarding_rules:
-        if rule['protocol'] == 'tcp' and rule['destPort'] == SSH_PORT and 'itest' in rule['comment'].lower():
-            SSH_RULE = rule
+        if rule['protocol'] == 'tcp' and rule['destPort'] == EDGE.ssh_port and 'itest' in rule['comment'].lower():
+            EDGE.ssh_rule = rule
             inbound_port_forwarding_rules.remove(rule)
 
-    url = sp.base_url + '/appliance/rest/' + EDGE_ID + '/portForwarding2'
-    res = sp._post(session=sp.session, url=url, json=inbound_port_forwarding_rules)
+    url = EDGE.api.base_url + '/appliance/rest/' + EDGE.edge_id + '/portForwarding2'
+    res = EDGE.api._post(session=EDGE.api.session, url=url, json=inbound_port_forwarding_rules)
 
     if res.error:
         d = {'error': res.error}
@@ -91,16 +84,15 @@ def add_ssh_rule():
     Before deleting, the rule is saved in the global SSH_RULE variable so we can
     easily add it back.
     """
-    global EDGE_ID, SSH_RULE
 
-    url = sp.base_url + '/portForwarding/' + EDGE_ID
-    res = sp._get(sp.session, url=url, headers=None, timeout=10)
+    url = EDGE.api.base_url + '/portForwarding/' + EDGE.edge_id
+    res = EDGE.api._get(EDGE.api.session, url=url, headers=None, timeout=10)
     inbound_port_forwarding_rules = res.data
 
-    inbound_port_forwarding_rules.append(SSH_RULE)
+    inbound_port_forwarding_rules.append(EDGE.ssh_rule)
 
-    url = sp.base_url + '/appliance/rest/' + EDGE_ID + '/portForwarding2'
-    res = sp._post(session=sp.session, url=url, json=inbound_port_forwarding_rules)
+    url = EDGE.api.base_url + '/appliance/rest/' + EDGE.edge_id + '/portForwarding2'
+    res = EDGE.api._post(session=EDGE.api.session, url=url, json=inbound_port_forwarding_rules)
 
     if res.error:
         d = {'error': res.error}
@@ -111,5 +103,4 @@ def add_ssh_rule():
 
 
 if __name__ == '__main__':
-    set_globals(edge_id="5.NE", enterprise_id=None, ssh_port="2201")
-    is_ssh_rule_present()
+    set_globals(edge_id="18.NE", enterprise_id=None, ssh_port="2203")
