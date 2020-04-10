@@ -691,6 +691,10 @@ class Silverpeak(object):
 
 
     def get_overlay_regions_data(self):
+        """
+        Get all the overlays stored in the Orchestrator keyed by overlayId and regionId
+        :return: Result named tuple
+        """
 
         url = '{}/gms/overlays/config/regions'.format(self.base_url)
 
