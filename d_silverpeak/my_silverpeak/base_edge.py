@@ -1,4 +1,4 @@
-from my_silverpeak import operator_login
+from silverpeak import *
 import json
 import time
 import requests.exceptions
@@ -6,6 +6,9 @@ import requests.exceptions
 """
 Base Edge template for Silverpeak automation
 """
+SP_USERNAME = 'juan.brena'
+SP_PASSWORD = '1Maule1!'
+SP_SERVER = 'cpesp.lab-sv.telepacific.com'
 
 
 class SPBaseEdge:
@@ -18,7 +21,7 @@ class SPBaseEdge:
         self.debug = False
 
         if auto_operator_login:
-            self.api = operator_login.login()
+            self.api = operator_login()
 
         # Deployment Parameters
         self.DEFAULT_fw_zone = {'name': 'Default',
@@ -240,3 +243,13 @@ class SPBaseEdge:
 
         if not response.status_code == 204:
             print(response)
+
+
+def operator_login():
+    sp = Silverpeak(user=SP_USERNAME, user_pass=SP_PASSWORD, sp_server=SP_SERVER, disable_warnings=True, auto_login=True)
+
+    if not sp.login_result.ok:
+        print(sp.login_result)
+        exit()
+
+    return sp
