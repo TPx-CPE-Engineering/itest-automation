@@ -89,6 +89,9 @@ def add_ssh_rule():
     res = EDGE.api._get(EDGE.api.session, url=url, headers=None, timeout=10)
     inbound_port_forwarding_rules = res.data
 
+    if not inbound_port_forwarding_rules:
+        inbound_port_forwarding_rules = []
+
     inbound_port_forwarding_rules.append(EDGE.ssh_rule)
 
     url = EDGE.api.base_url + '/appliance/rest/' + EDGE.edge_id + '/portForwarding2'
