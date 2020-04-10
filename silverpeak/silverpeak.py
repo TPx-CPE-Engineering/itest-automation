@@ -701,6 +701,14 @@ class Silverpeak(object):
         return self._get(self.session, url)
 
     def put_overlay_regions_data(self, overlayRegionData):
+        """
+        Put regional overlay configurations
+
+        Use this to update an exhaustive representation of regionalized overlays.
+        The body of this request should be a map keyed by overlayId whose value is a map of regionId to regional overlay configuration.
+        :param overlayRegionData: All regional overlay configurations
+        :return: Result named tuple
+        """
 
         url = '{}/gms/overlays/config/regions'.format(self.base_url)
 
