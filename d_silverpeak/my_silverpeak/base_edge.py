@@ -244,6 +244,52 @@ class SPBaseEdge:
         if not response.status_code == 204:
             print(response)
 
+    def reset_port_flow(self, port):
+        """
+        Reset flows queried by port
+        :return: None
+        """
+        # Get flows queried by port
+        port_query = {'ip1': '',
+                      'mask1': '',
+                      'port1': port,
+                      'ip2': '',
+                      'mask2': '',
+                      'port2': '5060',
+                      'ipEitherFlag': True,
+                      'portEitherFlag': True,
+                      'application': '',
+                      'applicationGroup': '',
+                      'protocol': '',
+                      'vlan': '',
+                      'dscp': 'any',
+                      'overlays': '',
+                      'transport': '',
+                      'services': '',
+                      'zone1': '',
+                      'zone2': '',
+                      'zoneEither': 'any',
+                      'filter': 'all',
+                      'edgeHA': False,
+                      'builtIn': False,
+                      'uptime': 'anytime',
+                      'bytes': 'last5m',
+                      'duration': 'any',
+                      'maxFlows': '10000'
+                      }
+
+        # Get flow ID to reset
+        flows = self.api.get_flows(applianceID=self.edge_id, flowsQuery=port_query).data
+        port_flow_id = flows['flows'][0][0]
+
+        flow_reset_data = {'spIds': [port_flow_id]}
+        flow_reset_data = json.dumps(flow_reset_data)
+
+        response = self.api.post_flow_reset(applianceID=self.edge_id, flowResetData=flow_reset_data)
+
+        if not response.status_code == 204:
+            print(response)
+
 
 def operator_login():
     sp = Silverpeak(user=SP_USERNAME, user_pass=SP_PASSWORD, sp_server=SP_SERVER, disable_warnings=True, auto_login=True)
