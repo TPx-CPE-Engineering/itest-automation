@@ -746,3 +746,74 @@ class Silverpeak(object):
             data=overlayRegionData,
             timeout=self.timeout
         )
+
+    def get_flows(self, applianceID, flowsQuery=None):
+        """
+        Get active, inactive, or both types of flows on the appliance based on the query parameters supplied
+
+        If no query is given then documentation default query will be passed
+        :param applianceID: The node ID of the appliance
+        :param flowsQuery: Optional, Query param to filter flows by
+        :return: Result named tuple
+        """
+
+        if flowsQuery is None:
+            # Default query per documentation
+            flowsQuery = {'ip1': '',
+                     'mask1': '',
+                     'port1': '',
+                     'ip2': '',
+                     'mask2': '',
+                     'port2': '',
+                     'ipEitherFlag': True,
+                     'portEitherFlag': True,
+                     'application': '',
+                     'applicationGroup': '',
+                     'protocol': '',
+                          'vlan': '',
+                          'dscp': 'any',
+                          'overlays': '',
+                          'transport': '',
+                          'services': '',
+                          'zone1': '',
+                          'zone2': '',
+                          'zoneEither': '',
+                          'filter': 'all',
+                          'edgeHA': False,
+                          'builtIn': False,
+                          'uptime': '',
+                          'bytes': 'total',
+                          'duration': 'any',
+                          'anytimeSlowFlows': ''
+                          }
+
+        # Parse query
+        query_string = ''
+        for key, value in flowsQuery.items():
+            if value == '':
+                if not query_string == '':
+                    query_string += '&'
+                continue
+            query_string += key + '=' + str(value).lower() + '&'
+
+        url = '{}/flow/{}/q?{}'.format(self.base_url, applianceID, query_string)
+
+        return self._get(self.session, url)
+
+    def post_flow_reset(self, applianceID, flowResetData):
+        """
+        Resets the flow(s)
+        :param applianceID: The node ID of the appliance
+        :param flowResetData: Flow
+        :return:
+        """
+
+        url = '{}/flow/flowReset/{}'.format(self.base_url, applianceID)
+
+        return self._post(
+            session=self.session,
+            url=url,
+            headers={'Content-Type': 'application/json'},
+            data=flowResetData,
+            timeout=self.timeout
+        )
