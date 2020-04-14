@@ -199,7 +199,7 @@ def find_shut_and_start_event_time_difference():
         total_seconds = (converted_online - converted_shut).total_seconds()
         minutes = int(total_seconds / 60)
         seconds = total_seconds % 60
-        print("Time between Edge 'Shutting down' and 'Online' events: {} minutes {} seconds, ({}s)".format(minutes, seconds, total_seconds))
+        print("Time: {} minutes {} seconds, ({}s)".format(minutes, seconds, total_seconds))
 
     else:
         if not has_shutting_down_event['result']:
@@ -247,7 +247,7 @@ def find_shut_and_edge_interface_up_event_time_difference():
         total_seconds = (converted_online - converted_shut).total_seconds()
         minutes = int(total_seconds / 60)
         seconds = total_seconds % 60
-        print("Time between Edge 'Shutting down' and 'Edge Interface Up' events: {} minutes {} seconds, ({}s)".format(minutes, seconds, total_seconds))
+        print("Time: {} minutes {} seconds, ({}s)".format(minutes, seconds, total_seconds))
 
 
 def print_all_edge_reboot_events():
