@@ -1,5 +1,6 @@
 from my_silverpeak.base_edge import SPBaseEdge
 import json
+import time
 
 """
 Silver Peak Test Plan v2
@@ -63,12 +64,53 @@ def add_firewall_rule_deny_source_ip_acl() -> None:
                                        }
                                }
 
+    deny_source_address_rule2 = {
+                                  "self": "12_12",
+                                  "prio": {
+                                    "1500": {
+                                      "match": {
+                                        "acl": "ONE-source_ip",
+                                      },
+                                      "self": 1500,
+                                      "misc": {
+                                        "rule": "enable",
+                                        "logging": "disable",
+                                        "logging_priority": "0",
+                                        "tag": "iTest"
+                                      },
+                                      "comment": "iTest deny outbound traffic from source IP: {} (CPE LAN IP) (ACL)".format(cpe_lan_ip),
+                                      "gms_marked": False,
+                                      "set": {
+                                        "action": "deny"
+                                      }
+                                    },
+                                    "65535": {
+                                      "match": {
+                                        "acl": ""
+                                      },
+                                      "self": 65535,
+                                      "misc": {
+                                        "rule": "enable",
+                                        "logging": "disable"
+                                      },
+                                      "comment": "",
+                                      "gms_marked": False,
+                                      "set": {
+                                        "action": "deny"
+                                      }
+                                    }
+                                  }
+                                }
+
     # Get Edge's Security Policy Rules data
     security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Add firewall rule to Security Policy Rules
     # Add to 12_0 since that is 'One to Default' with priority of 1500
     security_policy_rules['map1']['12_0']['prio']['1500'] = deny_source_ip_rule_acl
+
+    # Add to zones 'ONE to ONE' (12_12)
+    security_policy_rules['map1']['12_12'] = deny_source_address_rule2
 
     # Setup Data for API call
     data = {"data": security_policy_rules, "options": {"merge": False, "templateApply": False}}
@@ -80,6 +122,8 @@ def add_firewall_rule_deny_source_ip_acl() -> None:
     # Check results
     if result.status_code == 204:
         print({'error': None, 'rows': 1})
+        time.sleep(10)
+        EDGE.reset_port_flow(port=5060)
     else:
         print({'error': result.error, 'rows': 0})
 
@@ -101,6 +145,13 @@ def remove_firewall_rule_deny_source_ip_acl():
         print({'error': None, 'rows': 0})
         return
 
+    try:
+        del security_policy_rules['map1']['12_12']
+    except KeyError:
+        # If KeyError then rule does not exist therefore removal successful
+        print({'error': None, 'rows': 0})
+        return
+
     # Setup Data for API call
     data = {"data": security_policy_rules, "options": {"merge": False, "templateApply": False}}
     data = json.dumps(data)
@@ -111,6 +162,8 @@ def remove_firewall_rule_deny_source_ip_acl():
     # Check results
     if result.status_code == 204:
         print({'error': None, 'rows': 1})
+        time.sleep(10)
+        EDGE.reset_port_flow(port=5060)
     else:
         print({'error': result.error, 'rows': 0})
 
