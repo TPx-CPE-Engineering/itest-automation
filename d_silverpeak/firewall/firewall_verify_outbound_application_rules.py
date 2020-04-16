@@ -1,5 +1,6 @@
 from my_silverpeak.base_edge import SPBaseEdge
 import json
+import time
 
 """
 Silver Peak Test Plan v2
@@ -50,7 +51,7 @@ def add_icmp_block_outbound_app_rule():
     :return: None
     """
     # Setup Deny Source Address rule
-    deny_source_address_rule = {"match": {"acl": "",
+    deny_outbound_app_rule = {"match": {"acl": "",
                                           "application": 'Icmp'
                                           },
                                 "self": 1500,
@@ -64,13 +65,55 @@ def add_icmp_block_outbound_app_rule():
                                 "set": {"action": "deny"
                                         }
                                 }
+    
+    deny_outbound_app_rule2 = {
+                                  "self": "12_12",
+                                  "prio": {
+                                    "1500": {
+                                      "match": {
+                                        "acl": "",
+                                        "application": 'Icmp'
+                                      },
+                                      "self": 1500,
+                                      "misc": {
+                                        "rule": "enable",
+                                        "logging": "disable",
+                                        "logging_priority": "0",
+                                        "tag": "iTest"
+                                      },
+                                      "comment": "iTest deny outbound application ICMP traffic",
+                                      "gms_marked": False,
+                                      "set": {
+                                        "action": "deny"
+                                      }
+                                    },
+                                    "65535": {
+                                      "match": {
+                                        "acl": ""
+                                      },
+                                      "self": 65535,
+                                      "misc": {
+                                        "rule": "enable",
+                                        "logging": "disable"
+                                      },
+                                      "comment": "",
+                                      "gms_marked": False,
+                                      "set": {
+                                        "action": "deny"
+                                      }
+                                    }
+                                  }
+                                }
 
     # Get EDGE's Security Policy Rules data
     security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Add new rule to Security Policy Rules
     # Add to 12_0 since that is 'One to Default'
-    security_policy_rules['map1']['12_0']['prio']['1500'] = deny_source_address_rule
+    security_policy_rules['map1']['12_0']['prio']['1500'] = deny_outbound_app_rule
+
+    # Add to zones 'ONE to ONE' (12_12)
+    security_policy_rules['map1']['12_12'] = deny_outbound_app_rule2
 
     # Setup Data for API call
     data = {"data": security_policy_rules, "options": {"merge": False, "templateApply": False}}
@@ -82,6 +125,8 @@ def add_icmp_block_outbound_app_rule():
     # Check results
     if result.status_code == 204:
         print({'error': None, 'rows': 1})
+        time.sleep(10)
+        EDGE.reset_port_flow(port=5060)
     else:
         print({'error': result.error, 'rows': 0})
 
@@ -103,6 +148,13 @@ def remove_icmp_block_outbound_app_rule():
         print({'error': None, 'rows': 0})
         return
 
+    try:
+        del security_policy_rules['map1']['12_12']
+    except KeyError:
+        # If KeyError then rule does not exist therefore removal successful
+        print({'error': None, 'rows': 0})
+        return
+
     # Setup Data for API call
     data = {"data": security_policy_rules, "options": {"merge": False, "templateApply": False}}
     data = json.dumps(data)
@@ -114,6 +166,8 @@ def remove_icmp_block_outbound_app_rule():
     if result.status_code == 204:
         d = {'error': None, 'rows': 1}
         print(d)
+        time.sleep(10)
+        EDGE.reset_port_flow(port=5060)
     else:
         d = {'error': result.error, 'rows': 0}
         print(d)
@@ -129,7 +183,8 @@ def is_icmp_block_outbound_app_rule_present():
     security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
 
     # Attempt to get Zone base Firewall rule with priority 1500 on One to Default zone
-    deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None).get('1500', None)
+    deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None)\
+        .get('1500', None)
 
     # Checking rule...
     if not deny_source_address_rule:
