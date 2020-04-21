@@ -12,8 +12,10 @@ Test Case:      ZB Firewall - Block based on TCP source port
 Expectations:   Configured traffic not allowed through firewall
 Usage:          Configure outbound rule to deny all traffic based on TCP source port
                 (Configuration > Templates > Default Template > Security Policies > Click on Zone (One to Default) in Matrix > Add Rule
-                > Priority 1500 > Match Criteria "Port" Source:Destination > "Source 443"
+                > Priority 1500 > Match Criteria "Port" Source:Destination > "Source 5060"
                 Verify MSP traffic is blocked
+                
+                4/21/2020 Update - Source port changed from 443 to 5060
 """
 
 
