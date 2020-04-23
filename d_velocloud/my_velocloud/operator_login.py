@@ -2,6 +2,12 @@ from velocloud.api_client import ApiClient
 from velocloud.apis import AllApi
 from velocloud.rest import ApiException
 
+# Disable SSL verification
+import urllib3
+from velocloud import configuration
+configuration.verify_ssl = False
+urllib3.disable_warnings()
+
 # Set variables
 operator_login_host = 'cpevc.lab-sv.telepacific.com'
 operator_login_username = 'juan.brena@tpx.com'
