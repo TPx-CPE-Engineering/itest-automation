@@ -23,6 +23,12 @@ class DOT1QEdge(BaseEdge):
         # And update its untaggedVlan property to param:untagged_vlan
         for interface in device_settings.data['lan']['interfaces']:
             if interface['name'] == interface_name:
+
+                # If untagged vlan already set to param:untagged_vlan then return
+                if interface['untaggedVlan'] == untagged_vlan:
+                    print({'error': None, 'rows': 0})
+                    return
+
                 interface['untaggedVlan'] = untagged_vlan
 
         param = ConfigurationUpdateConfigurationModule(id=device_settings.id,
@@ -52,3 +58,4 @@ def change_interface_untagged_vlan_to_drop():
 
 if __name__ == '__main__':
     create_edge(edge_id='1', enterprise_id='1')
+    change_interface_untagged_vlan_to_vlan1527()
