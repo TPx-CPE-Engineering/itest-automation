@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
 from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
-
-# Globals
-EDGE = None
 
 
 class Edge(BaseEdge):
@@ -25,7 +20,8 @@ class Edge(BaseEdge):
             Firewall:
                 data:
                     segments:
-                        LOOK HERE FOR VOICE SEGMENT AND RETURN THE SEGMENT THAT HAS A NAME EQUAL TO EDGE.voice_segment_name
+                        LOOK HERE FOR VOICE SEGMENT AND RETURN THE SEGMENT THAT HAS A NAME EQUAL TO
+                        EDGE.voice_segment_name
             WAN: ...
             QOS: ...
         Enterprise Profile: ...
@@ -39,7 +35,8 @@ class Edge(BaseEdge):
             if seg['segment']['name'] == self.voice_segment_name:
                 return seg
 
-        print('No Voice segment found. Please verify if {} is the correct Voice segment\'s name. If not you can update within base_edge.py')
+        print('No Voice segment found. Please verify if {} is the correct Voice segment\'s name. '
+              'If not you can update within base_edge.py')
         return {}
 
     def is_firewall_outbound_rule_with_destination_ip_present(self, destination_ip: str) -> bool:
@@ -57,13 +54,15 @@ class Edge(BaseEdge):
         edges_firewall = self.get_module_from_edge_specific_profile(module_name='firewall')
 
         # Get the Voice segment within the firewall
-        edges_firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name, module=edges_firewall)
+        edges_firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name,
+                                                                    module=edges_firewall)
 
         # Searching for a rule with these properties...
         looking_for_rule = {'name': 'iTest Destination IP Block', 'dip': destination_ip, 'action': 'deny'}
 
         for rule in edges_firewall_voice_segment['outbound']:
-            if rule['name'] == looking_for_rule['name'] and rule['match']['dip'] == looking_for_rule['dip'] and rule['action']['allow_or_deny'] == \
+            if rule['name'] == looking_for_rule['name'] and rule['match']['dip'] == looking_for_rule['dip'] and \
+                    rule['action']['allow_or_deny'] == \
                     looking_for_rule['action']:
                 d = {'is_firewall_outbound_rule_with_destination_ip_present': 'yes'}
                 print(d)
@@ -124,14 +123,16 @@ class Edge(BaseEdge):
         edges_firewall = self.get_module_from_edge_specific_profile(module_name='firewall')
 
         # Get the Voice segment from within the Firewall module
-        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name, module=edges_firewall)
+        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name,
+                                                              module=edges_firewall)
 
         # Append rule
         firewall_voice_segment['outbound'].append(block_destination_ip_rule)
 
         # Push change
-        param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=self.enterprise_id, update=edges_firewall)
-        res = api.configurationUpdateConfigurationModule(param)
+        param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=self.enterprise_id,
+                                                       update=edges_firewall)
+        res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
 
     def remove_firewall_outbound_rule_with_destination_ip(self, destination_ip: str) -> None:
@@ -155,18 +156,25 @@ class Edge(BaseEdge):
         edges_firewall = self.get_module_from_edge_specific_profile(module_name='firewall')
 
         # Get the Voice segment from within the Firewall module
-        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name, module=edges_firewall)
+        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name,
+                                                              module=edges_firewall)
 
         # Search for rule and remove
         for rule in firewall_voice_segment['outbound']:
-            if rule['name'] == rules_name and rule['match']['dip'] == rules_dip and rule['action']['allow_or_deny'] == rules_action:
+            if rule['name'] == rules_name and rule['match']['dip'] == rules_dip and \
+                    rule['action']['allow_or_deny'] == rules_action:
                 firewall_voice_segment['outbound'].remove(rule)
                 break
 
         # Push change
-        param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=self.enterprise_id, update=edges_firewall)
-        res = api.configurationUpdateConfigurationModule(param)
+        param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=self.enterprise_id,
+                                                       update=edges_firewall)
+        res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
+
+
+# Globals
+EDGE: Edge
 
 
 def set_globals(edge_id, enterprise_id, ssh_port) -> None:

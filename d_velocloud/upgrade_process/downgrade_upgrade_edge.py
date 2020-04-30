@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 import time
 from datetime import datetime
@@ -43,7 +40,8 @@ class UpgradeDowngradeEdge(BaseEdge):
         cpe_operator_profiles = self.get_cpe_operator_profiles()
 
         for profile in cpe_operator_profiles:
-            if self.software_version_compare(v1=self.current_operator_profile['software version'], v2=profile['software version']) == 1:
+            if self.software_version_compare(v1=self.current_operator_profile['software version'],
+                                             v2=profile['software version']) == 1:
                 return profile
 
     def get_current_operator_profile(self):
@@ -68,15 +66,14 @@ class UpgradeDowngradeEdge(BaseEdge):
         param = {'enterpriseId': self.enterprise_id, '_with': ['configuration']}
 
         # Perform API call
-        enterprise_edges = api.enterpriseGetEnterpriseEdges(param)
+        enterprise_edges = self.api.enterpriseGetEnterpriseEdges(param)
 
         # Filter through all of Enterprise Edges and return self software version
         for edge in enterprise_edges:
             if edge.id == self.id:
                 return edge.softwareVersion
 
-    @staticmethod
-    def get_cpe_operator_profiles() -> []:
+    def get_cpe_operator_profiles(self) -> []:
         """
         Returns VCO's CPE only operator profiles an Edge can upgrade/downgrade to
 
@@ -85,7 +82,7 @@ class UpgradeDowngradeEdge(BaseEdge):
         """
 
         # Perform API Call to get all VCO's operator profiles
-        operator_profiles = api.networkGetNetworkConfigurations({})
+        operator_profiles = self.api.networkGetNetworkConfigurations({})
 
         # We only want CPE's operator profiles
         cpe_operator_profiles = []
@@ -93,7 +90,8 @@ class UpgradeDowngradeEdge(BaseEdge):
             if profile.name[0].isdigit() and profile.name.split(' ')[1] == 'CPE':
                 software_version = profile.name.split()
                 software_version = software_version[0]
-                d = {'name': profile.name, 'id': profile.id, 'version': profile.version, 'software version': software_version}
+                d = {'name': profile.name, 'id': profile.id, 'version': profile.version,
+                     'software version': software_version}
                 cpe_operator_profiles.append(d)
 
         # Sort them by version
@@ -111,10 +109,11 @@ class UpgradeDowngradeEdge(BaseEdge):
         print(d)
 
         # Set api parameters
-        param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id, 'configurationId': self.current_operator_profile['id']}
+        param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id,
+                 'configurationId': self.current_operator_profile['id']}
 
         # Execute Upgrade api call
-        res = api.edgeSetEdgeOperatorConfiguration(param)
+        res = EDGE.api.edgeSetEdgeOperatorConfiguration(param)
 
         # Print results
         print(res)
@@ -128,10 +127,11 @@ class UpgradeDowngradeEdge(BaseEdge):
         print(d)
 
         # Set api parameters
-        param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id, 'configurationId': self.downgrade_operator_profile['id']}
+        param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id,
+                 'configurationId': self.downgrade_operator_profile['id']}
 
         # Execute Downgrade api call
-        res = api.edgeSetEdgeOperatorConfiguration(param)
+        res = EDGE.api.edgeSetEdgeOperatorConfiguration(param)
 
         # Print results
         print(res)
@@ -143,10 +143,11 @@ class UpgradeDowngradeEdge(BaseEdge):
         print({"Restoring Edge to": self.current_operator_profile['name']})
 
         # Set api parameters
-        param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id, 'configurationId': self.current_operator_profile['id']}
+        param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id,
+                 'configurationId': self.current_operator_profile['id']}
 
         # Execute Upgrade api call
-        res = api.edgeSetEdgeOperatorConfiguration(param)
+        res = EDGE.api.edgeSetEdgeOperatorConfiguration(param)
 
         # Print results
         print(res)
@@ -167,7 +168,7 @@ class UpgradeDowngradeEdge(BaseEdge):
         param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id, 'interval': {'start': EPOCH}}
 
         # Get Edge events through api call
-        edge_events = api.eventGetEnterpriseEvents(param)
+        edge_events = EDGE.api.eventGetEnterpriseEvents(param)
 
         # Search through the event messages and look for 4 specific events
         configuration_applied = False
@@ -216,7 +217,7 @@ class UpgradeDowngradeEdge(BaseEdge):
         param = {'edgeId': self.id, 'enterpriseId': self.enterprise_id, 'interval': {'start': EPOCH}}
 
         # call events api
-        edge_events = api.eventGetEnterpriseEvents(param)
+        edge_events = EDGE.api.eventGetEnterpriseEvents(param)
 
         # Print event messages
         messages = []

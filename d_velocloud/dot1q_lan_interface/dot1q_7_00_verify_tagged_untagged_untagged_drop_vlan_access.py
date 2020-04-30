@@ -1,4 +1,3 @@
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 from velocloud import *
 
@@ -35,7 +34,7 @@ class DOT1QEdge(BaseEdge):
                                                        enterpriseId=self.enterprise_id,
                                                        update=device_settings)
 
-        response = api.configurationUpdateConfigurationModule(param)
+        response = EDGE.api.configurationUpdateConfigurationModule(param)
 
         print(response)
 

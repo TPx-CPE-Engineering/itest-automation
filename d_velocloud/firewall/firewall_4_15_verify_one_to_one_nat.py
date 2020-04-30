@@ -1,12 +1,11 @@
-#!/usr/bin/env python3
 from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
 """
 Test Case: Verify 1:1 NAT
 Expected Results: Verify CPE replies to a snmpwalk request when 1:1 NAT rule is enabled on the SD-WAN
-Usage: Enable 1:1 NAT rule for CPE on SD-WAN, execute a snmpwalk request to the SD-WAN's public WAN IP, and verify CPE replies.
+Usage: Enable 1:1 NAT rule for CPE on SD-WAN, execute a snmpwalk request to the SD-WAN's public WAN IP, and 
+verify CPE replies.
 """
 
 
@@ -38,11 +37,13 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         4. Inside IP - Will be taken from the CPE's SSH port forwarding rule
             A SSH port forwarding rule should, by default, be in every Edge to get to the CPE behind it.
-            By searching through the port forwarding rules and finding the rule that corresponds to the CPE, we can obtain the CPE's LAN IP.
+            By searching through the port forwarding rules and finding the rule that corresponds to the CPE,
+            we can obtain the CPE's LAN IP.
             The corresponding rule will have a lAN IP property which we will use as the NAT rule's Inside IP
 
         5. Segment - NAT rule will be on the Voice segment
-            The Voice Segment ID can be taken from the firewall, by looking through its segments and finding the Voice segment.
+            The Voice Segment ID can be taken from the firewall, by looking through its segments and finding
+            the Voice segment.
             Once found, Voice segment will contain its ID which is used to set the segment.
 
         If there are any missing properties, a print statement will be executed and return
@@ -74,13 +75,16 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         # Set the NAT rule's inside ip
         """
-        Obtain the NAT rule's Inside IP (aka CPE's LAN IP) by looking through the firewall rules and finding a rule whose name contains the keyword 'itest' and 
-        has WAN ports that matches self.ssh_port. If found, that rule will have the NAT rule's Inside IP (aka CPE's LAN IP) in the rule's LAN IP field.
+        Obtain the NAT rule's Inside IP (aka CPE's LAN IP) by looking through the firewall rules and finding 
+        a rule whose name contains the keyword 'itest' and 
+        has WAN ports that matches self.ssh_port. If found, that rule will have the NAT rule's Inside IP 
+        (aka CPE's LAN IP) in the rule's LAN IP field.
         """
         firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
         for inbound_rule in firewall_module.data['inbound']:
             if 'itest' in inbound_rule['name'].lower() and inbound_rule['match']['dport_low'] == self.ssh_port and \
-                    inbound_rule['match']['dport_high'] == self.ssh_port and inbound_rule['action']['nat']['lan_port'] == 22:
+                    inbound_rule['match']['dport_high'] == self.ssh_port and \
+                    inbound_rule['action']['nat']['lan_port'] == 22:
                 self.one_to_one_nat_rule_inside_ip = inbound_rule['action']['nat']['lan_ip']
                 break
 
@@ -91,7 +95,8 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         # Set the NAT rule's segment to voice segment
         # Obtain the Voice Segment
-        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name, module=firewall_module)
+        firewall_voice_segment = self.get_segment_from_module(segment_name=self.voice_segment_name,
+                                                              module=firewall_module)
         self.one_to_one_nat_rule_segment_id = firewall_voice_segment['segment']['segmentId']
 
         # Error check
@@ -101,7 +106,8 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
     def is_one_to_one_nat_rule_present(self, print_statement: bool = True) -> bool:
         """
-        Returns a bool and Prints a statement (optional, default True) verifying if our 'iTest 1 to 1 NAT' rule is present
+        Returns a bool and Prints a statement (optional, default True) verifying if our 'iTest 1 to 1 NAT' rule
+        is present
 
         If there is a firewall rule that matches the properties set in set_one_to_one_nat_rule_properties()
             rule is present
@@ -117,7 +123,8 @@ class FirewallOneToOneNatEdge(BaseEdge):
         # Get firewall module
         firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
 
-        # Search through the firewall inbound rules and check if there is a rule with all the properties set in set_one_to_one_nat_rule_properties()
+        # Search through the firewall inbound rules and check if there is a rule with all the properties set in
+        # set_one_to_one_nat_rule_properties()
         for inbound_rule in firewall_module.data['inbound']:
             if inbound_rule['action']['type'] == 'one_to_one_nat' and \
                     inbound_rule['name'] == self.one_to_one_nat_rule_name and \
@@ -151,11 +158,13 @@ class FirewallOneToOneNatEdge(BaseEdge):
             Once found, use that link's interface for the NAT rule's interface.
 
         4. The NAT rule's inside (lan) ip will be taken from the Firewall
-            Within the Firewall, find the port forwarding rule that contains 'itest' in its name, has wan ports that equal self.ssh_port, and has lan ports
+            Within the Firewall, find the port forwarding rule that contains 'itest' in its name, has wan ports
+            that equal self.ssh_port, and has lan ports
             equal 22. Once found, use that rule's lan ip for the NAT rule's inside (lan) ip.
 
         5. The NAT rule's segment will be Voice segment
-            The Voice Segment ID can be taken from the firewall, by looking through its segments and finding the Voice segment.
+            The Voice Segment ID can be taken from the firewall, by looking through its segments and finding
+            the Voice segment.
             Once found, Voice segment will contain its ID.
         """
 
@@ -202,8 +211,9 @@ class FirewallOneToOneNatEdge(BaseEdge):
         firewall_module.data['inbound'].append(one_to_one_nat_rule)
 
         # Push change
-        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
-        res = api.configurationUpdateConfigurationModule(param)
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
+                                                       update=firewall_module)
+        res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
 
     def remove_one_to_one_nat_rule(self) -> None:
@@ -233,8 +243,9 @@ class FirewallOneToOneNatEdge(BaseEdge):
                 break
 
         # Push change
-        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
-        res = api.configurationUpdateConfigurationModule(param)
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
+                                                       update=firewall_module)
+        res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
 
 
@@ -244,7 +255,8 @@ EDGE: FirewallOneToOneNatEdge
 
 def set_globals(edge_id, enterprise_id, public_ip, ssh_port) -> None:
     global EDGE
-    EDGE = FirewallOneToOneNatEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), public_ip=public_ip, ssh_port=int(ssh_port))
+    EDGE = FirewallOneToOneNatEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), public_ip=public_ip,
+                                   ssh_port=int(ssh_port))
 
 
 def is_one_to_one_nat_rule_present():
@@ -264,4 +276,4 @@ def print_sdwan_public_wan_ip():
 
 
 if __name__ == '__main__':
-    set_globals(edge_id=4, enterprise_id=1, ssh_port=2202, public_ip="216.241.61.7")
+    set_globals(edge_id=1, enterprise_id=1, ssh_port=2202, public_ip="216.241.61.7")

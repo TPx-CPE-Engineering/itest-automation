@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
 from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
 """
@@ -13,8 +11,8 @@ Details:
 Ensure SNMP Settings v2c is enabled. You can find that in Edge's Device tab, scroll down to SNMP Settings. Port set to
 161, community set to "tpc1n0c", and Allowed IPs: "Any" checked. 
 
-Test by setting Edge's Firewall SNMP Access to "Deny All". Using another computer, execute a snmpwalk command and confirm
-you get a "No Response from [IP]" message. 
+Test by setting Edge's Firewall SNMP Access to "Deny All". Using another computer, execute a snmpwalk command 
+and confirm you get a "No Response from [IP]" message. 
 """
 
 
@@ -91,10 +89,11 @@ class FirewallSNMPEdge(BaseEdge):
             return
 
         # Set api's parameters
-        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
+                                                       update=firewall_module)
 
         # Push change
-        res = api.configurationUpdateConfigurationModule(param)
+        res = self.api.configurationUpdateConfigurationModule(param)
 
         # Print response
         print(res)
@@ -117,7 +116,8 @@ def set_snmp_access_to_deny_all() -> None:
 
 def set_globals(edge_id, enterprise_id, ssh_port, public_ip) -> None:
     global EDGE
-    EDGE = FirewallSNMPEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port), public_ip=public_ip)
+    EDGE = FirewallSNMPEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port),
+                            public_ip=public_ip)
 
 
 if __name__ == '__main__':

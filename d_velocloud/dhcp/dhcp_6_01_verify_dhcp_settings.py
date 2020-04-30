@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
 from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
 """
@@ -50,7 +48,9 @@ Usage: Device will be assigned the same IP address every time
 class DHCPEdge(BaseEdge):
 
     def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
-        super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port)
+        super().__init__(edge_id=edge_id,
+                         enterprise_id=enterprise_id,
+                         ssh_port=ssh_port)
 
     def add_dhcp_options(self) -> None:
         """
@@ -131,10 +131,12 @@ class DHCPEdge(BaseEdge):
         dhcp_settings['options'] = dhcp_options
 
         # Set api parameters
-        param = ConfigurationUpdateConfigurationModule(id=device_settings_module.id, enterpriseId=self.enterprise_id, update=device_settings_module)
+        param = ConfigurationUpdateConfigurationModule(id=device_settings_module.id,
+                                                       enterpriseId=self.enterprise_id,
+                                                       update=device_settings_module)
 
         # Push change
-        res = api.configurationUpdateConfigurationModule(param)
+        res = EDGE.api.configurationUpdateConfigurationModule(param)
 
         # Print response
         print(res)
@@ -166,10 +168,12 @@ class DHCPEdge(BaseEdge):
         dhcp_settings['options'] = []
 
         # Set api parameters
-        param = ConfigurationUpdateConfigurationModule(id=device_settings_module.id, enterpriseId=self.enterprise_id, update=device_settings_module)
+        param = ConfigurationUpdateConfigurationModule(id=device_settings_module.id,
+                                                       enterpriseId=self.enterprise_id,
+                                                       update=device_settings_module)
 
         # Push change
-        res = api.configurationUpdateConfigurationModule(param)
+        res = EDGE.api.configurationUpdateConfigurationModule(param)
 
         # Print response
         print(res)
@@ -210,7 +214,9 @@ EDGE: DHCPEdge
 
 def create_edge(edge_id, enterprise_id, ssh_port) -> None:
     global EDGE
-    EDGE = DHCPEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port))
+    EDGE = DHCPEdge(edge_id=int(edge_id),
+                    enterprise_id=int(enterprise_id),
+                    ssh_port=int(ssh_port))
 
 
 def add_dhcp_options() -> None:
@@ -225,6 +231,9 @@ def are_dhcp_options_empty() -> None:
     EDGE.are_dhcp_options_empty()
 
 
-# if __name__ == '__main__':
-#     create_edge(edge_id='1', enterprise_id='1', ssh_port='2201')
-#     are_dhcp_options_empty()
+if __name__ == '__main__':
+    create_edge(edge_id='1',
+                enterprise_id='1',
+                ssh_port='2201')
+
+    are_dhcp_options_empty()

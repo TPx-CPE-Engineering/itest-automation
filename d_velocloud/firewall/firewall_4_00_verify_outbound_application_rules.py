@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
 # Globals
-EDGE = None
+EDGE: BaseEdge
 
 
 class Edge(BaseEdge):
@@ -95,7 +93,7 @@ def add_icmp_block_outbound_app_rule():
             param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=EDGE.enterprise_id,
                                                            update=firewall_module)
 
-            res = api.configurationUpdateConfigurationModule(param)
+            res = EDGE.api.configurationUpdateConfigurationModule(param)
             print(res)
             return
 
@@ -130,7 +128,7 @@ def remove_icmp_block_outbound_app_rule():
                     param = ConfigurationUpdateConfigurationModule(id=firewall_module.id,
                                                                    enterpriseId=EDGE.enterprise_id,
                                                                    update=firewall_module)
-                    res = api.configurationUpdateConfigurationModule(param)
+                    res = EDGE.api.configurationUpdateConfigurationModule(param)
                     print(res)
                     return
 
@@ -138,3 +136,8 @@ def remove_icmp_block_outbound_app_rule():
     d = {'error': 'No Voice Segment found', 'rows': 0}
     print(d)
     exit()
+
+
+if __name__ == '__main__':
+    set_globals(edge_id='1', enterprise_id='1')
+    is_icmp_block_outbound_app_rule_present()

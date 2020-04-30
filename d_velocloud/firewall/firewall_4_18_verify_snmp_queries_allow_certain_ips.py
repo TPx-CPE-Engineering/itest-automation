@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
 from my_velocloud.base_edge import BaseEdge
 
 """
-Test Case: Verify SNMP queries to the Edge, are allowed if SNMP Access 'Allow the following IPs' is checked and configured.
+Test Case: Verify SNMP queries to the Edge, are allowed if SNMP Access 'Allow the following IPs' is checked and 
+configured.
 Expected Results: Configured IP's will be allowed to send SNMP queries while all others be denied.
 Usage: Confirm SNMP Settings v2c is enabled. Configure Edge's Firewall SNMP Access to 'Allow the following IPs
 
@@ -78,10 +77,11 @@ class FirewallSNMPQueriesEdge(BaseEdge):
         firewall_module.data['services']['snmp'] = snmp_service
 
         # Set api parameters
-        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
+                                                       update=firewall_module)
 
         # Push api call
-        res = api.configurationUpdateConfigurationModule(param)
+        res = self.api.configurationUpdateConfigurationModule(param)
 
         # Print results
         print(res)
@@ -107,10 +107,11 @@ class FirewallSNMPQueriesEdge(BaseEdge):
         firewall_module.data['services']['snmp'] = snmp_service
 
         # Set api parameters
-        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id, update=firewall_module)
+        param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
+                                                       update=firewall_module)
 
         # Push api call
-        res = api.configurationUpdateConfigurationModule(param)
+        res = self.api.configurationUpdateConfigurationModule(param)
 
         # Print results
         print(res)
@@ -142,7 +143,8 @@ EDGE: FirewallSNMPQueriesEdge
 
 def set_globals(edge_id, enterprise_id, ssh_port, public_ip) -> None:
     global EDGE
-    EDGE = FirewallSNMPQueriesEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port), public_ip=public_ip)
+    EDGE = FirewallSNMPQueriesEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=int(ssh_port),
+                                   public_ip=public_ip)
 
 
 def are_snmp_settings_set() -> None:
@@ -161,5 +163,5 @@ def is_snmp_access_set_to_deny_all() -> None:
     EDGE.is_snmp_access_set_to_deny_all()
 
 
-# if __name__ == '__main__':
-#     set_globals(edge_id=1, enterprise_id=1, ssh_port=2201, public_ip='216.241.61.9')
+if __name__ == '__main__':
+    set_globals(edge_id=1, enterprise_id=1, ssh_port=2201, public_ip='216.241.61.9')

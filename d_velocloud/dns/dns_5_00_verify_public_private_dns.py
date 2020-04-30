@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-from my_velocloud.operator_login import velocloud_api as api, ApiException
 from my_velocloud.base_edge import BaseEdge
+from velocloud.rest import ApiException
 
 """
 Written by: juan.brena@tpx.com
@@ -12,7 +11,8 @@ Test Case places 2 Test Cases into one for simplicity.
 
 Test Case 1: 
 Test Case: Verify private DNS from CPE behind VCE
-Usage: Configure Edge to use 'Lab DNS' for Conditional DNS Forwarding (Edge > Device > DNS Settings > Conditional DNS Forwarding) 
+Usage: Configure Edge to use 'Lab DNS' for Conditional DNS Forwarding (Edge > Device > DNS Settings > 
+Conditional DNS Forwarding) 
 Expected Results: Able to ping an private FQDN: lookup.test.lan, look510.test.lan
 
 Test Case 2:
@@ -31,7 +31,8 @@ class DNSEdge(BaseEdge):
         """
         Sets DNS Conditional DNS Forwarding to Lab DNS on the Enterprise Configuration Profile
 
-        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings > Conditional DNS Forwarding > Lab DNS
+        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings >
+        Conditional DNS Forwarding > Lab DNS
         """
 
         self.refresh_configuration_stack()
@@ -53,11 +54,12 @@ class DNSEdge(BaseEdge):
         if 'deviceSettings:dns:privateProviders' not in ds_module_refs.keys():
             ds_module_refs['deviceSettings:dns:privateProviders'] = lab_dns_settings
 
-            param = {'id': enterprise_ds_module['id'], 'enterpriseId': self.enterprise_id, '_update': enterprise_ds_module}
+            param = {'id': enterprise_ds_module['id'], 'enterpriseId': self.enterprise_id,
+                     '_update': enterprise_ds_module}
 
             # Push change
             try:
-                res = api.configurationUpdateConfigurationModule(param)
+                res = EDGE.api.configurationUpdateConfigurationModule(param)
                 print(res)
             except ApiException as e:
                 print(e)
@@ -66,7 +68,8 @@ class DNSEdge(BaseEdge):
         """
         Sets DNS Conditional DNS Forwarding to [none] on the Enterprise Configuration Profile
 
-        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings > Conditional DNS Forwarding > [none]
+        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings >
+        Conditional DNS Forwarding > [none]
         """
         self.refresh_configuration_stack()
 
@@ -82,16 +85,18 @@ class DNSEdge(BaseEdge):
 
         # Push change
         try:
-            res = api.configurationUpdateConfigurationModule(param)
+            res = EDGE.api.configurationUpdateConfigurationModule(param)
             print(res)
         except ApiException as e:
             print(e)
 
     def is_conditional_dns_forwarding_set_to_lab_dns(self):
         """
-        Prints yes or no (in json format) whether the Edge's Enterprise Configuration Profile's DNS Conditional Forwarding set to Lab DNS
+        Prints yes or no (in json format) whether the Edge's Enterprise Configuration Profile's
+        DNS Conditional Forwarding set to Lab DNS
 
-        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings> Conditional DNS Forwarding > Lab DNS
+        Within GUI: Configure > Profiles > Edge's Enterprise Profile > Device > DNS Settings>
+        Conditional DNS Forwarding > Lab DNS
         """
 
         self.refresh_configuration_stack()
