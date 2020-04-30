@@ -1,10 +1,32 @@
-from velocloud.models import *
-from my_velocloud.operator_login import velocloud_api as api
+from velocloud.api_client import ApiClient
+from velocloud.apis import AllApi
+from velocloud.rest import ApiException
+from velocloud.models import EdgeGetEdgeConfigurationStackResultItem, EdgeGetEdgeConfigurationStack, ConfigurationModule
+
+from velocloud import configuration
+from requests.packages import urllib3
+urllib3.disable_warnings()
+configuration.verify_ssl = False
+
+VC_SERVER = 'cpevc.lab-sv.telepacific.com'
+VC_USERNAME = 'juan.brena@tpx.com'
+VC_PASSWORD = '1Maule1!'
 
 
 class BaseEdge:
+    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int, auto_operator_login=True):
 
-    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
+        self.client = ApiClient(host=VC_SERVER)
+        self.api = AllApi(api_client=self.client)
+        if auto_operator_login:
+            try:
+                self.client.authenticate(username=VC_USERNAME,
+                                         password=VC_PASSWORD,
+                                         operator=True)
+            except ApiException as login_exception:
+                print(login_exception)
+                exit()
+
         self.id = edge_id
         self.enterprise_id = enterprise_id
         self.ssh_port = ssh_port
@@ -18,7 +40,7 @@ class BaseEdge:
         Refreshes Configuration Stack for Edge
         """
         param = EdgeGetEdgeConfigurationStack(edgeId=self.id, enterpriseId=self.enterprise_id)
-        self.configuration_stack = api.edgeGetEdgeConfigurationStack(param)
+        self.configuration_stack = self.api.edgeGetEdgeConfigurationStack(param)
         self.edge_specific_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[0]
         self.enterprise_profile: EdgeGetEdgeConfigurationStackResultItem = self.configuration_stack[1]
 
@@ -31,7 +53,7 @@ class BaseEdge:
         """
 
         param = EdgeGetEdgeConfigurationStack(edgeId=self.id, enterpriseId=self.enterprise_id)
-        return api.edgeGetEdgeConfigurationStack(param)
+        return self.api.edgeGetEdgeConfigurationStack(param)
 
     def get_module_from_edge_specific_profile(self, module_name: str) -> ConfigurationModule:
         """
