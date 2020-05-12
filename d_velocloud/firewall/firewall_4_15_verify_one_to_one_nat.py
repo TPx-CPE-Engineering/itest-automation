@@ -70,7 +70,7 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         # Error check
         if not self.one_to_one_nat_rule_outside_ip or not self.one_to_one_nat_rule_interface:
-            print('Traceback: No Outside IP or Interface were found')
+            print(f'Error: No Public IP {self.public_ip} found within WAN Settings.')
             return
 
         # Set the NAT rule's inside ip
