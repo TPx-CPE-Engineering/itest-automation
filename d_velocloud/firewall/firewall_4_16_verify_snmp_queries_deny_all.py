@@ -1,5 +1,5 @@
 from velocloud.models import *
-from my_velocloud.base_edge import BaseEdge
+from my_velocloud.BaseEdge import BaseEdge
 
 """
 Test Case: Verify SNMP queries to the Edge, are denied if SNMP Access 'Deny All' is checked

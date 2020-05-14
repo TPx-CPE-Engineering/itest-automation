@@ -1,4 +1,4 @@
-from my_velocloud.base_edge import BaseEdge
+from my_velocloud.BaseEdge import BaseEdge
 from velocloud.rest import ApiException
 
 """

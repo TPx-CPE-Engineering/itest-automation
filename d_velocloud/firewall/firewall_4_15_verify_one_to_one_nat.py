@@ -1,5 +1,5 @@
 from velocloud.models import *
-from my_velocloud.base_edge import BaseEdge
+from my_velocloud.BaseEdge import BaseEdge
 
 """
 Test Case: Verify 1:1 NAT

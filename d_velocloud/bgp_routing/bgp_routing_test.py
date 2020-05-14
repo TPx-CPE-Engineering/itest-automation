@@ -1,4 +1,4 @@
-from d_velocloud.my_velocloud.base_edge import BaseEdge
+from d_velocloud.my_velocloud.BaseEdge import BaseEdge
 from ixnetwork_restpy import SessionAssistant, Files
 
 

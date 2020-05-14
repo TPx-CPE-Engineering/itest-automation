@@ -1,5 +1,5 @@
 from velocloud.models import *
-from my_velocloud.base_edge import BaseEdge
+from my_velocloud.BaseEdge import BaseEdge
 
 
 class Edge(BaseEdge):
@@ -11,7 +11,7 @@ class Edge(BaseEdge):
         Gets the Voice segment from the Edge's Edge Specific Firewall module
 
         Functions knows it has found the correct voice segment if it matches EDGE.voice_segment_name found in
-        base_edge.py
+        BaseEdge.py
 
         Edge's Edge Specific Firewall module json structure
         --------------------------------------------------
@@ -36,7 +36,7 @@ class Edge(BaseEdge):
                 return seg
 
         print('No Voice segment found. Please verify if {} is the correct Voice segment\'s name. '
-              'If not you can update within base_edge.py')
+              'If not you can update within BaseEdge.py')
         return {}
 
     def is_firewall_outbound_rule_with_destination_ip_present(self, destination_ip: str) -> bool:
