@@ -1,4 +1,4 @@
-from d_velocloud.my_velocloud.BaseEdge import BaseEdge
+from my_velocloud.BaseEdge import BaseEdge
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
 from ixnetwork_restpy.errors import BadRequestError
 import json

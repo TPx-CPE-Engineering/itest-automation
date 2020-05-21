@@ -1,4 +1,4 @@
-from d_velocloud.my_velocloud import Globals
+from my_velocloud import Globals
 from velocloud.api_client import ApiClient
 from velocloud.apis import AllApi
 from velocloud.rest import ApiException
@@ -34,7 +34,7 @@ class BaseEdge:
 
         # Live Mode API
         if live_mode:
-            from d_velocloud.my_velocloud.LiveModeAPI import LiveModeAPI
+            from my_velocloud.LiveModeAPI import LiveModeAPI
             self.LiveMode = LiveModeAPI(api_client=self.client,
                                         edge_id=self.id,
                                         enterprise_id=self.enterprise_id)

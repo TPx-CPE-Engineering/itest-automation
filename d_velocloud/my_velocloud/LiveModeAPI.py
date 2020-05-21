@@ -1,4 +1,4 @@
-from d_velocloud.my_velocloud import Globals
+from my_velocloud import Globals
 from velocloud.rest import ApiException
 import requests
 import json
