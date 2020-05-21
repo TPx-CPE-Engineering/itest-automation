@@ -14,8 +14,8 @@ BGP_SETTINGS = {'Segment Name': 'Global Segment',
 # Ixia Settings
 # Config File
 # IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\AppData\\Local\\Ixia\\IxNetwork\\AutomationConfigs\\'
-IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\Configs\\'
-IX_NET_CONFIG_FILE = 'juan_ixnetwork8_50_test2.ixncfg'
+IX_NET_CONFIG_FILE_BASE = '/d_ixia/ix_network/configs\\'
+IX_NET_CONFIG_FILE = 'bgp_routing.ixncfg'
 FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 
 # Chassis IP
