@@ -148,6 +148,25 @@ class LiveModeAPI:
             print(f"Encountered LiveMode API error in call to {method}")
             exit(-1)
 
+    def exit_live_mode(self):
+        """
+        Exit Live Mode gracefully
+        :return: None
+        """
+
+        method = 'liveMode/exitLiveMode'
+        params = {'edgeId': self.id,
+                  'enterpriseId': self.enterprise_id}
+
+        try:
+            exit_result = self.request(method=method,
+                                       params=params)
+        except ApiException as e:
+            print(f"Encountered LiveMode API error in call to {method}: {e}")
+            exit(-1)
+
+        print("Exited Live Mode")
+
     def get_bgp_neighbor_advertised_routes(self, segment_id, neighbor_ip):
         """
         Get the BGP routes advertised to a neighbor
