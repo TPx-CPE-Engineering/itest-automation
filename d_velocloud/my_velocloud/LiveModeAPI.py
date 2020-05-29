@@ -118,13 +118,35 @@ class LiveModeAPI:
 
         # Continue to get live data until you obtain the data from the action key
         while not dump_complete:
-            time.sleep(10)
+            time.sleep(1)
+
+            # We're looking for a status value greater than 1 as a cue that the remote procedure has
+            # completed.
+            #
+            # Status enum is:
+            #   0: PENDING
+            #   1: NOTIFIED (i.e. Edge has ack'ed its receipt of the action)
+            #   2: COMPLETE
+            #   3: ERROR
+            #   4: TIMED OUT
 
             try:
-                live_data = self.request(method=method, params=params, ignore_null_properties=False)
+                live_data = self.request(method=method, params=params, ignore_null_properties=True)
             except ApiException as e:
                 print(f"Encountered LiveMode API error in call to {method}: {e}")
                 exit(-1)
+
+            # Check if Live Action is Active, after some time it becomes inactive
+            # If so, get another Live Mode token
+            try:
+                is_live_mode_active = live_data.get("status", {}).get("isActive", None)
+                if not is_live_mode_active:
+                    # print('Live Mode is Not Active')
+                    self._token = self._get_token()
+                    time.sleep(15)
+                    continue
+            except AttributeError:
+                continue
 
             try:
                 all_action_data = live_data.get("data", {}).get("liveAction", {}).get("data", [])
