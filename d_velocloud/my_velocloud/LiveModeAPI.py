@@ -71,7 +71,7 @@ class LiveModeAPI:
 
     @staticmethod
     def _remove_null_properties(data):
-        return {k: v for k, v in data.iteritems() if v is not None}
+        return {k: v for k, v in data.items() if v is not None}
 
     @staticmethod
     def _clean_method_name(raw_name):
