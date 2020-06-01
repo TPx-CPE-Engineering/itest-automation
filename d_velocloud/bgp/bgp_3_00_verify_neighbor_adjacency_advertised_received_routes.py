@@ -266,7 +266,7 @@ def get_bgp_neighbor_received_routes():
         break
 
 
-def get_bgp_neighbor_advertised_routes():
+def get_bgp_neighbor_advertised_routes(ip='192'):
     while True:
         try:
             print(EDGE.LiveMode.get_bgp_neighbor_advertised_routes(segment_id=0, neighbor_ip='192.168.144.2'))
