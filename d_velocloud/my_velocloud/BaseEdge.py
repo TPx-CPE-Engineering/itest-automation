@@ -118,7 +118,7 @@ class BaseEdge:
             if seg['segment']['name'] == segment_name:
                 return seg
 
-        print('No segment named: {} found in module {}'.format(segment_name, module.name))
+        print('No segment named: \'{}\' found in module \'{}\'. Returning empty dict'.format(segment_name, module.name))
         return {}
 
     def get_wan_settings_links(self) -> [dict]:
