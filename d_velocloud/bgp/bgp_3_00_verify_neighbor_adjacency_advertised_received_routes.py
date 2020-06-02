@@ -14,9 +14,8 @@ BGP_SETTINGS = {'Segment Name': 'Global Segment',
                 }
 # Ixia Settings
 # Config File
-# IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\AppData\\Local\\Ixia\\IxNetwork\\AutomationConfigs\\'
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
-IX_NET_CONFIG_FILE = 'bgp_routing.ixncfg'
+IX_NET_CONFIG_FILE = 'bgp_3_00_verify_neighbor_adjacency_advertised_recieved_routes.ixncfg'
 FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 
 # Chassis IP
@@ -33,6 +32,7 @@ PORTS = [{'Name': 'Single 540 LAN',
           'Port': 3
           }]
 
+# Force ownership of ports
 FORCE_OWNERSHIP = True
 
 
