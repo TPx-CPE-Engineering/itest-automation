@@ -179,14 +179,57 @@ def start_ix_network():
     PORT_MAP.Connect(ForceOwnership=FORCE_OWNERSHIP)
     IX_NETWORK.info('Ports connected.')
 
-    time.sleep(35)
+    # Set DUT Port based on Global
+    dut_port = None
+    for port in PORTS:
+        if port['DUT']:
+            dut_port = IX_NETWORK.Vport.find(Name=port['Name'])
+            break
+
+    # Set DUT Port Local IP
+    ipv4 = dut_port.Interface.find().Ipv4.find()
+    if not ipv4.Ip == VELO_BGP_SETTINGS['Neighbor']['neighborIp']:
+        IX_NETWORK.info(f"Setting IxNetwork IPv4 IP to {VELO_BGP_SETTINGS['Neighbor']['neighborIp']}")
+        ipv4.Ip = VELO_BGP_SETTINGS['Neighbor']['neighborIp']
+
+    # Set DUT Port Gateway IP
+    # The Gateway IP should be 1 address lower than the Neighbor Ip
+    gateway_ip = ip_address(address=VELO_BGP_SETTINGS['Neighbor']['neighborIp']) - 1
+    if not ipv4.Gateway == str(gateway_ip):
+        IX_NETWORK.info(f"Setting IxNetwork IPv4 Gateway to {gateway_ip}")
+        ipv4.Gateway = str(gateway_ip)
+
+    # Set up IPv4 Peers Neighbors
+    # First get BGP
+    bgp = dut_port.Protocols.find().Bgp
+    # Get Neighbor
+    neighbor = bgp.NeighborRange.find()
+
+    # Set DUT Neighbor BGP ID
+    if not neighbor.BgpId == VELO_BGP_SETTINGS['Neighbor']['neighborIp']:
+        IX_NETWORK.info(f"Setting IxNetwork Neighbor BGP ID to {VELO_BGP_SETTINGS['Neighbor']['neighborIp']}")
+        neighbor.BgpId = VELO_BGP_SETTINGS['Neighbor']['neighborIp']
+
+    # Set DUT Neighbor BGP DUT IP Address
+    # gateway_ip holds the address 1 address lower than the Neighbor IP
+    if not neighbor.DutIpAddress == str(gateway_ip):
+        IX_NETWORK.info(f"Setting IxNetwork Neighbor DUT IP to {str(gateway_ip)}")
+        neighbor.DutIpAddress = str(gateway_ip)
+
+    # Set DUT Neighbor BGP Local AS Number
+    if not neighbor.LocalAsNumber == VELO_BGP_SETTINGS['Neighbor']['neighborAS']:
+        IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {VELO_BGP_SETTINGS['Neighbor']['neighborAS']}")
+        neighbor.LocalAsNumber = VELO_BGP_SETTINGS['Neighbor']['neighborAS']
+
+    # Set DUT Neighbor Local IP Address
+    if not neighbor.LocalIpAddress == VELO_BGP_SETTINGS['Neighbor']['neighborIp']:
+        IX_NETWORK.info(f"Setting IxNetwork Local IP Address to {VELO_BGP_SETTINGS['Neighbor']['neighborIp']}")
+        neighbor.LocalIpAddress = VELO_BGP_SETTINGS['Neighbor']['neighborIp']
 
     # Start protocols
     # IX_NETWORK.info('Starting protocols...')
     # IX_NETWORK.StartAllProtocols()
     IX_NETWORK.info('Starting BGP Protocol...')
-    v_port = IX_NETWORK.Vport.find(Name='Single 540 LAN')
-    bgp = v_port.Protocols.find().Bgp
     bgp.Start()
     time.sleep(10)
     IX_NETWORK.info('BGP Protocol started.')
