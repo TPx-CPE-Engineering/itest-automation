@@ -120,7 +120,7 @@ class BGPRoutingEdge(BaseEdge):
         # Segment name
         VELO_BGP_SETTINGS['Segment Name'] = segment['segment']['name']
         # Segment Id
-        VELO_BGP_SETTINGS['SegmentID'] = segment['segment']['segmentId']
+        VELO_BGP_SETTINGS['Segment ID'] = segment['segment']['segmentId']
         # BGP Enabled
         VELO_BGP_SETTINGS['BGP Enabled'] = segment['bgp']['enabled']
         # Local ASN
