@@ -412,7 +412,7 @@ def get_bgp_summary():
 
 def create_edge(edge_id, enterprise_id):
     global EDGE
-    EDGE = BGPRoutingEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=0, live_mode=False)
+    EDGE = BGPRoutingEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=0, live_mode=True)
     EDGE.populate_bgp_settings(segment_name=VELO_BGP_SETTINGS['Segment Name'])
 
 
