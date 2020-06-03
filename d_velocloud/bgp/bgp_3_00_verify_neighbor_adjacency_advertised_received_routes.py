@@ -5,14 +5,14 @@ import json
 import time
 from ipaddress import ip_address
 
-# Hardcoded values for test. Update if need to.
-BGP_SETTINGS = {'Segment Name': 'Global Segment',
-                'Segment ID': 0,
-                'BGP Enabled': True,
-                'Local ASN': '65535',
-                'Neighbor IP': '192.168.144.2',
-                'Neighbor ASN': '65535'
-                }
+# Velocloud BGP Settings
+# Method populate_bgp_settings() will query Velo Edge and populate them in this global variable
+# Only variable to change, if need to, is the Segment Name.
+VELO_BGP_SETTINGS = {'Segment Name': 'Global Segment',  # Change Segment Name if need to
+                     'Segment ID': None,
+                     'BGP Enabled': None,
+                     'Neighbor': None
+                     }
 # Ixia Settings
 # Config File
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
@@ -56,37 +56,37 @@ class BGPRoutingEdge(BaseEdge):
         # print(json.dumps(device_module))
 
         # Check #1 BGP_SETTINGS['Segment Name']
-        bgp_settings_segment = self.get_segment_from_module(segment_name=BGP_SETTINGS['Segment Name'],
+        bgp_settings_segment = self.get_segment_from_module(segment_name=VELO_BGP_SETTINGS['Segment Name'],
                                                             module=device_module)
         if not bgp_settings_segment:
-            print({'error': f"No Configure Segment: {BGP_SETTINGS['Segment Name']} found."})
+            print({'error': f"No Configure Segment: {VELO_BGP_SETTINGS['Segment Name']} found."})
             exit(-1)
 
         # Within BGP_SETTINGS['Segment Name'] check for the rest of BGP Settings
         # Check #2 BGP_SETTINGS['BGP Enabled']
         if not bgp_settings_segment['bgp']['enabled']:
             print({'error': f"BGP Enabled is: {bgp_settings_segment['bgp']['enabled']}. "
-                            f"Expecting: {BGP_SETTINGS['BGP Enabled']}."})
+                            f"Expecting: {VELO_BGP_SETTINGS['BGP Enabled']}."})
             exit(-1)
 
         # Check #3 BGP_SETTINGS['Local ASN']
-        if not bgp_settings_segment['bgp']['ASN'] == BGP_SETTINGS['Local ASN']:
+        if not bgp_settings_segment['bgp']['ASN'] == VELO_BGP_SETTINGS['Local ASN']:
             print({'error': f"Local ASN is: {bgp_settings_segment['bgp']['ASN']}. "
-                            f"Expecting: {BGP_SETTINGS['Local ASN']}."})
+                            f"Expecting: {VELO_BGP_SETTINGS['Local ASN']}."})
             exit(-1)
 
         # Check #4 BGP_SETTINGS['Neighbor IP']
         # Check #5 BGP_SETTINGS['Neighbor ASN']
         check_pass = False
         for neighbor in bgp_settings_segment['bgp']['neighbors']:
-            if neighbor['neighborIp'] == BGP_SETTINGS['Neighbor IP'] and \
-                    neighbor['neighborAS'] == BGP_SETTINGS['Neighbor ASN']:
+            if neighbor['neighborIp'] == VELO_BGP_SETTINGS['Neighbor IP'] and \
+                    neighbor['neighborAS'] == VELO_BGP_SETTINGS['Neighbor ASN']:
                 check_pass = True
                 break
 
         if not check_pass:
-            print({'error': f"No Neighbor IP: {BGP_SETTINGS['Neighbor IP']} with ASN: "
-                            f"{BGP_SETTINGS['Neighbor ASN']} found."})
+            print({'error': f"No Neighbor IP: {VELO_BGP_SETTINGS['Neighbor IP']} with ASN: "
+                            f"{VELO_BGP_SETTINGS['Neighbor ASN']} found."})
             exit(-1)
 
         print({'error': None})
@@ -101,6 +101,7 @@ IX_NETWORK: SessionAssistant.Ixnetwork
 PORT_MAP: SessionAssistant.PortMapAssistant
 
 
+# noinspection PyTypeChecker
 def start_ix_network():
     # Initiate IxNetwork session
     global PORT_MAP, SESSION_ASSISTANT, IX_NETWORK
