@@ -22,15 +22,18 @@ FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 # Chassis IP
 IX_NET_CHASSIS_IP = '10.255.224.70'
 
+# VPorts
 PORTS = [{'Name': 'Single 540 LAN',
           'Chassis IP': IX_NET_CHASSIS_IP,
           'Card': 3,
-          'Port': 1
+          'Port': 1,
+          'DUT': True
           },
          {'Name': '520HA LAN',
           'Chassis IP': IX_NET_CHASSIS_IP,
           'Card': 3,
-          'Port': 3
+          'Port': 3,
+          'DUT': False
           }]
 
 # Force ownership of ports
