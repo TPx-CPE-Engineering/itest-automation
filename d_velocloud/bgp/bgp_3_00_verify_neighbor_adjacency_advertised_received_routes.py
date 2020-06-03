@@ -272,7 +272,13 @@ def check_bgp_settings():
 
 
 def do_advertise_routes_match(edges_routes):
-    # Variable 'edges_routes' sometimes with subnet mask ex. 4.2.2.2/32. 'edges_routes' comes from VC BGP Neighbor Advertised Function.
+    """
+    Prints yes or no if IxNetwork IPv4 Unicast RouteS IP's match with Velo BGP Neighbor Advertised Routes IPs
+    :param edges_routes: <list> Velo BGP Neighbor Advertised Routes IPs
+    :return: none
+    """
+    # Parameter 'edges_routes' comes from VC BGP Neighbor Advertised Function.
+    # It is a list of ip address and sometimes they have the subnet mask ex. 4.2.2.2/32.
     # We want to remove the subnet mask from the string to make it easier to match.
     # We will strip the subnet mask from 'edges_routes' and only have the ips.
     edge_advertise_routes_ips = []
@@ -288,9 +294,17 @@ def do_advertise_routes_match(edges_routes):
     # # Get IxNetwork object from Session
     # IX_NETWORK = SESSION_ASSISTANT.Ixnetwork
 
-    ipv4_unicast = IX_NETWORK.Vport.find(Name='Single 540 LAN').Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
+    # Get DUT Port based on PORTS DUT property
+    dut_port = None
+    for port in PORTS:
+        if port['DUT']:
+            dut_port = IX_NETWORK.Vport.find(Name=port['Name'])
+            break
 
-    # Create list of ips taken from Protocol -> BGP -> 'Single 540 LAN' -> IPv4 Peers -> 'Internal - 192.168.144.2-1' -> Learned Routes
+    ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
+
+    # Create list of ips taken from Protocol -> BGP
+    # -> DUT Port -> IPv4 Peers -> 'Internal - 192.168.144.2-1' -> Learned Routes
     ix_network_advertise_routes_ips = []
     for ip in ipv4_unicast:
         ix_network_advertise_routes_ips.append(ip.IpPrefix)
