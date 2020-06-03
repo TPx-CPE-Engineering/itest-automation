@@ -273,7 +273,7 @@ def check_bgp_settings():
 
 def do_advertise_routes_match(edges_routes):
     """
-    Prints yes or no if IxNetwork IPv4 Unicast RouteS IP's match with Velo BGP Neighbor Advertised Routes IPs
+    Prints yes or no if IxNetwork IPv4 Unicast Routes IP's match with Velo BGP Neighbor Advertised Routes IPs
     :param edges_routes: <list> Velo BGP Neighbor Advertised Routes IPs
     :return: none
     """
@@ -320,8 +320,15 @@ def do_advertise_routes_match(edges_routes):
 
 
 def do_received_routes_match(edges_routes):
-    # Variable 'edges_routes' comes with subnet mask.
-    # Remove subnet mask to make verifying matching easier.
+    """
+    Prints yes or no if IxNetwork Route Range IPs match with Velo BGP Recieved Routes IPs
+    :param edges_routes: <list> Velo BGP Neighbor Received Routes
+    :return: none
+    """
+    # Parameter 'edges_routes' comes from VC BGP Neighbor Advertised Function.
+    # It is a list of ip address and sometimes they have the subnet mask ex. 4.2.2.2/32.
+    # We want to remove the subnet mask from the string to make it easier to match.
+    # We will strip the subnet mask from 'edges_routes' and only have the ips.
     edge_received_routes_ips = []
     for route in edges_routes:
         edge_received_routes_ips.append(route.split('/')[0])
@@ -335,14 +342,23 @@ def do_received_routes_match(edges_routes):
     # # Get IxNetwork object from Session
     # IX_NETWORK = SESSION_ASSISTANT.Ixnetwork
 
-    route_ranges = IX_NETWORK.Vport.find(Name='Single 540 LAN').Protocols.find().Bgp.NeighborRange.find().RouteRange.find()
+    # Get DUT Port based on PORTS DUT property
+    dut_port = None
+    for port in PORTS:
+        if port['DUT']:
+            dut_port = IX_NETWORK.Vport.find(Name=port['Name'])
+            break
 
+    route_ranges = dut_port.Protocols.find().Bgp.NeighborRange.find().RouteRange.find()
+
+    # Gather Ix Network Routes IPs
     ix_network_received_routes_ips = []
     for route in route_ranges:
         number_of_routes = route.NumRoutes
         ip = ip_address(address=route.NetworkAddress)
         while number_of_routes > 0:
             ix_network_received_routes_ips.append(str(ip))
+            # Increase IP by 256
             ip = ip + 256
             number_of_routes -= 1
 
