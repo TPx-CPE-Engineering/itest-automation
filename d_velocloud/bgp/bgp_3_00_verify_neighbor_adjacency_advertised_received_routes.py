@@ -374,9 +374,13 @@ def do_received_routes_match(edges_routes):
 def get_bgp_neighbor_received_routes():
     while True:
         try:
-            print(EDGE.LiveMode.get_bgp_neighbor_received_routes(segment_id=0, neighbor_ip='192.168.144.2'))
+            # noinspection PyTypeChecker
+            print(EDGE.LiveMode.get_bgp_neighbor_received_routes(
+                segment_id=VELO_BGP_SETTINGS['Segment ID'],
+                neighbor_ip=VELO_BGP_SETTINGS['Neighbor']['neighborIp']))
         except TimeoutError:
-            print('error time out')
+            print('get_bgp_neighbor_received_routes timed out. Trying again...')
+            time.sleep(10)
             continue
         break
 
@@ -384,9 +388,13 @@ def get_bgp_neighbor_received_routes():
 def get_bgp_neighbor_advertised_routes(ip='192'):
     while True:
         try:
-            print(EDGE.LiveMode.get_bgp_neighbor_advertised_routes(segment_id=0, neighbor_ip='192.168.144.2'))
+            # noinspection PyTypeChecker
+            print(EDGE.LiveMode.get_bgp_neighbor_advertised_routes(
+                segment_id=VELO_BGP_SETTINGS['Segment ID'],
+                neighbor_ip=VELO_BGP_SETTINGS['Neighbor']['neighborIp']))
         except TimeoutError:
-            print('Time out error. Trying again')
+            print('get_bgp_neighbor_advertised_routes timed out. Trying again...')
+            time.sleep(10)
             continue
         break
 
@@ -396,7 +404,7 @@ def get_bgp_summary():
         try:
             print(EDGE.LiveMode.get_bgp_summary())
         except TimeoutError:
-            print('Time out error. Trying again')
+            print('get_bgp_summary timed out. Trying again...')
             time.sleep(10)
             continue
         break
