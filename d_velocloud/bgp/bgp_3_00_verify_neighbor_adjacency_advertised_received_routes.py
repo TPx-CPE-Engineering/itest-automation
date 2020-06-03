@@ -91,6 +91,49 @@ class BGPRoutingEdge(BaseEdge):
 
         print({'error': None})
 
+    def populate_bgp_settings(self, segment_name='Global Segment'):
+        """
+        Populates global variable BGP_SETTINGS by looking at passed Segment (default: Global Segment)
+
+        Gets the following settings:
+            is BGP enabled
+            Local ASN
+            Neighbors list (Only 1 should exists for this test)
+        :return: None
+        """
+
+        global VELO_BGP_SETTINGS
+
+        # Get all of the Edge's device module data
+        device_module = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Get the correct Segment based on parameter segment_name
+        segment = self.get_segment_from_module(segment_name=segment_name, module=device_module)
+
+        # if bgp_segment returns as an empty dict, No such segment
+        if not segment:
+            # No segment named found
+            return
+
+        # Segment is found
+        # Get BGP Settings from segment
+        # Segment name
+        VELO_BGP_SETTINGS['Segment Name'] = segment['segment']['name']
+        # Segment Id
+        VELO_BGP_SETTINGS['SegmentID'] = segment['segment']['segmentId']
+        # BGP Enabled
+        VELO_BGP_SETTINGS['BGP Enabled'] = segment['bgp']['enabled']
+        # Local ASN
+        VELO_BGP_SETTINGS['Local ASN'] = segment['bgp']['ASN']
+        # Neighbors
+        # For this test, there should only be one neighbor
+        if not len(segment['bgp']['neighbors']) == 1:
+            print('To run this test, there should be 1 neighbor within BGP Settings. '
+                  'Please adjust your VeloCloud BGP Settings')
+            exit(-1)
+        else:
+            VELO_BGP_SETTINGS['Neighbor'] = segment['bgp']['neighbors'][0]
+
 
 # Object for Velocloud
 EDGE: BGPRoutingEdge
