@@ -7,11 +7,11 @@ from ipaddress import ip_address
 
 # Velocloud BGP Settings
 # Method populate_bgp_settings() will query Velo Edge and populate them in this global variable
-# Only variable to change, if need to, is the Segment Name.
+# Only variable to change, if need to, is the 'Segment Name'
 VELO_BGP_SETTINGS = {'Segment Name': 'Global Segment',  # Change Segment Name if need to
-                     'Segment ID': None,
-                     'BGP Enabled': None,
-                     'Neighbor': None
+                     'Segment ID': None,  # Will get populated in populate_bgp_settings()
+                     'BGP Enabled': None,  # Will get populated in populate_bgp_settings()
+                     'Neighbor': None  # Will get populated in populate_bgp_settings()
                      }
 # Ixia Settings
 # Config File
@@ -179,7 +179,7 @@ def start_ix_network():
     PORT_MAP.Connect(ForceOwnership=FORCE_OWNERSHIP)
     IX_NETWORK.info('Ports connected.')
 
-    # Set DUT Port based on Global
+    # Set DUT Port based on DUT property in global PORTS
     dut_port = None
     for port in PORTS:
         if port['DUT']:
@@ -202,7 +202,7 @@ def start_ix_network():
     # Set up IPv4 Peers Neighbors
     # First get BGP
     bgp = dut_port.Protocols.find().Bgp
-    # Get Neighbor
+    # Get BGPs Neighbor object
     neighbor = bgp.NeighborRange.find()
 
     # Set DUT Neighbor BGP ID
