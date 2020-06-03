@@ -42,9 +42,9 @@ FORCE_OWNERSHIP = True
 
 class BGPRoutingEdge(BaseEdge):
 
-    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int):
+    def __init__(self, edge_id: int, enterprise_id: int, ssh_port: int, live_mode: bool):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port, auto_operator_login=True,
-                         live_mode=True)
+                         live_mode=live_mode)
 
     def check_bgp_settings(self):
         """
@@ -288,7 +288,8 @@ def get_bgp_summary():
 
 def create_edge(edge_id, enterprise_id):
     global EDGE
-    EDGE = BGPRoutingEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=0)
+    EDGE = BGPRoutingEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=0, live_mode=False)
+    EDGE.populate_bgp_settings(segment_name='Global Segment')
 
 
 if __name__ == '__main__':
