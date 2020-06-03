@@ -3,6 +3,7 @@ from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
 from ixnetwork_restpy.errors import BadRequestError
 import json
 import time
+from ipaddress import ip_address
 
 # Hardcoded values for test. Update if need to.
 BGP_SETTINGS = {'Segment Name': 'Global Segment',
@@ -217,12 +218,6 @@ def do_advertise_routes_match(edges_routes):
 def do_received_routes_match(edges_routes):
     # Variable 'edges_routes' comes with subnet mask.
     # Remove subnet mask to make verifying matching easier.
-    try:
-        import ipaddress
-    except ImportError:
-        print('Please install module: ipaddress')
-        exit(-1)
-
     edge_received_routes_ips = []
     for route in edges_routes:
         edge_received_routes_ips.append(route.split('/')[0])
@@ -241,7 +236,7 @@ def do_received_routes_match(edges_routes):
     ix_network_received_routes_ips = []
     for route in route_ranges:
         number_of_routes = route.NumRoutes
-        ip = ipaddress.ip_address(address=route.NetworkAddress)
+        ip = ip_address(address=route.NetworkAddress)
         while number_of_routes > 0:
             ix_network_received_routes_ips.append(str(ip))
             ip = ip + 256
