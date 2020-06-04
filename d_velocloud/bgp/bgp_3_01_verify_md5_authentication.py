@@ -19,7 +19,7 @@ VELO_BGP_SETTINGS = {'Segment Name': 'Global Segment',  # Change Segment Name if
 # Ixia Settings
 # Config File
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
-IX_NET_CONFIG_FILE = 'bgp_3_01_verify_md5_authentication.py'
+IX_NET_CONFIG_FILE = 'bgp_3_01_verify_md5_authentication.ixncfg'
 FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 
 # Chassis IP
