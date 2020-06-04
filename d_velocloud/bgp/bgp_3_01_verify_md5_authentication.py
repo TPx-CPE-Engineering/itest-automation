@@ -234,7 +234,7 @@ PORT_MAP: SessionAssistant.PortMapAssistant
 
 
 # noinspection PyTypeChecker
-def start_ix_network():
+def start_ix_network(enable_md5=False, md5_password=None):
     # Initiate IxNetwork session
     global PORT_MAP, SESSION_ASSISTANT, IX_NETWORK
 
@@ -314,6 +314,20 @@ def start_ix_network():
     if not neighbor.LocalIpAddress == VELO_BGP_SETTINGS['Neighbor']['neighborIp']:
         IX_NETWORK.info(f"Setting IxNetwork Local IP Address to {VELO_BGP_SETTINGS['Neighbor']['neighborIp']}")
         neighbor.LocalIpAddress = VELO_BGP_SETTINGS['Neighbor']['neighborIp']
+
+    # Enable BGP MD5 Auth on NeighborRange
+    if enable_md5:
+        if not neighbor.Authentication == 'md5':
+            IX_NETWORK.info('Setting BGP NeighborRange Authentication to MD5.')
+            neighbor.Authentication = 'md5'
+
+        if not neighbor.Md5Key == md5_password:
+            IX_NETWORK.info(f"Setting BGP NeighborRange MD5 password to {md5_password}")
+            neighbor.Md5Key = md5_password
+    else:
+        if not neighbor.Authentication == 'null':
+            IX_NETWORK.info('Setting BGP NeighborRange Authentication to null')
+            neighbor.Authentication = 'null'
 
     # Start protocols
     # IX_NETWORK.info('Starting protocols...')
