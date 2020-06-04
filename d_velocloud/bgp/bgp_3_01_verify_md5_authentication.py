@@ -519,6 +519,14 @@ def create_edge(edge_id, enterprise_id):
     EDGE.populate_bgp_settings(segment_name=VELO_BGP_SETTINGS['Segment Name'])
 
 
+def enable_bgp_md5_auth(password=VELO_BGP_SETTINGS['MD5 Password']):
+    EDGE.enable_bgp_md5_auth(password=password)
+
+
+def disable_bgp_md5_auth():
+    EDGE.disable_bgp_md5_auth()
+
+
 if __name__ == '__main__':
     create_edge(edge_id=3, enterprise_id=1)
     # EDGE.enable_bgp_md5_auth(password=VELO_BGP_SETTINGS['MD5 Password'])
