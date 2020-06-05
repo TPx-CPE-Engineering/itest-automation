@@ -1,7 +1,7 @@
 from my_velocloud.BaseEdge import BaseEdge
 from velocloud import ConfigurationUpdateConfigurationModule
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
-from ixnetwork_restpy.errors import BadRequestError
+from ixnetwork_restpy.errors import BadRequestError, NotFoundError
 import json
 import time
 from ipaddress import ip_address
@@ -318,11 +318,11 @@ def start_ix_network(enable_md5=False, md5_password=None):
     # Enable BGP MD5 Auth on NeighborRange
     if enable_md5:
         if not neighbor.Authentication == 'md5':
-            IX_NETWORK.info('Setting BGP NeighborRange Authentication to MD5.')
+            IX_NETWORK.info('Setting BGP NeighborRange Authentication to \'md5\'.')
             neighbor.Authentication = 'md5'
 
         if not neighbor.Md5Key == md5_password:
-            IX_NETWORK.info(f"Setting BGP NeighborRange MD5 password to {md5_password}")
+            IX_NETWORK.info(f"Setting BGP NeighborRange MD5 password to \'{md5_password}\'")
             neighbor.Md5Key = md5_password
     else:
         if not neighbor.Authentication == 'null':
@@ -345,11 +345,15 @@ def start_ix_network(enable_md5=False, md5_password=None):
         try:
             while not bgp_aggregated_stats.CheckCondition(ColumnName='Sess. Up',
                                                           Comparator=StatViewAssistant.EQUAL,
-                                                          ConditionValue=1):
+                                                          ConditionValue=1,
+                                                          Timeout=180):
                 IX_NETWORK.info('Waiting for BGP Session Up to equal 1...')
                 time.sleep(10)
         except SyntaxError:
             continue
+        except NotFoundError:
+            print({'error': "BGP Session Timeout"})
+            return
         break
 
     IX_NETWORK.info('BGP Session Up.')
@@ -367,7 +371,7 @@ def stop_ix_network():
     IX_NETWORK.info('Port disconnected.')
 
     # Exit out of EDGE Live Mode gracefully
-    EDGE.LiveMode.exit_live_mode()
+    # EDGE.LiveMode.exit_live_mode()
 
 
 def check_bgp_settings():
