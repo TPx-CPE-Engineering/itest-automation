@@ -310,3 +310,80 @@ class LiveModeAPI:
         # Look up the live action's results based on the action key
         return self.get_html_results_from_action_key(action_key=action_key)
 
+    def get_ospf_database(self):
+        """
+        Get the OSPF link state database summary
+        :return:
+        """
+        method = 'liveMode/requestLiveActions'
+        params = {
+                  "actions": [
+                    {
+                      "action": "runDiagnostics",
+                      "parameters": {
+                        "tests": [
+                          {
+                            "name": "QUAGGA_OSPF_DB",
+                            "parameters": [
+                                "\"{}\""
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "token": self._token
+                }
+
+        # Execute live action
+        action_result = None
+        try:
+            action_result = self.request(method=method, params=params)
+        except ApiException as e:
+            print(f"Encountered LiveMode API error in call to {method}: {e}")
+            exit(-1)
+
+        # Obtain live action's key
+        action_key = action_result['actionsRequested'][0]['actionId']
+
+        # Look up the live action's results based on the action key
+        return self.get_html_results_from_action_key(action_key=action_key)
+
+    def get_ospf_routes(self):
+        """
+        Get all OSPF routes from neighbors
+        :return:
+        """
+        method = 'liveMode/requestLiveActions'
+        params = {
+                  "actions": [
+                    {
+                      "action": "runDiagnostics",
+                      "parameters": {
+                        "tests": [
+                          {
+                            "name": "QUAGGA_OSPF_TBL",
+                            "parameters": [
+                                "\"{}\""
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "token": self._token
+                }
+
+        # Execute live action
+        action_result = None
+        try:
+            action_result = self.request(method=method, params=params)
+        except ApiException as e:
+            print(f"Encountered LiveMode API error in call to {method}: {e}")
+            exit(-1)
+
+        # Obtain live action's key
+        action_key = action_result['actionsRequested'][0]['actionId']
+
+        # Look up the live action's results based on the action key
+        return self.get_html_results_from_action_key(action_key=action_key)
