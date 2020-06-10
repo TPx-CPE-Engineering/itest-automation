@@ -349,9 +349,9 @@ class LiveModeAPI:
         # Look up the live action's results based on the action key
         return self.get_html_results_from_action_key(action_key=action_key)
 
-    def get_ospf_routes(self):
+    def get_ospf_neighbors(self):
         """
-        Get all OSPF routes from neighbors
+        Get all the OSPF neighbors and associated info
         :return:
         """
         method = 'liveMode/requestLiveActions'
