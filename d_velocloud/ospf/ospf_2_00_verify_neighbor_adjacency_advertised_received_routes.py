@@ -192,6 +192,30 @@ def start_ix_network():
     PORT_MAP.Connect(ForceOwnership=FORCE_OWNERSHIP)
     IX_NETWORK.info('Ports connected.')
 
+    ospf = IX_NETWORK.Vport.find().Protocols.find().Ospf
+    IX_NETWORK.info('Starting OSPF Protocol...')
+    ospf.Start()
+    IX_NETWORK.info('OSPF Protocol started.')
+
+    IX_NETWORK.info('Checking for OSPF Full Nbrs to equal to 1...')
+    ospf_aggregated_stats = SESSION_ASSISTANT.StatViewAssistant(ViewName='OSPF Aggregated Statistics', Timeout=180)
+    while True:
+        try:
+            while not ospf_aggregated_stats.CheckCondition(ColumnName='Full Nbrs.',
+                                                           Comparator=StatViewAssistant.EQUAL,
+                                                           ConditionValue=1,
+                                                           Timeout=180):
+                IX_NETWORK.info('Waiting for OSPF Full Nbrs. to equal 1...')
+                time.sleep(10)
+        except SyntaxError:
+            continue
+        except NotFoundError:
+            print({'error': "OSPF Session Timeout"})
+            return
+        break
+
+    IX_NETWORK.info('OSPF Full Nbrs equals to 1.')
+
 
 def stop_ix_network():
     # Stop protocols
@@ -205,15 +229,28 @@ def stop_ix_network():
     IX_NETWORK.info('Port disconnected.')
 
     # Exit out of EDGE Live Mode gracefully
-    EDGE.LiveMode.exit_live_mode()
+    # EDGE.LiveMode.exit_live_mode()
 
 
 def create_edge(edge_id, enterprise_id):
     global EDGE
     EDGE = OSPFRoutingEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=0, live_mode=True)
-    print(EDGE.LiveMode.get_ospf_routes())
-    EDGE.LiveMode.exit_live_mode()
+
+
+def get_ospf_neighbors():
+    print(EDGE.LiveMode.get_ospf_neighbors())
+
+
+def get_ospf_database():
+    print(EDGE.LiveMode.get_ospf_database())
+
+
+def verify_match(list):
+    print(type(list))
+    print(list)
 
 
 if __name__ == '__main__':
-    create_edge(edge_id=4, enterprise_id=1)
+    # create_edge(edge_id=4, enterprise_id=1)
+    start_ix_network()
+    stop_ix_network()
