@@ -173,7 +173,7 @@ class LiveModeAPI:
     def exit_live_mode(self):
         """
         Exit Live Mode gracefully
-        :return: None
+        :return: <str> Successful message: "Live Mode exited successfully"
         """
 
         method = 'liveMode/exitLiveMode'
@@ -187,7 +187,7 @@ class LiveModeAPI:
             print(f"Encountered LiveMode API error in call to {method}: {e}")
             exit(-1)
 
-        print("Exited Live Mode")
+        return "Live Mode exited successfully"
 
     def get_bgp_neighbor_advertised_routes(self, segment_id, neighbor_ip):
         """
