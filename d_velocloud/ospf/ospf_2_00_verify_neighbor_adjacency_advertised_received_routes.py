@@ -246,8 +246,21 @@ def get_ospf_database():
 
 
 def verify_match(list):
-    print(type(list))
-    print(list)
+    # 100 of .2
+    # 33 of .222
+    advertise_ips = []
+    received_ips = []
+
+    for ip in list:
+        temp_ip = ip.split('.')
+        if temp_ip[-1] == '2':
+            advertise_ips.append(ip)
+        elif temp_ip[-1] == '222':
+            received_ips.append(ip)
+
+    print(received_ips)
+    print('\n\n')
+    print(advertise_ips)
 
 
 if __name__ == '__main__':
