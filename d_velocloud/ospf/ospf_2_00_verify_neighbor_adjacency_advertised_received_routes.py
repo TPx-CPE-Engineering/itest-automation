@@ -251,26 +251,6 @@ def get_ospf_database():
     print(EDGE.LiveMode.get_ospf_database())
 
 
-def verify_match(list):
-    # 100 of .2
-    # 33 of .222
-    advertise_ips = []
-    received_ips = []
-
-    for ip in list:
-        temp_ip = ip.split('.')
-        if temp_ip[-1] == '2':
-            advertise_ips.append(ip)
-        elif temp_ip[-1] == '222':
-            received_ips.append(ip)
-
-    print(len(received_ips))
-    print(received_ips)
-    print('\n\n')
-    print(len(advertise_ips))
-    print(advertise_ips)
-
-
 def verify_if_received_routes_match_ix_network(link_ids, adv_routes):
     received_ips = []
     advertised_ips = []
@@ -290,8 +270,6 @@ def verify_if_received_routes_match_ix_network(link_ids, adv_routes):
 
     if learned_lsa_ips == received_ips:
         print({'match': 'yes'})
-        print({'Velo': received_ips})
-        print({'IxNetwork': learned_lsa_ips})
     else:
         print({'match': 'no'})
         print({'Velo': received_ips})
@@ -323,12 +301,11 @@ def verify_if_advertised_routes_match_ix_network(link_ids, adv_routes):
 
     if route_ranges_ips == advertised_ips:
         print({'match': 'yes'})
-        print({'Velo': advertised_ips})
-        print({'IxNetwork': route_ranges_ips})
     else:
         print({'match': 'no'})
         print({'Velo': advertised_ips})
         print({'IxNetwork': route_ranges_ips})
+
 
 if __name__ == '__main__':
     start_ix_network()
