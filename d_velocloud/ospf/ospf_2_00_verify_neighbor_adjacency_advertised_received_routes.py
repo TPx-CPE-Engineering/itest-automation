@@ -14,7 +14,8 @@ VELO_OSPF_SETTINGS = {'Segment Name': 'Global Segment',  # CHANGE Segment Name i
                       'VLAN Name': 'Corporate',  # CHANGE VLAN Name if need too
                       'VLAN ID': None,  # Will get populated in populate_ospf_settings()
                       'VLAN IP Address': None,
-                      'Interface Name': 'GE2'  # CHANGE Interface if need too
+                      'Interface Name': 'GE2',  # CHANGE Interface if need too
+                      'Management IP': None #  Will get populated in populate_ospf_settings()
                       }
 
 # Ixia Settings
@@ -61,6 +62,9 @@ class OSPFRoutingEdge(BaseEdge):
             if network['name'] == VELO_OSPF_SETTINGS['VLAN Name']:
                 VELO_OSPF_SETTINGS['VLAN ID'] = network['vlanId']
                 VELO_OSPF_SETTINGS['VLAN IP Address'] = network['cidrIp']
+
+        # Get Management IP
+        VELO_OSPF_SETTINGS['Management IP'] = device_module.data['lan']['management']['cidrIp']
 
     def set_ospf_settings(self):
         """
@@ -173,7 +177,7 @@ def start_ix_network():
     IX_NETWORK.info('Loading config...')
     try:
         # TODO change local_file to True once its all done
-        IX_NETWORK.LoadConfig(Files(file_path=FULL_CONFIG, local_file=False))
+        IX_NETWORK.LoadConfig(Files(file_path=FULL_CONFIG, local_file=True))
     except BadRequestError as e:
         print({'error': f"{e.message}"})
         exit(-1)
@@ -235,6 +239,8 @@ def stop_ix_network():
 def create_edge(edge_id, enterprise_id):
     global EDGE
     EDGE = OSPFRoutingEdge(edge_id=int(edge_id), enterprise_id=int(enterprise_id), ssh_port=0, live_mode=True)
+    EDGE.populate_ospf_settings()
+    print(VELO_OSPF_SETTINGS)
 
 
 def get_ospf_neighbors():
@@ -258,9 +264,15 @@ def verify_match(list):
         elif temp_ip[-1] == '222':
             received_ips.append(ip)
 
+    print(len(received_ips))
     print(received_ips)
     print('\n\n')
+    print(len(advertise_ips))
     print(advertise_ips)
+
+
+def verify_if_received_routes_match_ix_network(received_routes):
+    print('todo')
 
 
 if __name__ == '__main__':
