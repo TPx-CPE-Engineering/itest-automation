@@ -271,11 +271,67 @@ def verify_match(list):
     print(advertise_ips)
 
 
-def verify_if_received_routes_match_ix_network(received_routes):
-    print('todo')
+def verify_if_received_routes_match_ix_network(link_ids, adv_routes):
+    received_ips = []
+    advertised_ips = []
 
+    for link_id, adv_route in zip(link_ids, adv_routes):
+        if adv_route == VELO_OSPF_SETTINGS['Management IP']:
+            received_ips.append({link_id: adv_route})
+        else:
+            advertised_ips.append({link_id: adv_route})
+
+    # Get the Learned LSA from Ixia
+    learned_lsa = IX_NETWORK.Vport.find().Protocols.find().Ospf.Router.find().Interface.find().LearnedLsa.find()
+    learned_lsa_ips = []
+    for lsa in learned_lsa:
+        if lsa.LsaType == 'external':
+            learned_lsa_ips.append({lsa.LinkStateId: lsa.AdvRouterId})
+
+    if learned_lsa_ips == received_ips:
+        print({'match': 'yes'})
+        print({'Velo': received_ips})
+        print({'IxNetwork': learned_lsa_ips})
+    else:
+        print({'match': 'no'})
+        print({'Velo': received_ips})
+        print({'IxNetwork': learned_lsa_ips})
+
+
+def verify_if_advertised_routes_match_ix_network(link_ids, adv_routes):
+    received_ips = []
+    advertised_ips = []
+
+    for link_id, adv_route in zip(link_ids, adv_routes):
+        if adv_route == VELO_OSPF_SETTINGS['Management IP']:
+            received_ips.append({link_id: adv_route})
+        else:
+            advertised_ips.append({link_id: adv_route})
+
+    # Get the Router Id and Route Ranges from Ixia
+    router = IX_NETWORK.Vport.find().Protocols.find().Ospf.Router.find()
+    router_id = router.RouterId
+    route_ranges = router.RouteRange.find()
+    route_ranges_ips = []
+    for route in route_ranges:
+        number_of_routes = route.NumberOfRoutes
+        ip = ip_address(address=route.NetworkNumber)
+        while number_of_routes > 0:
+            route_ranges_ips.append({str(ip): router_id})
+            ip = ip + 256
+            number_of_routes -= 1
+
+    if route_ranges_ips == advertised_ips:
+        print({'match': 'yes'})
+        print({'Velo': advertised_ips})
+        print({'IxNetwork': route_ranges_ips})
+    else:
+        print({'match': 'no'})
+        print({'Velo': advertised_ips})
+        print({'IxNetwork': route_ranges_ips})
 
 if __name__ == '__main__':
-    # create_edge(edge_id=4, enterprise_id=1)
     start_ix_network()
+    # verify_if_received_routes_match_ix_network(link_ids=[], adv_routes=[])
+    verify_if_advertised_routes_match_ix_network(link_ids=[], adv_routes=[])
     stop_ix_network()
