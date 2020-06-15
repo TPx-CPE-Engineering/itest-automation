@@ -253,13 +253,11 @@ def get_ospf_database():
 
 def verify_if_received_routes_match_ix_network(link_ids, adv_routes):
     received_ips = []
-    advertised_ips = []
 
+    # Create a list of dict with the link_id as key and adv_route as value based on parameters
     for link_id, adv_route in zip(link_ids, adv_routes):
         if adv_route == VELO_OSPF_SETTINGS['Management IP']:
             received_ips.append({link_id: adv_route})
-        else:
-            advertised_ips.append({link_id: adv_route})
 
     # Get the Learned LSA from Ixia
     learned_lsa = IX_NETWORK.Vport.find().Protocols.find().Ospf.Router.find().Interface.find().LearnedLsa.find()
@@ -277,19 +275,32 @@ def verify_if_received_routes_match_ix_network(link_ids, adv_routes):
 
 
 def verify_if_advertised_routes_match_ix_network(link_ids, adv_routes):
-    received_ips = []
     advertised_ips = []
 
-    for link_id, adv_route in zip(link_ids, adv_routes):
-        if adv_route == VELO_OSPF_SETTINGS['Management IP']:
-            received_ips.append({link_id: adv_route})
-        else:
-            advertised_ips.append({link_id: adv_route})
-
-    # Get the Router Id and Route Ranges from Ixia
+    # Get the Router Id from IxNetwork
+    # Protocols -> OSPF -> "Ethernet - 001" -> "RID - 192.168.184.2" -> Router ID
     router = IX_NETWORK.Vport.find().Protocols.find().Ospf.Router.find()
     router_id = router.RouterId
+
+    # Create a list of dict with the link_id as key and adv_route as value based on parameters
+    # These values come from Velo OSPF Database
+    for link_id, adv_route in zip(link_ids, adv_routes):
+        if adv_route == router_id:
+            advertised_ips.append({link_id: adv_route})
+
+    # Get Route Ranges from IxNetwork
+    # Protocols -> OSPF -> "Ethernet - 001" -> "RID - 192.168.184.2" -> RouteRanges
     route_ranges = router.RouteRange.find()
+
+    # Grab each first route in route ranges and add routes based on the number of routes.
+    # ex.   first route = '172.17.55.0' and number of routes 2
+    #       second route = '172.17.56.0'
+    # Will create a list of dict with the router_id being the value
+    # ex.   [{172.17.55.0: 192.168.184.2}
+    #           ...
+    #            ...
+    #       ]
+    # These values come from IxNetwork
     route_ranges_ips = []
     for route in route_ranges:
         number_of_routes = route.NumberOfRoutes
@@ -299,6 +310,7 @@ def verify_if_advertised_routes_match_ix_network(link_ids, adv_routes):
             ip = ip + 256
             number_of_routes -= 1
 
+    # Verify if the list created from Velo and list created from IxNetwork match
     if route_ranges_ips == advertised_ips:
         print({'match': 'yes'})
     else:
