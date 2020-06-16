@@ -284,9 +284,9 @@ def start_ix_network(enable_ospf_md5=False, key_id=0, password='maule123'):
 
     if enable_ospf_md5:
         # Enable MD5 Authentication for the Interface
-        if not interface.authenticationMethods == 'md5':
+        if not interface.AuthenticationMethods == 'md5':
             IX_NETWORK.info('Setting OSPF Interface Authentication to MD5 Method...')
-            interface.authenticationMethods = 'md5'
+            interface.AuthenticationMethods = 'md5'
 
         # Set the MD5 Key ID
         if not interface.Md5AuthenticationKeyId == key_id:
@@ -301,7 +301,7 @@ def start_ix_network(enable_ospf_md5=False, key_id=0, password='maule123'):
     else:
         # Disable MD5 Authentication on Interface
         IX_NETWORK.info('Setting OSPF Interface Authentication to null')
-        interface.authenticationMethods = 'null'
+        interface.AuthenticationMethods = 'null'
 
     IX_NETWORK.info('Starting OSPF Protocol...')
     ospf.Start()
@@ -327,16 +327,17 @@ def start_ix_network(enable_ospf_md5=False, key_id=0, password='maule123'):
     IX_NETWORK.info('OSPF Full Nbrs equals to 1.')
 
 
-def stop_ix_network():
+def stop_ix_network(disconnect_ports=True):
     # Stop protocols
     IX_NETWORK.info('Stopping protocols...')
     IX_NETWORK.StopAllProtocols()
     IX_NETWORK.info('Protocols stopped.')
 
     # Disconnect PORTS
-    IX_NETWORK.info('Disconnecting ports...')
-    PORT_MAP.Disconnect()
-    IX_NETWORK.info('Port disconnected.')
+    if disconnect_ports:
+        IX_NETWORK.info('Disconnecting ports...')
+        PORT_MAP.Disconnect()
+        IX_NETWORK.info('Port disconnected.')
 
     # Exit out of EDGE Live Mode gracefully
     # EDGE.LiveMode.exit_live_mode()
