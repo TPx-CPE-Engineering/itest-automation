@@ -148,10 +148,28 @@ class OSPFRoutingEdge(BaseEdge):
                     interface['outboundRouteAdvertisement']['defaultAction'] = 'ADVERTISE'
                     update_required = True
 
-                # TODO check Interface -> Addressing -> IP Address
+        # Perform API Call if update is required
+        if update_required:
+            # Setup API parameter
+            param = ConfigurationUpdateConfigurationModule(id=device_module.id,
+                                                           enterpriseId=self.enterprise_id,
+                                                           update=device_module)
+            # Execute API call
+            res = EDGE.api.configurationUpdateConfigurationModule(param)
+
+            # Print API response
+            print(res)
 
     def enable_ospf_md5_auth(self, key_id, password):
+        """
+        Enables OSPF MD5 Authentication for VELO_OSPF_SETTINGS['Interface Name'] and sets the Key ID and Password
 
+        Device -> Interface Settings -> Edit VELO_OSPF_SETTINGS['Interface Name'] -> OSPF -> toggle advance ospf
+        settings -> Check Enable MD5 Authentication, Set Key ID, Set Password
+        :param key_id: <int> Key ID for MD5 Authentication, must be between 1 - 255
+        :param password: <str> Password for MD5 Authentication
+        :return: None
+        """
         if not key_id >= 1 or not key_id <= 255:
             print('Arg: key_id, Must be between 1 - 255')
             return
@@ -163,7 +181,7 @@ class OSPFRoutingEdge(BaseEdge):
         update_required = False
 
         # INTERFACE SETTINGS
-        # Get Interface based on VELO_OSPF_SETTINGS['Interface']
+        # Get Interface based on VELO_OSPF_SETTINGS['Interface Name']
         for interface in device_module.data['routedInterfaces']:
             if interface['name'] == VELO_OSPF_SETTINGS['Interface Name']:
 
@@ -199,13 +217,20 @@ class OSPFRoutingEdge(BaseEdge):
             print({'error': None, 'rows': 0})
 
     def disable_ospf_md5_auth(self):
+        """
+        Disables OSPF MD5 Authentication for VELO_OSPF_SETTINGS['Interface Name'] and prints API Call results
+
+        Device -> Interface Settings -> Edit VELO_OSPF_SETTINGS['Interface Name'] -> OSPF -> toggle advance ospf
+        settings -> Uncheck Enable MD5 Authentication
+        :return: None
+        """
         device_module = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
 
         # bool flag to check if an update api call is needed
         update_required = False
 
         # INTERFACE SETTINGS
-        # Get Interface based on VELO_OSPF_SETTINGS['Interface']
+        # Get Interface based on VELO_OSPF_SETTINGS['Interface Name']
         for interface in device_module.data['routedInterfaces']:
             if interface['name'] == VELO_OSPF_SETTINGS['Interface Name']:
 
@@ -278,7 +303,7 @@ def start_ix_network(enable_ospf_md5=False, key_id=0, password='maule123'):
 
     ospf = IX_NETWORK.Vport.find().Protocols.find().Ospf
 
-    ##########################################
+    #############################################
     # Enable OSPF MD5 Authentication on Interface
     interface = ospf.Router.find().Interface.find()
 
@@ -302,6 +327,7 @@ def start_ix_network(enable_ospf_md5=False, key_id=0, password='maule123'):
         # Disable MD5 Authentication on Interface
         IX_NETWORK.info('Setting OSPF Interface Authentication to null')
         interface.AuthenticationMethods = 'null'
+    ################################################
 
     IX_NETWORK.info('Starting OSPF Protocol...')
     ospf.Start()
