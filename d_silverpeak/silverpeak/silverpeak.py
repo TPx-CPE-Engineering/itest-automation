@@ -716,7 +716,6 @@ class Silverpeak(object):
 
         return self._get(self.session, url)
 
-
     def get_overlay_regions_data(self):
         """
         Get all the overlays stored in the Orchestrator keyed by overlayId and regionId
@@ -817,3 +816,36 @@ class Silverpeak(object):
             data=flowResetData,
             timeout=self.timeout
         )
+
+    def get_bgp_config_system(self, applianceID):
+        """
+        Get BGP system configuration data
+        :param applianceID:  The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/bgp/config/system/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
+
+    def get_bgp_config_neighbor(self, applianceID):
+        """
+        Get BGP specific neighbor configuration data
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/bgp/config/neighbor/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
+
+    def get_bgp_state(self, applianceID):
+        """
+        Get specific appliance BGP state details
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/bgp/state/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
