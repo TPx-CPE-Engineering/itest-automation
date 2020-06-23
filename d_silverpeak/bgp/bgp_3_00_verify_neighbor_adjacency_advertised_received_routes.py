@@ -22,24 +22,18 @@ SP_BGP_SETTINGS = {
 # Ixia Settings
 # Config File
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
-IX_NET_CONFIG_FILE = 'bgp_3_00_verify_neighbor_adjacency_advertised_received_routes.ixncfg'
+IX_NET_CONFIG_FILE = 'bgp_3_00_verify_neighbor_adjacency_advertised_received_routes_SP.ixncfg'
 FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 
 # Chassis IP
 IX_NET_CHASSIS_IP = '10.255.224.70'
 
 # VPorts
-PORTS = [{'Name': 'Single 540 LAN',
+PORTS = [{'Name': 'LAN',
           'Chassis IP': IX_NET_CHASSIS_IP,
           'Card': 3,
           'Port': 1,
           'DUT': True
-          },
-         {'Name': '520HA LAN',
-          'Chassis IP': IX_NET_CHASSIS_IP,
-          'Card': 3,
-          'Port': 3,
-          'DUT': False
           }]
 
 # Force ownership of ports
@@ -128,16 +122,14 @@ def start_ix_network():
 
     # Set DUT Port Local IP
     ipv4 = dut_port.Interface.find().Ipv4.find()
-    if not ipv4.Ip == SP_BGP_SETTINGS['Neighbor']['neighborIp']:
-        IX_NETWORK.info(f"Setting IxNetwork IPv4 IP to {SP_BGP_SETTINGS['Neighbor']['neighborIp']}")
-        ipv4.Ip = SP_BGP_SETTINGS['Neighbor']['neighborIp']
+    if not ipv4.Ip == SP_BGP_SETTINGS['BGP Peer']['IP']:
+        IX_NETWORK.info(f"Setting IxNetwork IPv4 IP to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
+        ipv4.Ip = SP_BGP_SETTINGS['BGP Peer']['IP']
 
     # Set DUT Port Gateway IP
-    # The Gateway IP should be 1 address lower than the Neighbor Ip
-    gateway_ip = ip_address(address=SP_BGP_SETTINGS['Neighbor']['neighborIp']) - 1
-    if not ipv4.Gateway == str(gateway_ip):
-        IX_NETWORK.info(f"Setting IxNetwork IPv4 Gateway to {gateway_ip}")
-        ipv4.Gateway = str(gateway_ip)
+    if not ipv4.Gateway == SP_BGP_SETTINGS['Router ID']:
+        IX_NETWORK.info(f"Setting IxNetwork IPv4 Gateway to {SP_BGP_SETTINGS['Router ID']}")
+        ipv4.Gateway = SP_BGP_SETTINGS['Router ID']
 
     # Set up IPv4 Peers Neighbors
     # First get BGP
@@ -146,25 +138,24 @@ def start_ix_network():
     neighbor = bgp.NeighborRange.find()
 
     # Set DUT Neighbor BGP ID
-    if not neighbor.BgpId == SP_BGP_SETTINGS['Neighbor']['neighborIp']:
-        IX_NETWORK.info(f"Setting IxNetwork Neighbor BGP ID to {SP_BGP_SETTINGS['Neighbor']['neighborIp']}")
-        neighbor.BgpId = SP_BGP_SETTINGS['Neighbor']['neighborIp']
+    if not neighbor.BgpId == SP_BGP_SETTINGS['BGP Peer']['IP']:
+        IX_NETWORK.info(f"Setting IxNetwork Neighbor BGP ID to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
+        neighbor.BgpId = SP_BGP_SETTINGS['BGP Peer']['IP']
 
     # Set DUT Neighbor BGP DUT IP Address
-    # gateway_ip holds the address 1 address lower than the Neighbor IP
-    if not neighbor.DutIpAddress == str(gateway_ip):
-        IX_NETWORK.info(f"Setting IxNetwork Neighbor DUT IP to {str(gateway_ip)}")
-        neighbor.DutIpAddress = str(gateway_ip)
+    if not neighbor.DutIpAddress == SP_BGP_SETTINGS['Router ID']:
+        IX_NETWORK.info(f"Setting IxNetwork Neighbor DUT IP to {SP_BGP_SETTINGS['Router ID']}")
+        neighbor.DutIpAddress = SP_BGP_SETTINGS['Router ID']
 
     # Set DUT Neighbor BGP Local AS Number
-    if not neighbor.LocalAsNumber == SP_BGP_SETTINGS['Neighbor']['neighborAS']:
-        IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {SP_BGP_SETTINGS['Neighbor']['neighborAS']}")
-        neighbor.LocalAsNumber = SP_BGP_SETTINGS['Neighbor']['neighborAS']
+    if not neighbor.LocalAsNumber == SP_BGP_SETTINGS['ASN']:
+        IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {SP_BGP_SETTINGS['ASN']}")
+        neighbor.LocalAsNumber = SP_BGP_SETTINGS['ASN']
 
     # Set DUT Neighbor Local IP Address
-    if not neighbor.LocalIpAddress == SP_BGP_SETTINGS['Neighbor']['neighborIp']:
-        IX_NETWORK.info(f"Setting IxNetwork Local IP Address to {SP_BGP_SETTINGS['Neighbor']['neighborIp']}")
-        neighbor.LocalIpAddress = SP_BGP_SETTINGS['Neighbor']['neighborIp']
+    if not neighbor.LocalIpAddress == SP_BGP_SETTINGS['BGP Peer']['IP']:
+        IX_NETWORK.info(f"Setting IxNetwork Local IP Address to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
+        neighbor.LocalIpAddress = SP_BGP_SETTINGS['BGP Peer']['IP']
 
     # Start protocols
     # IX_NETWORK.info('Starting protocols...')
