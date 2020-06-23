@@ -47,7 +47,42 @@ class BGPRoutingEdge(SPBaseEdge):
 
     def populate_bgp_settings(self):
         global SP_BGP_SETTINGS
-        print(self.edge_id)
+
+        # Get BGP Config System Settings to obtain BGP Router ID and ASN
+        bgp_config_system = self.api.get_bgp_config_system(applianceID=self.edge_id).data
+
+        # Set BGP Router ID
+        SP_BGP_SETTINGS['Router ID'] = bgp_config_system['rtr_id']
+
+        # Set BGP ASN
+        SP_BGP_SETTINGS['ASN'] = bgp_config_system['asn']
+
+        # Now get BGP Neighbors (Peers)
+        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
+
+        # Make sure theres only 1 neighbor
+        if not len(bgp_config_neighbors) == 1:
+            print('To run this test, there should be 1 neighbor within BGP Settings. '
+                  'Please adjust your SilverPeak BGP Settings')
+            exit(-1)
+
+        # Because SP uses the neighbor ip as a key, we must get it (assuming there is only one neighbor)
+        neighbor_key = list(bgp_config_neighbors.keys())[0]
+
+        # Set BGP Peer - IP
+        SP_BGP_SETTINGS['BGP Peer']['IP'] = bgp_config_neighbors[neighbor_key]['self']
+
+        # Set BGP Peer - Remote ASN
+        SP_BGP_SETTINGS['BGP Peer']['Remote ASN'] = bgp_config_neighbors[neighbor_key]['remote_as']
+
+        # Set BGP Peer - Type
+        SP_BGP_SETTINGS['BGP Peer']['Type'] = bgp_config_neighbors[neighbor_key]['type']
+
+        # Set BGP Peer - Admin Status Enable
+        SP_BGP_SETTINGS['BGP Peer']['Admin Status Enable'] = bgp_config_neighbors[neighbor_key]['enable']
+
+        # Set BGP Peer - Local Preference
+        SP_BGP_SETTINGS['BGP Peer']['Local Preference'] = bgp_config_neighbors[neighbor_key]['loc_pref']
 
     def get_bgp_summary(self):
 
