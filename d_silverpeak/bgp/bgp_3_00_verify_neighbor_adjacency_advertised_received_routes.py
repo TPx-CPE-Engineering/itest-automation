@@ -72,6 +72,12 @@ class BGPRoutingEdge(SPBaseEdge):
         print(neighbors_state)
         return neighbors_state
 
+    def get_bgp_route_table(self):
+        bgp_state = self.api.get_bgp_state(applianceID=self.edge_id)
+
+        # print(json.dumps(bgp_state.data))
+        print(bgp_state.data['rttable'])
+
 
 # Object for SilverPeak
 EDGE: BGPRoutingEdge
@@ -307,18 +313,18 @@ def do_received_routes_match(edges_routes):
 
 
 def get_bgp_neighbor_received_routes():
-    print('todo')
+    EDGE.get_bgp_route_table()
 
 
-def get_bgp_neighbor_advertised_routes(ip='192'):
-    print('todo')
+def get_bgp_neighbor_advertised_routes():
+    EDGE.get_bgp_route_table()
 
 
 def get_bgp_summary():
     EDGE.get_bgp_summary()
 
 
-def create_edge(edge_id):
+def create_edge(edge_id, enterprise_id=None):
     global EDGE
     EDGE = BGPRoutingEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
     EDGE.populate_bgp_settings()
@@ -326,5 +332,5 @@ def create_edge(edge_id):
 
 if __name__ == '__main__':
     create_edge(edge_id='18.NE')
-    get_bgp_summary()
+    get_bgp_neighbor_advertised_routes()
 
