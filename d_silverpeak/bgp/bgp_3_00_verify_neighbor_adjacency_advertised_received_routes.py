@@ -8,20 +8,16 @@ from ipaddress import ip_address
 # SilverPeak BGP Settings
 # Method populate_bgp_settings() will query SP Edge and populate them in this global variable
 
-SP_BGP_SETTINGS = {'Segment Name': 'Global Segment',  # Change Segment Name if need to
-                   'Segment ID': None,  # Will get populated in populate_bgp_settings()
-                   'BGP Enabled': None,  # Will get populated in populate_bgp_settings()
-                   'Neighbor': None,  # Will get populated in populate_bgp_settings()
-
+SP_BGP_SETTINGS = {
                    'ASN': '64514',
                    'Router ID': '192.168.131.1',
-                   'BGP Peers': [{
+                   'BGP Peer': {
                        'IP': '192.168.131.99',
                        'Remote ASN': 64514,
                        'Type': 'Branch',
                        'Admin Status': 'UP',
                        'Local Preference': 100
-                   }]
+                        }
                    }
 # Ixia Settings
 # Config File
