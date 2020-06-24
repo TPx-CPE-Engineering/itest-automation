@@ -208,7 +208,8 @@ def start_ix_network():
         try:
             while not bgp_aggregated_stats.CheckCondition(ColumnName='Sess. Up',
                                                           Comparator=StatViewAssistant.EQUAL,
-                                                          ConditionValue=1):
+                                                          ConditionValue=1,
+                                                          Timeout=120):
                 IX_NETWORK.info('Waiting for BGP Session Up to equal 1...')
                 time.sleep(10)
         except SyntaxError:
@@ -265,6 +266,7 @@ def do_advertise_routes_match(edges_routes):
             break
 
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
+    ipv4_unicast.refresh()
 
     # Create list of ips taken from Protocol -> BGP
     # -> DUT Port -> IPv4 Peers -> 'Internal - 192.168.144.2-1' -> Learned Routes
