@@ -857,6 +857,23 @@ class Silverpeak(object):
 
         return self._get(self.session, url)
 
+    def post_bgp_config_neighbor(self, applianceID, bgpConfigNeighborData):
+        """
+        Post BGP neighbor configuration data
+        :param applianceID: The node ID of the appliance
+        :param bgpConfigNeighborData: BGP config neighbor data
+        :return: Result named tuple
+        """
+
+        url = '{}/appliance/rest/{}/bgp/config/neighbor'.format(self.base_url, applianceID)
+
+        return self._post(session=self.session,
+                          url=url,
+                          headers={'Content-Type': 'application/json'},
+                          data=bgpConfigNeighborData,
+                          timeout=self.timeout
+                          )
+
     def get_bgp_state(self, applianceID):
         """
         Get specific appliance BGP state details
