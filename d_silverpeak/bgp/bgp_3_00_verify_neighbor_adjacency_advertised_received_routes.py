@@ -45,6 +45,42 @@ class BGPRoutingEdge(SPBaseEdge):
     def __init__(self, edge_id: str, enterprise_id, ssh_port):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port, auto_operator_login=True)
 
+    def enable_bgp(self):
+        """
+        Enables BGP on Edge
+        :return: None
+        """
+        # Get existing BGP config system data
+        bgp_config_sys = self.api.get_bgp_config_system(applianceID=self.edge_id).data
+
+        # Set BGP to disable
+        bgp_config_sys['enable'] = True
+
+        # Post change
+        response = EDGE.api.post_bgp_config_system(applianceID=self.edge_id, bgpConfigSystemData=json.dumps(bgp_config_sys))
+        if not response.status_code == 200:
+            print(response.error)
+            exit(-1)
+        print('Edge BGP Enabled successfully')
+
+    def disable_bgp(self):
+        """
+        Disables BGP on Edge
+        :return: None
+        """
+        # Get existing BGP config system data
+        bgp_config_sys = self.api.get_bgp_config_system(applianceID=self.edge_id).data
+
+        # Set BGP to disable
+        bgp_config_sys['enable'] = False
+
+        # Post change
+        response = EDGE.api.post_bgp_config_system(applianceID=self.edge_id, bgpConfigSystemData=json.dumps(bgp_config_sys))
+        if not response.status_code == 200:
+            print(response.error)
+            exit(-1)
+        print('Edge BGP Disabled successfully')
+
     def populate_bgp_settings(self):
         global SP_BGP_SETTINGS
 
@@ -85,6 +121,10 @@ class BGPRoutingEdge(SPBaseEdge):
         SP_BGP_SETTINGS['BGP Peer']['Local Preference'] = bgp_config_neighbors[neighbor_key]['loc_pref']
 
     def get_bgp_summary(self):
+        """
+        Gets Edge BGP Summary
+        :return: None
+        """
 
         bgp_state = self.api.get_bgp_state(applianceID=self.edge_id)
 
@@ -93,9 +133,7 @@ class BGPRoutingEdge(SPBaseEdge):
             neighbors_state.append({'neighbor': neighbor['peer_ip'],
                                     'state': neighbor['peer_state_str']})
 
-        # TODO check in iTest is response below works
         print(neighbors_state)
-        return neighbors_state
 
     def get_bgp_route_table(self):
         bgp_state = self.api.get_bgp_state(applianceID=self.edge_id)
@@ -345,13 +383,23 @@ def get_bgp_neighbor_advertised_routes():
 
 
 def get_bgp_summary():
-    EDGE.get_bgp_summary()
+    while True:
+        try:
+            EDGE.get_bgp_summary()
+        except KeyError:
+            time.sleep(10)
+            continue
+        break
 
 
 def create_edge(edge_id, enterprise_id=None):
     global EDGE
     EDGE = BGPRoutingEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
     EDGE.populate_bgp_settings()
+    EDGE.disable_bgp()
+    time.sleep(10)
+    EDGE.enable_bgp()
+    time.sleep(30)
 
 
 if __name__ == '__main__':
