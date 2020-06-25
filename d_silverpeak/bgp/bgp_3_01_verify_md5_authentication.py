@@ -1,6 +1,6 @@
 from my_silverpeak.base_edge import SPBaseEdge
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
-from ixnetwork_restpy.errors import BadRequestError
+from ixnetwork_restpy.errors import BadRequestError, NotFoundError
 import json
 import time
 from ipaddress import ip_address
@@ -315,11 +315,14 @@ def start_ix_network(enable_md5=False, md5_password=None):
             while not bgp_aggregated_stats.CheckCondition(ColumnName='Sess. Up',
                                                           Comparator=StatViewAssistant.EQUAL,
                                                           ConditionValue=1,
-                                                          Timeout=120):
+                                                          Timeout=180):
                 IX_NETWORK.info('Waiting for BGP Session Up to equal 1...')
                 time.sleep(10)
         except SyntaxError:
             continue
+        except NotFoundError:
+            print({'error': "BGP Session Timeout"})
+            return
         break
 
     IX_NETWORK.info('BGP Session Up.')
