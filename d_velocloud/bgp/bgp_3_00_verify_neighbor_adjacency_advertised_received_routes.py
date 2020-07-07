@@ -1,6 +1,6 @@
 from my_velocloud.BaseEdge import BaseEdge
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
-from ixnetwork_restpy.errors import BadRequestError
+from ixnetwork_restpy.errors import BadRequestError, NotFoundError
 import json
 import time
 from ipaddress import ip_address
@@ -16,7 +16,7 @@ VELO_BGP_SETTINGS = {'Segment Name': 'Global Segment',  # Change Segment Name if
 # Ixia Settings
 # Config File
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
-IX_NET_CONFIG_FILE = 'bgp_3_00_verify_neighbor_adjacency_advertised_received_routes.ixncfg'
+IX_NET_CONFIG_FILE = 'bgp_3_00_verify_neighbor_adjacency_advertised_received_routes_VC.ixncfg'
 FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 
 # Chassis IP
@@ -28,12 +28,6 @@ PORTS = [{'Name': 'Single 540 LAN',
           'Card': 3,
           'Port': 1,
           'DUT': True
-          },
-         {'Name': '520HA LAN',
-          'Chassis IP': IX_NET_CHASSIS_IP,
-          'Card': 3,
-          'Port': 3,
-          'DUT': False
           }]
 
 # Force ownership of ports
@@ -242,10 +236,13 @@ def start_ix_network():
         try:
             while not bgp_aggregated_stats.CheckCondition(ColumnName='Sess. Up',
                                                           Comparator=StatViewAssistant.EQUAL,
-                                                          ConditionValue=1):
+                                                          ConditionValue=1,
+                                                          Timeout=120):
                 IX_NETWORK.info('Waiting for BGP Session Up to equal 1...')
                 time.sleep(10)
         except SyntaxError:
+            continue
+        except NotFoundError:
             continue
         break
 
