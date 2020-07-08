@@ -22,7 +22,7 @@ SP_BGP_SETTINGS = {
 # Ixia Settings
 # Config File
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
-IX_NET_CONFIG_FILE = 'bgp_3_00_verify_neighbor_adjacency_advertised_received_routes_SP.ixncfg'
+IX_NET_CONFIG_FILE = 'bgp_3_02_verify_as_prepend_count_SP.ixncfg'
 FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 
 # Chassis IP
@@ -176,6 +176,11 @@ class BGPRoutingEdge(SPBaseEdge):
         # Set BGP Peer - Local Preference
         SP_BGP_SETTINGS['BGP Peer']['Local Preference'] = bgp_config_neighbors[neighbor_key]['loc_pref']
 
+        # For this test we want external BGP so make sure the ASN from Silverpeak and BGP Peer are different
+        if SP_BGP_SETTINGS['ASN'] == SP_BGP_SETTINGS['BGP Peer']['Remote ASN']:
+            print('To run this test, we need Edge ASN and BGP Peer ASN to be different to create an external BGP')
+            exit(-1)
+
     def get_bgp_summary(self):
         """
         Gets Edge BGP Summary
@@ -276,10 +281,10 @@ def start_ix_network():
         IX_NETWORK.info(f"Setting IxNetwork Neighbor DUT IP to {SP_BGP_SETTINGS['Router ID']}")
         neighbor.DutIpAddress = SP_BGP_SETTINGS['Router ID']
 
-    # Set DUT Neighbor BGP Local AS Number
-    if not neighbor.LocalAsNumber == SP_BGP_SETTINGS['ASN']:
-        IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {SP_BGP_SETTINGS['ASN']}")
-        neighbor.LocalAsNumber = SP_BGP_SETTINGS['ASN']
+    # # Set DUT Neighbor BGP Local AS Number
+    # if not neighbor.LocalAsNumber == SP_BGP_SETTINGS['ASN']:
+    #     IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {SP_BGP_SETTINGS['ASN']}")
+    #     neighbor.LocalAsNumber = SP_BGP_SETTINGS['ASN']
 
     # Set DUT Neighbor Local IP Address
     if not neighbor.LocalIpAddress == SP_BGP_SETTINGS['BGP Peer']['IP']:
@@ -325,23 +330,21 @@ def stop_ix_network():
     IX_NETWORK.info('Port disconnected.')
 
 
-def check_bgp_settings():
-    print('todo')
+def get_bgp_summary():
+    while True:
+        try:
+            EDGE.get_bgp_summary()
+        except KeyError:
+            time.sleep(10)
+            continue
+        break
 
 
-def do_advertise_routes_match(edges_routes):
-    """
-    Prints yes or no if IxNetwork IPv4 Unicast Routes IP's match with Velo BGP Neighbor Advertised Routes IPs
-    :param edges_routes: <list> Velo BGP Neighbor Advertised Routes IPs
-    :return: none
-    """
-    # Parameter 'edges_routes' comes from VC BGP Neighbor Advertised Function.
-    # It is a list of ip address and sometimes they have the subnet mask ex. 4.2.2.2/32.
-    # We want to remove the subnet mask from the string to make it easier to match.
-    # We will strip the subnet mask from 'edges_routes' and only have the ips.
-    edge_advertise_routes_ips = []
-    for route in edges_routes:
-        edge_advertise_routes_ips.append(route.split('/')[0])
+def set_as_prepend_count(count=5):
+    EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=count, bgp_peer_ip=SP_BGP_SETTINGS['BGP Peer']['IP'])
+
+
+def do_ix_network_routes_match_as_prepend_count(count=5):
 
     # # Initiate globals for testing.
     # # Comment out for iTest run
@@ -366,94 +369,14 @@ def do_advertise_routes_match(edges_routes):
 
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
 
-    # Create list of ips taken from Protocol -> BGP
-    # -> DUT Port -> IPv4 Peers -> 'Internal - 192.168.144.2-1' -> Learned Routes
-    ix_network_advertise_routes_ips = []
     for ip in ipv4_unicast:
-        ix_network_advertise_routes_ips.append(ip.IpPrefix)
+        as_path = ip.AsPath.strip("<>").split(" ")
+        if not len(as_path) == count + 1:
+            print({'match': 'no'})
+            return
 
-    # Check if the ips match, expecting to match to pass the test
-    if edge_advertise_routes_ips == ix_network_advertise_routes_ips:
-        print({'match': 'yes'})
-    else:
-        print({'match': 'no'})
-
-    print({'Edge Advertise Routes IPs': edge_advertise_routes_ips})
-    print({'IxNetwork Advertise Routes IPs': ix_network_advertise_routes_ips})
-
-
-def do_received_routes_match(edges_routes):
-    """
-    Prints yes or no if IxNetwork Route Range IPs match with Velo BGP Recieved Routes IPs
-    :param edges_routes: <list> Velo BGP Neighbor Received Routes
-    :return: none
-    """
-    # Parameter 'edges_routes' comes from VC BGP Neighbor Advertised Function.
-    # It is a list of ip address and sometimes they have the subnet mask ex. 4.2.2.2/32.
-    # We want to remove the subnet mask from the string to make it easier to match.
-    # We will strip the subnet mask from 'edges_routes' and only have the ips.
-    edge_received_routes_ips = []
-    for route in edges_routes:
-        edge_received_routes_ips.append(route.split('/')[0])
-
-    # # Initiate globals for testing.
-    # # Comment out for iTest run
-    # SESSION_ASSISTANT = SessionAssistant(IpAddress='10.255.20.7',
-    #                                      LogLevel=SessionAssistant.LOGLEVEL_INFO,
-    #                                      ClearConfig=False)
-    #
-    # # Get IxNetwork object from Session
-    # IX_NETWORK = SESSION_ASSISTANT.Ixnetwork
-
-    # Get DUT Port based on PORTS DUT property
-    dut_port = None
-    for port in PORTS:
-        if port['DUT']:
-            dut_port = IX_NETWORK.Vport.find(Name=port['Name'])
-            break
-
-    route_ranges = dut_port.Protocols.find().Bgp.NeighborRange.find().RouteRange.find()
-
-    # Gather Ix Network Routes IPs
-    ix_network_received_routes_ips = []
-    for route in route_ranges:
-        number_of_routes = route.NumRoutes
-        ip = ip_address(address=route.NetworkAddress)
-        while number_of_routes > 0:
-            ix_network_received_routes_ips.append(str(ip))
-            # Increase IP by 256
-            ip = ip + 256
-            number_of_routes -= 1
-
-    if edge_received_routes_ips == ix_network_received_routes_ips:
-        print({'match': 'yes'})
-    else:
-        print({'match': 'no'})
-
-    print({'Edge Received Routes IPs': edge_received_routes_ips})
-    print({'IxNetwork Received Routes IPs': ix_network_received_routes_ips})
-
-
-def get_bgp_neighbor_received_routes():
-    EDGE.get_bgp_route_table()
-
-
-def get_bgp_neighbor_advertised_routes():
-    EDGE.get_bgp_route_table()
-
-
-def get_bgp_summary():
-    while True:
-        try:
-            EDGE.get_bgp_summary()
-        except KeyError:
-            time.sleep(10)
-            continue
-        break
-
-
-def set_as_prepend_count(count=5):
-    EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=count, bgp_peer_ip=SP_BGP_SETTINGS['BGP Peer']['IP'])
+    # else every route had the right AS path
+    print({'match': 'yes'})
 
 
 def create_edge(edge_id, enterprise_id=None):
@@ -467,7 +390,9 @@ def create_edge(edge_id, enterprise_id=None):
 
 
 if __name__ == '__main__':
-    create_edge(edge_id='18.NE')
+    # create_edge(edge_id='18.NE')
     # EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=0, bgp_peer_ip='192.168.131.99')
     # EDGE.set_med_on_bgp_peer(med=57, bgp_peer_ip='192.168.131.199')
     # EDGE.get_bgp_summary()
+    # start_ix_network()
+    do_ix_network_routes_match_as_prepend_count(count=5)
