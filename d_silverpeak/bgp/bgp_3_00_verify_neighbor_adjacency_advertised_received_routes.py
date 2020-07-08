@@ -303,8 +303,11 @@ def do_advertise_routes_match(edges_routes):
             dut_port = IX_NETWORK.Vport.find(Name=port['Name'])
             break
 
+    # Refresh the routes
+    neighbor_range = dut_port.Protocols.find().Bgp.NeighborRange.find()
+    neighbor_range.RefreshLearnedInfo()
+    time.sleep(10)
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
-    ipv4_unicast.refresh()
 
     # Create list of ips taken from Protocol -> BGP
     # -> DUT Port -> IPv4 Peers -> 'Internal - 192.168.144.2-1' -> Learned Routes

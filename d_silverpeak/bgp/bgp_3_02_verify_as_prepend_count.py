@@ -359,8 +359,12 @@ def do_advertise_routes_match(edges_routes):
             dut_port = IX_NETWORK.Vport.find(Name=port['Name'])
             break
 
+    # Refresh routes
+    neighbor_range = dut_port.Protocols.find().Bgp.NeighborRange.find()
+    neighbor_range.RefreshLearnedInfo()
+    time.sleep(10)
+
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
-    ipv4_unicast.refresh()
 
     # Create list of ips taken from Protocol -> BGP
     # -> DUT Port -> IPv4 Peers -> 'Internal - 192.168.144.2-1' -> Learned Routes
@@ -448,22 +452,22 @@ def get_bgp_summary():
         break
 
 
-def set_as_prepend_count():
-    EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=5, bgp_peer_ip=SP_BGP_SETTINGS['BGP Peer']['IP'])
+def set_as_prepend_count(count=5):
+    EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=count, bgp_peer_ip=SP_BGP_SETTINGS['BGP Peer']['IP'])
 
 
 def create_edge(edge_id, enterprise_id=None):
     global EDGE
     EDGE = BGPRoutingEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
-    # EDGE.populate_bgp_settings()
-    # EDGE.disable_bgp()
-    # time.sleep(10)
-    # EDGE.enable_bgp()
-    # time.sleep(30)
+    EDGE.populate_bgp_settings()
+    EDGE.disable_bgp()
+    time.sleep(10)
+    EDGE.enable_bgp()
+    time.sleep(30)
 
 
 if __name__ == '__main__':
     create_edge(edge_id='18.NE')
     # EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=0, bgp_peer_ip='192.168.131.99')
-    EDGE.set_med_on_bgp_peer(med=57, bgp_peer_ip='192.168.131.199')
-
+    # EDGE.set_med_on_bgp_peer(med=57, bgp_peer_ip='192.168.131.199')
+    # EDGE.get_bgp_summary()
