@@ -369,14 +369,22 @@ def do_ix_network_routes_match_as_prepend_count(count=5):
 
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
 
+    match_as_prepend_count = True
     for ip in ipv4_unicast:
         as_path = ip.AsPath.strip("<>").split(" ")
         if not len(as_path) == count + 1:
-            print({'match': 'no'})
-            return
+            match_as_prepend_count = False
+            break
 
-    # else every route had the right AS path
-    print({'match': 'yes'})
+    if match_as_prepend_count:
+        print({'match': 'yes'})
+    else:
+        print({'match': 'no'})
+
+    routes = []
+    for ip in ipv4_unicast:
+        routes.append({'IP': ip.IpPrefix + '/' + str(ip.PrefixLength), 'AsPath': ip.AsPath})
+    print(routes)
 
 
 def create_edge(edge_id, enterprise_id=None):
