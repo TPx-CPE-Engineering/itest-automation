@@ -26,7 +26,7 @@ IX_NET_CONFIG_FILE = 'bgp_3_02_verify_as_prepend_count_SP.ixncfg'
 FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 
 # Chassis IP
-IX_NET_CHASSIS_IP = '10.255.20.7'
+IX_NET_CHASSIS_IP = '10.255.224.70'
 
 # VPorts
 PORTS = [{'Name': 'LAN',
