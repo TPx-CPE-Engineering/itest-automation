@@ -369,14 +369,26 @@ def do_ix_network_routes_match_med(med=55):
 
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
 
+    med_match = True
+    # search through every ip and check if its med matches
     for ip in ipv4_unicast:
         if not ip.MultiExitDiscriminator == med:
-            print({'match': 'no'})
-            print({'IP': ip.IpPrefix + '/' + ip.PrefixLength, 'MED': ip.MultiExitDiscriminator})
-            return
+            med_match = False
+            break
 
-    # else every route had the right MED
-    print({'match': 'yes'})
+    if med_match:
+        # All ips matched med
+        print({'match': 'yes'})
+    else:
+        print({'match': 'no'})
+
+    # Print every IP with its MED
+    routes = []
+    for ip in ipv4_unicast:
+        routes.append({'IP': ip.IpPrefix + '/' + str(ip.PrefixLength), 'MED': ip.MultiExitDiscriminator})
+        # print({'IP': ip.IpPrefix + '/' + str(ip.PrefixLength), 'MED': ip.MultiExitDiscriminator})
+
+    print(routes)
 
 
 def create_edge(edge_id, enterprise_id=None):
