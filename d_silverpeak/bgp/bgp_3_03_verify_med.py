@@ -365,7 +365,6 @@ def do_ix_network_routes_match_med(med=55):
     # Refresh routes
     neighbor_range = dut_port.Protocols.find().Bgp.NeighborRange.find()
     neighbor_range.RefreshLearnedInfo()
-    time.sleep(10)
 
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
 
