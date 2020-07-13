@@ -365,12 +365,14 @@ def do_ix_network_routes_match_med(med=55):
     # Refresh routes
     neighbor_range = dut_port.Protocols.find().Bgp.NeighborRange.find()
     neighbor_range.RefreshLearnedInfo()
+    time.sleep(5)
 
     ipv4_unicast = dut_port.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
 
     for ip in ipv4_unicast:
         if not ip.MultiExitDiscriminator == med:
             print({'match': 'no'})
+            print({'IP': ip.IpPrefix + '/' + ip.PrefixLength, 'MED': ip.MultiExitDiscriminator})
             return
 
     # else every route had the right MED
