@@ -319,6 +319,14 @@ def start_ix_network():
 
 
 def stop_ix_network():
+
+    SESSION_ASSISTANT = SessionAssistant(IpAddress=IX_NET_CHASSIS_IP,
+                                         LogLevel=SessionAssistant.LOGLEVEL_INFO,
+                                         ClearConfig=False)
+
+    # Get IxNetwork object from Session
+    IX_NETWORK = SESSION_ASSISTANT.Ixnetwork
+
     # Stop protocols
     IX_NETWORK.info('Stopping protocols...')
     IX_NETWORK.StopAllProtocols()
