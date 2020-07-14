@@ -220,28 +220,6 @@ def start_ix_network():
     # Set up IPv4 Peers Neighbors
     # First get BGP
     bgp = dut_port.Protocols.find().Bgp
-    # Get BGPs Neighbor object
-    neighbor = bgp.NeighborRange.find()
-
-    # # Set DUT Neighbor BGP ID
-    # if not neighbor.BgpId == SP_BGP_SETTINGS['BGP Peer']['IP']:
-    #     IX_NETWORK.info(f"Setting IxNetwork Neighbor BGP ID to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
-    #     neighbor.BgpId = SP_BGP_SETTINGS['BGP Peer']['IP']
-    #
-    # # Set DUT Neighbor BGP DUT IP Address
-    # if not neighbor.DutIpAddress == SP_BGP_SETTINGS['Router ID']:
-    #     IX_NETWORK.info(f"Setting IxNetwork Neighbor DUT IP to {SP_BGP_SETTINGS['Router ID']}")
-    #     neighbor.DutIpAddress = SP_BGP_SETTINGS['Router ID']
-    #
-    # # # Set DUT Neighbor BGP Local AS Number
-    # # if not neighbor.LocalAsNumber == SP_BGP_SETTINGS['ASN']:
-    # #     IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {SP_BGP_SETTINGS['ASN']}")
-    # #     neighbor.LocalAsNumber = SP_BGP_SETTINGS['ASN']
-    #
-    # # Set DUT Neighbor Local IP Address
-    # if not neighbor.LocalIpAddress == SP_BGP_SETTINGS['BGP Peer']['IP']:
-    #     IX_NETWORK.info(f"Setting IxNetwork Local IP Address to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
-    #     neighbor.LocalIpAddress = SP_BGP_SETTINGS['BGP Peer']['IP']
 
     # Start protocols
     # IX_NETWORK.info('Starting protocols...')
