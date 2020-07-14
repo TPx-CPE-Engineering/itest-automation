@@ -4,6 +4,7 @@ from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
 from ixnetwork_restpy.errors import BadRequestError
 import json
 import time
+import copy
 from ipaddress import ip_address
 
 # SilverPeak BGP Settings
@@ -459,7 +460,7 @@ def create_edge(edge_id, enterprise_id=None):
     global EDGE
     EDGE = BGPRoutingEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
 
-    temp_bgp_information = DEFAULT_BGP_INFORMATION
+    temp_bgp_information = copy.deepcopy(DEFAULT_BGP_INFORMATION)
     # Test requirements:
     #   eBGP
     #
