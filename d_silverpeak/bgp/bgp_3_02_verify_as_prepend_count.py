@@ -5,22 +5,7 @@ from ixnetwork_restpy.errors import BadRequestError
 import json
 import time
 import copy
-from ipaddress import ip_address
 
-# SilverPeak BGP Settings
-# Method populate_bgp_settings() will query SP Edge and populate them in this global variable
-
-SP_BGP_SETTINGS = {
-                   'ASN': '64514',
-                   'Router ID': '192.168.131.1',
-                   'BGP Peer': {
-                       'IP': '192.168.131.99',
-                       'Remote ASN': 64514,
-                       'Type': 'Branch',
-                       'Admin Status': 'UP',
-                       'Local Preference': 100
-                        }
-                   }
 # Ixia Settings
 # Config File
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
@@ -206,16 +191,16 @@ def start_ix_network():
             dut_port = IX_NETWORK.Vport.find(Name=port['Name'])
             break
 
-    # Set DUT Port Local IP
-    ipv4 = dut_port.Interface.find().Ipv4.find()
-    if not ipv4.Ip == SP_BGP_SETTINGS['BGP Peer']['IP']:
-        IX_NETWORK.info(f"Setting IxNetwork IPv4 IP to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
-        ipv4.Ip = SP_BGP_SETTINGS['BGP Peer']['IP']
-
-    # Set DUT Port Gateway IP
-    if not ipv4.Gateway == SP_BGP_SETTINGS['Router ID']:
-        IX_NETWORK.info(f"Setting IxNetwork IPv4 Gateway to {SP_BGP_SETTINGS['Router ID']}")
-        ipv4.Gateway = SP_BGP_SETTINGS['Router ID']
+    # # Set DUT Port Local IP
+    # ipv4 = dut_port.Interface.find().Ipv4.find()
+    # if not ipv4.Ip == SP_BGP_SETTINGS['BGP Peer']['IP']:
+    #     IX_NETWORK.info(f"Setting IxNetwork IPv4 IP to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
+    #     ipv4.Ip = SP_BGP_SETTINGS['BGP Peer']['IP']
+    #
+    # # Set DUT Port Gateway IP
+    # if not ipv4.Gateway == SP_BGP_SETTINGS['Router ID']:
+    #     IX_NETWORK.info(f"Setting IxNetwork IPv4 Gateway to {SP_BGP_SETTINGS['Router ID']}")
+    #     ipv4.Gateway = SP_BGP_SETTINGS['Router ID']
 
     # Set up IPv4 Peers Neighbors
     # First get BGP
@@ -282,7 +267,11 @@ def get_bgp_summary():
 
 
 def set_as_prepend_count(count=5):
-    EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=count, bgp_peer_ip=SP_BGP_SETTINGS['BGP Peer']['IP'])
+    # Grab default Peer IP, default Peer is the first in the list, Silverpeak uses its IP as key for dict.
+    default_peer = DEFAULT_BGP_INFORMATION['BGP Peers'][0]
+    default_peer_ip = next(iter(default_peer))
+
+    EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=count, bgp_peer_ip=default_peer_ip)
 
 
 def do_ix_network_routes_match_as_prepend_count(count=5):
