@@ -1,8 +1,10 @@
 from my_silverpeak.base_edge import SPBaseEdge
+from my_silverpeak.Globals import DEFAULT_BGP_INFORMATION
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
 from ixnetwork_restpy.errors import BadRequestError
 import json
 import time
+import copy
 from ipaddress import ip_address
 
 # SilverPeak BGP Settings
@@ -108,79 +110,6 @@ class BGPRoutingEdge(SPBaseEdge):
             exit(-1)
         print({'error': None, 'rows': 1, 'data': response.data})
 
-    def set_med_on_bgp_peer(self, med, bgp_peer_ip):
-        """
-        Sets MED for a BGP Peer
-        :param med: <int> MED for Peer
-        :param bgp_peer_ip: <str> IP of BGP Peer
-        :return: None
-        """
-
-        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
-
-        try:
-            if bgp_config_neighbors[bgp_peer_ip]['med'] == med:
-                print({'error': None, 'rows': 0})
-                return
-        except KeyError:
-            print(f'BGP Peer IP: {bgp_peer_ip} is not found. Confirm if Peer is in Edge\'s BGP Peers.')
-            exit(-1)
-
-        # else
-        bgp_config_neighbors[bgp_peer_ip]['med'] = med
-
-        response = EDGE.api.post_bgp_config_neighbor(applianceID=self.edge_id,
-                                                     bgpConfigNeighborData=json.dumps(bgp_config_neighbors))
-
-        if not response.status_code == 200:
-            print(response.error)
-            exit(-1)
-        print({'error': None, 'rows': 1, 'data': response.data})
-
-    def populate_bgp_settings(self):
-        global SP_BGP_SETTINGS
-
-        # Get BGP Config System Settings to obtain BGP Router ID and ASN
-        bgp_config_system = self.api.get_bgp_config_system(applianceID=self.edge_id).data
-
-        # Set BGP Router ID
-        SP_BGP_SETTINGS['Router ID'] = bgp_config_system['rtr_id']
-
-        # Set BGP ASN
-        SP_BGP_SETTINGS['ASN'] = bgp_config_system['asn']
-
-        # Now get BGP Neighbors (Peers)
-        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
-
-        # Make sure theres only 1 neighbor
-        if not len(bgp_config_neighbors) == 1:
-            print('To run this test, there should be 1 neighbor within BGP Settings. '
-                  'Please adjust your SilverPeak BGP Settings')
-            exit(-1)
-
-        # Because SP uses the neighbor ip as a key, we must get it (assuming there is only one neighbor)
-        neighbor_key = list(bgp_config_neighbors.keys())[0]
-
-        # Set BGP Peer - IP
-        SP_BGP_SETTINGS['BGP Peer']['IP'] = bgp_config_neighbors[neighbor_key]['self']
-
-        # Set BGP Peer - Remote ASN
-        SP_BGP_SETTINGS['BGP Peer']['Remote ASN'] = bgp_config_neighbors[neighbor_key]['remote_as']
-
-        # Set BGP Peer - Type
-        SP_BGP_SETTINGS['BGP Peer']['Type'] = bgp_config_neighbors[neighbor_key]['type']
-
-        # Set BGP Peer - Admin Status Enable
-        SP_BGP_SETTINGS['BGP Peer']['Admin Status Enable'] = bgp_config_neighbors[neighbor_key]['enable']
-
-        # Set BGP Peer - Local Preference
-        SP_BGP_SETTINGS['BGP Peer']['Local Preference'] = bgp_config_neighbors[neighbor_key]['loc_pref']
-
-        # For this test we want external BGP so make sure the ASN from Silverpeak and BGP Peer are different
-        if SP_BGP_SETTINGS['ASN'] == SP_BGP_SETTINGS['BGP Peer']['Remote ASN']:
-            print('To run this test, we need Edge ASN and BGP Peer ASN to be different to create an external BGP')
-            exit(-1)
-
     def get_bgp_summary(self):
         """
         Gets Edge BGP Summary
@@ -196,11 +125,34 @@ class BGPRoutingEdge(SPBaseEdge):
 
         print(neighbors_state)
 
-    def get_bgp_route_table(self):
-        bgp_state = self.api.get_bgp_state(applianceID=self.edge_id)
+    def set_bgp_settings(self, bgp_settings):
+        """
+        Sets Edge's BGP Settings
+        :param bgp_settings: bgp settings config, must match global DEFAULT_BGP_INFORMATION structure
+        :return:
+        """
 
-        # print(json.dumps(bgp_state.data))
-        print(bgp_state.data['rttable'])
+        # Push BGP Config System
+        response = EDGE.api.post_bgp_config_system(applianceID=self.edge_id,
+                                                   bgpConfigSystemData=json.dumps(bgp_settings['Config System']))
+        # Check response status
+        if not response.status_code == 200:
+            print(response.error)
+            exit(-1)
+        print({'error': None, 'rows': 1, 'data': response.data})
+
+        # Set the BGP Peers Config
+        # First Peer is the default Peer
+        neighbors_config = bgp_settings['BGP Peers'][0]
+
+        # Push BGP Peers config
+        response = EDGE.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(neighbors_config))
+        # Check response status
+        if not response.status_code == 200:
+            print(response.error)
+            exit(-1)
+        print({'error': None, 'rows': 1, 'data': response.data})
 
 
 # Object for SilverPeak
@@ -226,7 +178,7 @@ def start_ix_network():
     IX_NETWORK = SESSION_ASSISTANT.Ixnetwork
 
     # Load Config
-    IX_NETWORK.info('Loading config...')
+    IX_NETWORK.info(f'Loading config: {IX_NET_CONFIG_FILE}...')
     try:
         IX_NETWORK.LoadConfig(Files(file_path=FULL_CONFIG, local_file=True))
     except BadRequestError as e:
@@ -271,25 +223,25 @@ def start_ix_network():
     # Get BGPs Neighbor object
     neighbor = bgp.NeighborRange.find()
 
-    # Set DUT Neighbor BGP ID
-    if not neighbor.BgpId == SP_BGP_SETTINGS['BGP Peer']['IP']:
-        IX_NETWORK.info(f"Setting IxNetwork Neighbor BGP ID to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
-        neighbor.BgpId = SP_BGP_SETTINGS['BGP Peer']['IP']
-
-    # Set DUT Neighbor BGP DUT IP Address
-    if not neighbor.DutIpAddress == SP_BGP_SETTINGS['Router ID']:
-        IX_NETWORK.info(f"Setting IxNetwork Neighbor DUT IP to {SP_BGP_SETTINGS['Router ID']}")
-        neighbor.DutIpAddress = SP_BGP_SETTINGS['Router ID']
-
-    # # Set DUT Neighbor BGP Local AS Number
-    # if not neighbor.LocalAsNumber == SP_BGP_SETTINGS['ASN']:
-    #     IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {SP_BGP_SETTINGS['ASN']}")
-    #     neighbor.LocalAsNumber = SP_BGP_SETTINGS['ASN']
-
-    # Set DUT Neighbor Local IP Address
-    if not neighbor.LocalIpAddress == SP_BGP_SETTINGS['BGP Peer']['IP']:
-        IX_NETWORK.info(f"Setting IxNetwork Local IP Address to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
-        neighbor.LocalIpAddress = SP_BGP_SETTINGS['BGP Peer']['IP']
+    # # Set DUT Neighbor BGP ID
+    # if not neighbor.BgpId == SP_BGP_SETTINGS['BGP Peer']['IP']:
+    #     IX_NETWORK.info(f"Setting IxNetwork Neighbor BGP ID to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
+    #     neighbor.BgpId = SP_BGP_SETTINGS['BGP Peer']['IP']
+    #
+    # # Set DUT Neighbor BGP DUT IP Address
+    # if not neighbor.DutIpAddress == SP_BGP_SETTINGS['Router ID']:
+    #     IX_NETWORK.info(f"Setting IxNetwork Neighbor DUT IP to {SP_BGP_SETTINGS['Router ID']}")
+    #     neighbor.DutIpAddress = SP_BGP_SETTINGS['Router ID']
+    #
+    # # # Set DUT Neighbor BGP Local AS Number
+    # # if not neighbor.LocalAsNumber == SP_BGP_SETTINGS['ASN']:
+    # #     IX_NETWORK.info(f"Setting IxNetwork Local AS Number to {SP_BGP_SETTINGS['ASN']}")
+    # #     neighbor.LocalAsNumber = SP_BGP_SETTINGS['ASN']
+    #
+    # # Set DUT Neighbor Local IP Address
+    # if not neighbor.LocalIpAddress == SP_BGP_SETTINGS['BGP Peer']['IP']:
+    #     IX_NETWORK.info(f"Setting IxNetwork Local IP Address to {SP_BGP_SETTINGS['BGP Peer']['IP']}")
+    #     neighbor.LocalIpAddress = SP_BGP_SETTINGS['BGP Peer']['IP']
 
     # Start protocols
     # IX_NETWORK.info('Starting protocols...')
@@ -320,22 +272,25 @@ def start_ix_network():
 
 def stop_ix_network():
 
-    SESSION_ASSISTANT = SessionAssistant(IpAddress=IX_NET_CHASSIS_IP,
-                                         LogLevel=SessionAssistant.LOGLEVEL_INFO,
-                                         ClearConfig=False)
-
-    # Get IxNetwork object from Session
-    IX_NETWORK = SESSION_ASSISTANT.Ixnetwork
+    # SESSION_ASSISTANT = SessionAssistant(IpAddress=IX_NET_CHASSIS_IP,
+    #                                      LogLevel=SessionAssistant.LOGLEVEL_INFO,
+    #                                      ClearConfig=False)
+    #
+    # # Get IxNetwork object from Session
+    # IX_NETWORK = SESSION_ASSISTANT.Ixnetwork
 
     # Stop protocols
     IX_NETWORK.info('Stopping protocols...')
     IX_NETWORK.StopAllProtocols()
     IX_NETWORK.info('Protocols stopped.')
 
-    # # Disconnect PORTS
-    # IX_NETWORK.info('Disconnecting ports...')
-    # PORT_MAP.Disconnect()
-    # IX_NETWORK.info('Port disconnected.')
+    # Disconnect PORTS
+    IX_NETWORK.info('Disconnecting ports...')
+    PORT_MAP.Disconnect()
+    IX_NETWORK.info('Port disconnected.')
+
+    # Reset BGP settings to default on Edge
+    EDGE.set_bgp_settings(bgp_settings=DEFAULT_BGP_INFORMATION)
 
 
 def get_bgp_summary():
@@ -398,7 +353,24 @@ def do_ix_network_routes_match_as_prepend_count(count=5):
 def create_edge(edge_id, enterprise_id=None):
     global EDGE
     EDGE = BGPRoutingEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
-    EDGE.populate_bgp_settings()
+
+    temp_bgp_information = copy.deepcopy(DEFAULT_BGP_INFORMATION)
+    # Test requirements:
+    #   eBGP
+    #
+    # By default BGP is set to iBGP
+    # For eBGP, Edge ASN must be different than the Peer ASN
+
+    # Grab default Peer IP, default Peer is the first in the list, Silverpeak uses its IP as key for dict.
+    default_peer = temp_bgp_information['BGP Peers'][0]
+    default_peer_ip = next(iter(default_peer))
+
+    # Set Config System ASN to BGP Peer ASN + 1 in order to be different and have eBGP
+    temp_bgp_information['Config System']['asn'] = default_peer[default_peer_ip]['remote_as'] + 1
+
+    EDGE.set_bgp_settings(bgp_settings=temp_bgp_information)
+    time.sleep(5)
+
     EDGE.disable_bgp()
     time.sleep(10)
     EDGE.enable_bgp()
@@ -406,9 +378,4 @@ def create_edge(edge_id, enterprise_id=None):
 
 
 if __name__ == '__main__':
-    # create_edge(edge_id='18.NE')
-    # EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=0, bgp_peer_ip='192.168.131.99')
-    # EDGE.set_med_on_bgp_peer(med=57, bgp_peer_ip='192.168.131.199')
-    # EDGE.get_bgp_summary()
-    # start_ix_network()
-    do_ix_network_routes_match_as_prepend_count(count=5)
+    create_edge(edge_id='18.NE')
