@@ -842,7 +842,7 @@ class Silverpeak(object):
                           url=url,
                           headers={'Content-Type': 'application/json'},
                           data=bgpConfigSystemData,
-                          timeout=self.timeout
+                          timeout=30    # Timeout increased due to BGP ASN
                           )
 
 
