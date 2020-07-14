@@ -1,4 +1,5 @@
 from my_silverpeak.base_edge import SPBaseEdge
+from my_silverpeak.Globals import DEFAULT_BGP_INFORMATION
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
 from ixnetwork_restpy.errors import BadRequestError
 import json
@@ -19,6 +20,38 @@ SP_BGP_SETTINGS = {
                        'Local Preference': 100
                         }
                    }
+
+# BGP_SETTINGS = {
+#     'enable': True,
+#     'asn': 64515,
+#     'rtr_id': '192.168.131.1',
+#     'graceful_restart_en': False,
+#     'max_restart_time': 120,
+#     'stale_path_time': 150,
+#     'remote_as_path_advertise': False,
+#     'redist_ospf': True,
+#     'redist_ospf_filter': 0,
+#     'log_nbr_msgs': True,
+#     'BGP Peer': {
+#         '192.168.131.99': {
+#             'enable': True,
+#             'self': '192.168.131.99',
+#             'remote_as': 64514,
+#             'import_rtes': True,
+#             'type': 'Branch',
+#             'loc_pref': 100,
+#             'med': 60,
+#             'as_prepend': 5,
+#             'next_hop_self': False,
+#             'in_med': 0,
+#             'ka': 30,
+#             'hold': 90,
+#             'export_map': 4294967295,
+#             'password': ''
+#         }
+#     }
+# }
+
 # Ixia Settings
 # Config File
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
@@ -202,6 +235,35 @@ class BGPRoutingEdge(SPBaseEdge):
         # print(json.dumps(bgp_state.data))
         print(bgp_state.data['rttable'])
 
+    def set_bgp_settings(self, bgp_settings):
+        """
+        Sets Edge's BGP Settings
+        :param bgp_settings: bgp settings config, must match global DEFAULT_BGP_INFORMATION structure
+        :return:
+        """
+
+        # Push BGP Config System
+        response = EDGE.api.post_bgp_config_system(applianceID=self.edge_id,
+                                                   bgpConfigSystemData=json.dumps(bgp_settings['Config System']))
+        # Check response status
+        if not response.status_code == 200:
+            print(response.error)
+            exit(-1)
+        print({'error': None, 'rows': 1, 'data': response.data})
+
+        # Set the BGP Peers Config
+        # First Peer is the default Peer
+        neighbors_config = bgp_settings['BGP Peers'][0]
+
+        # Push BGP Peers config
+        response = EDGE.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(neighbors_config))
+        # Check response status
+        if not response.status_code == 200:
+            print(response.error)
+            exit(-1)
+        print({'error': None, 'rows': 1, 'data': response.data})
+
 
 # Object for SilverPeak
 EDGE: BGPRoutingEdge
@@ -329,6 +391,9 @@ def stop_ix_network():
     PORT_MAP.Disconnect()
     IX_NETWORK.info('Port disconnected.')
 
+    # Reset BGP settings to default on Edge
+    EDGE.set_bgp_settings(bgp_settings=DEFAULT_BGP_INFORMATION)
+
 
 def get_bgp_summary():
     while True:
@@ -386,7 +451,6 @@ def do_ix_network_routes_match_med(med=55):
     routes = []
     for ip in ipv4_unicast:
         routes.append({'IP': ip.IpPrefix + '/' + str(ip.PrefixLength), 'MED': ip.MultiExitDiscriminator})
-        # print({'IP': ip.IpPrefix + '/' + str(ip.PrefixLength), 'MED': ip.MultiExitDiscriminator})
 
     print(routes)
 
@@ -394,7 +458,24 @@ def do_ix_network_routes_match_med(med=55):
 def create_edge(edge_id, enterprise_id=None):
     global EDGE
     EDGE = BGPRoutingEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
-    EDGE.populate_bgp_settings()
+
+    temp_bgp_information = DEFAULT_BGP_INFORMATION
+    # Test requirements:
+    #   eBGP
+    #
+    # By default BGP is set to iBGP
+    # For eBGP, Edge ASN must be different than the Peer ASN
+
+    # Grab default Peer IP, default Peer is the first in the list, Silverpeak uses its IP as key for dict.
+    default_peer = temp_bgp_information['BGP Peers'][0]
+    default_peer_ip = next(iter(default_peer))
+
+    # Set Config System ASN to BGP Peer ASN + 1 in order to be different and have eBGP
+    temp_bgp_information['Config System']['asn'] = default_peer[default_peer_ip]['remote_as'] + 1
+
+    EDGE.set_bgp_settings(bgp_settings=temp_bgp_information)
+    time.sleep(5)
+
     EDGE.disable_bgp()
     time.sleep(10)
     EDGE.enable_bgp()
@@ -402,9 +483,4 @@ def create_edge(edge_id, enterprise_id=None):
 
 
 if __name__ == '__main__':
-    # create_edge(edge_id='18.NE')
-    # EDGE.set_as_prepend_count_on_bgp_peer(as_prepend_count=0, bgp_peer_ip='192.168.131.99')
-    # EDGE.set_med_on_bgp_peer(med=57, bgp_peer_ip='192.168.131.199')
-    # EDGE.get_bgp_summary()
-    # start_ix_network()
-    do_ix_network_routes_match_med(med=55)
+    create_edge(edge_id='18.NE')
