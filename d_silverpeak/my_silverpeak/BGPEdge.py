@@ -175,6 +175,36 @@ class BGPEdge(SPBaseEdge):
         else:
             print({'error': None, 'message': 'Local preference set successfully', 'data': response.data})
 
+    def set_med_on_bgp_peer(self, med=0, bgp_peer_ip=DEFAULT_BGP_PEER_IP):
+        """
+        Sets MED for a BGP Peer
+        :param med: <int> MED for Peer, default 0
+        :param bgp_peer_ip: <str> IP of BGP Peer, default DEFAULT_BGP_PEER_IP
+        :return: None
+        """
+
+        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
+
+        try:
+            if bgp_config_neighbors[bgp_peer_ip]['med'] == med:
+                print({'error': None, 'message': f"MED already set to {med}."})
+                return
+        except KeyError:
+            print({'error': f'BGP Peer IP: {bgp_peer_ip} is not found. Confirm if Peer is in Edge\'s BGP Peers.'})
+            return
+
+        # else
+        bgp_config_neighbors[bgp_peer_ip]['med'] = med
+
+        response = self.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(bgp_config_neighbors))
+
+        if not response.status_code == 200:
+            print({'error': response.error, 'message': "Error setting MED", 'data': response.data})
+            return
+        else:
+            print({'error': None, 'message': 'MED set successfully','data': response.data})
+
 
 class Ixia:
     def __init__(self, ip_address=IX_NETWORK_IP, log_level=SessionAssistant.LOGLEVEL_INFO, clear_config=True):
