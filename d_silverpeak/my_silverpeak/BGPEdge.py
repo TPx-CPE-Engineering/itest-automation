@@ -205,6 +205,34 @@ class BGPEdge(SPBaseEdge):
         else:
             print({'error': None, 'message': 'MED set successfully','data': response.data})
 
+    def set_as_prepend_count_on_bgp_peer(self, as_prepend_count=0, bgp_peer_ip=DEFAULT_BGP_PEER_IP):
+        """
+        Enables AS Prepend Count for a BGP Peer
+        :param as_prepend_count: <int> 0-10, default 0
+        :param bgp_peer_ip: <str> IP of BGP Peer, default DEFAULT_BGP_PEER_IP
+        :return: None
+        """
+
+        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
+        try:
+            if bgp_config_neighbors[bgp_peer_ip]['as_prepend'] == as_prepend_count:
+                print({'error': None, 'message': f'AS Prepend already set to {as_prepend_count}'})
+                return
+        except KeyError:
+            print({'error': f'BGP Peer IP: {bgp_peer_ip} is not found. Confirm if Peer is in Edge\'s BGP Peers.'})
+            return
+        # else
+        bgp_config_neighbors[bgp_peer_ip]['as_prepend'] = as_prepend_count
+
+        response = self.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(bgp_config_neighbors))
+
+        if not response.status_code == 200:
+            print({'error': response.error, 'message': "Error setting AS Prepend Count", 'data': response.data})
+            return
+        else:
+            print({'error': None, 'message': 'AS Prepend Count set successfully','data': response.data})
+
 
 class Ixia:
     def __init__(self, ip_address=IX_NETWORK_IP, log_level=SessionAssistant.LOGLEVEL_INFO, clear_config=True):
