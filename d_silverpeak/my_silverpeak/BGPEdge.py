@@ -233,6 +233,11 @@ class BGPEdge(SPBaseEdge):
         else:
             print({'error': None, 'message': 'AS Prepend Count set successfully','data': response.data})
 
+    def get_bgp_route_table(self):
+        bgp_state = self.api.get_bgp_state(applianceID=self.edge_id)
+
+        print(bgp_state.data['rttable'])
+
 
 class Ixia:
     def __init__(self, ip_address=IX_NETWORK_IP, log_level=SessionAssistant.LOGLEVEL_INFO, clear_config=True):
