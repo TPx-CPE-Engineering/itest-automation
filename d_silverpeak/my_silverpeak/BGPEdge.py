@@ -1,6 +1,6 @@
 from my_silverpeak.base_edge import SPBaseEdge
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
-from ixnetwork_restpy.errors import BadRequestError
+from ixnetwork_restpy.errors import BadRequestError, NotFoundError
 import json
 import time
 
@@ -238,6 +238,55 @@ class BGPEdge(SPBaseEdge):
 
         print(bgp_state.data['rttable'])
 
+    def enable_bgp_md5_auth(self, password, bgp_peer_ip=DEFAULT_BGP_PEER_IP):
+        """
+        Enables MD5 Auth on BGP Peer with passed password
+        :param password: <str> Password for MD5 Authentication
+        :param bgp_peer_ip: <str> IP of BGP Peer, default DEFAULT_BGP_PEER_IP
+        :return: None
+        """
+        # Get BGP neighbors settings
+        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
+
+        # Enable BGP MD5 Auth on the neighbor ip by setting the password
+        # If password already set and matches argument password then don't call api
+        if bgp_config_neighbors[bgp_peer_ip]['password'] == password:
+            print({'error': None, 'message': f'BGP MD5 Auth password already set to {password}'})
+            return
+
+        # Else password is not set or does not match so set it
+        bgp_config_neighbors[bgp_peer_ip]['password'] = password
+        response = self.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(bgp_config_neighbors))
+        if not response.status_code == 200:
+            print({'error': response.error, 'message': 'Error setting BGP MD5 Auth', 'data': response.data})
+        else:
+            print({'error': None, 'message': 'BGP MD5 Auth set successfully', 'data': response.data})
+
+    def disable_bgp_md5_auth(self, bgp_peer_ip=DEFAULT_BGP_PEER_IP):
+        """
+        Disables MD5 Auth on SP_BGP_SETTINGS[BGP Peer]
+        :param bgp_peer_ip: <str> IP of BGP Peer, default DEFAULT_BGP_PEER_IP
+        :return: None
+        """
+        # Get BGP neighbors settings
+        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
+
+        # Disable BGP MD5 Auth on the neighbor ip by setting the password to an empty string
+        # If password already empty then don't call api
+        if bgp_config_neighbors[bgp_peer_ip]['password'] == "":
+            print({'error': None, 'message': 'BGP MD5 already disabled'})
+            return
+
+        # Else set password to empty and call api
+        bgp_config_neighbors[bgp_peer_ip]['password'] = ""
+        response = self.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(bgp_config_neighbors))
+        if not response.status_code == 200:
+            print({'error': response.error, 'message': 'Error disabling BGP MD5 authentication', 'data': response.data})
+        else:
+            print({'error': None, 'message': 'Disabled BGP MD5 Auth successfully', 'data': response.data})
+
 
 class Ixia:
     def __init__(self, ip_address=IX_NETWORK_IP, log_level=SessionAssistant.LOGLEVEL_INFO, clear_config=True):
@@ -247,7 +296,8 @@ class Ixia:
         self.IxNetwork = self.SessionAssistant.Ixnetwork
         self.PortMap = self.SessionAssistant.PortMapAssistant()
 
-    def start_ix_network(self, config:str, vports:list, vports_force_ownership=True, config_local=True):
+    def start_ix_network(self, config:str, vports:list, vports_force_ownership=True, config_local=True,
+                         enable_md5=False, md5_password=None):
         # Load Config
         self.IxNetwork.info(f'Loading config: {config}...')
         try:
@@ -269,12 +319,29 @@ class Ixia:
         self.PortMap.Connect(ForceOwnership=vports_force_ownership)
         self.IxNetwork.info('Ports connected.')
 
-        # # Set DUT Port based on DUT property in global PORTS
-        # dut_port_name = vports[0]['Name']
-        # dut_port = self.IxNetwork.Vport.find(Name=dut_port_name)
-        #
-        # # First get BGP
-        # bgp = dut_port.Protocols.find().Bgp
+        # Get Default Vport Name, Default will be first in list
+        vport_name = vports[0]['Name']
+        vport = self.IxNetwork.Vport.find(Name=vport_name)
+
+        # Set up IPv4 Peers Neighbors
+        # First get BGP
+        bgp = vport.Protocols.find().Bgp
+        # Get BGPs Neighbor object
+        neighbor = bgp.NeighborRange.find()
+
+        # Enable BGP MD5 Auth on NeighborRange
+        if enable_md5:
+            if not neighbor.Authentication == 'md5':
+                self.IxNetwork.info('Setting BGP NeighborRange Authentication to \'md5\'.')
+                neighbor.Authentication = 'md5'
+
+            if not neighbor.Md5Key == md5_password:
+                self.IxNetwork.info(f"Setting BGP NeighborRange MD5 password to \'{md5_password}\'")
+                neighbor.Md5Key = md5_password
+        else:
+            if not neighbor.Authentication == 'null':
+                self.IxNetwork.info('Setting BGP NeighborRange Authentication to null')
+                neighbor.Authentication = 'null'
 
         # Start protocols
         self.IxNetwork.info('Starting protocols...')
@@ -300,6 +367,9 @@ class Ixia:
                     time.sleep(10)
             except SyntaxError:
                 continue
+            except NotFoundError:
+                print({'error': 'BGP Session Timeout'})
+                return
             break
 
         self.IxNetwork.info('BGP Session Up.')
