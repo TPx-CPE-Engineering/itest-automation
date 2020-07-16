@@ -68,6 +68,16 @@ def create_edge(edge_id, enterprise_id=None):
     time.sleep(30)
 
 
+def get_bgp_summary():
+    while True:
+        try:
+            BGP_EDGE.get_bgp_summary()
+        except KeyError:
+            time.sleep(10)
+            continue
+        break
+
+
 def set_local_preference(local_preference:int):
     BGP_EDGE.set_local_preference_on_bgp_peer(local_preference=local_preference)
 
