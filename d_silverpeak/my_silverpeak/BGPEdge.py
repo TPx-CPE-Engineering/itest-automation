@@ -28,7 +28,7 @@ DEFAULT_BGP_INFORMATION = {
     },
     'BGP Peers': [{
         DEFAULT_BGP_PEER_IP: {             # Default Neighbor 192.168.131.99
-            'enable': True,             # Enable Peer, default True
+            'enable': True,             # Admin Status(True=UP Admin Status, False=Down Admin Status), default True
             'self': DEFAULT_BGP_PEER_IP,   # Peer IP, default 192.168.131.99
             'remote_as': 64514,         # Peer ASN, default 64514
             'import_rtes': True,        # Enable Imports, default True
