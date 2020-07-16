@@ -9,6 +9,7 @@ import time
 # bgp_3.01_verify_md5_authentication
 # bgp_3.02_verify_prepend_count
 # bgp_3.03_verify_med
+# bgp_3.04_verify_local_preference
 
 DEFAULT_BGP_PEER_IP = '192.168.131.99'
 
