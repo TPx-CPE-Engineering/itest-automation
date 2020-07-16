@@ -72,6 +72,38 @@ def set_local_preference(local_preference:int):
     BGP_EDGE.set_local_preference_on_bgp_peer(local_preference=local_preference)
 
 
+def do_ix_network_routes_match_local_preference(local_preference:int):
+    # Get Default Vport Name, Default will be first in list
+    vport_name = PORTS[0]['Name']
+    vport = IXIA.IxNetwork.Vport.find(Name=vport_name)
+
+    # Refresh routes
+    neighbor_range = vport.Protocols.find().Bgp.NeighborRange.find()
+    neighbor_range.RefreshLearnedInfo()
+    time.sleep(5)
+
+    ipv4_unicast = vport.Protocols.find().Bgp.NeighborRange.find().LearnedInformation.Ipv4Unicast.find()
+
+    local_preference_match = True
+    # search through every ip and check if its med matches
+    for ip in ipv4_unicast:
+        if not ip.LocalPreference == local_preference:
+            local_preference_match = False
+            break
+
+    if local_preference_match:
+        # All ips matched local preference
+        print({'match': 'yes'})
+    else:
+        print({'match': 'no'})
+
+    # Print every IP with its Local Preference
+    routes = []
+    for ip in ipv4_unicast:
+        routes.append({'IP': ip.IpPrefix + '/' + str(ip.PrefixLength), 'Local Preference': ip.LocalPreference})
+    print(routes)
+
+
 if __name__ == '__main__':
     create_edge(edge_id='18.NE')
     # start_ix_network()
