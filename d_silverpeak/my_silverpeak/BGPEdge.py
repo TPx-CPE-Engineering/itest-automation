@@ -219,6 +219,66 @@ class BGPEdge(SPBaseEdge):
         else:
             print({'error': None, 'message': 'MED set successfully','data': response.data})
 
+    def set_keep_alive_timer_on_bgp_peer(self, keep_alive_timer=0, bgp_peer_ip=DEFAULT_BGP_PEER_IP):
+        """
+        Sets Keep Alive Timer for a BGP Peer
+        :param keep_alive_timer: <int> Keep Alive for BGP Peer, default 0
+        :param bgp_peer_ip: <str> IP of BGP Peer, default DEFAULT_BGP_PEER_IP
+        :return: None
+        """
+
+        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
+
+        try:
+            if bgp_config_neighbors[bgp_peer_ip]['ka'] == keep_alive_timer:
+                print({'error': None, 'message': f"Keep Alive Timer already set to {keep_alive_timer}."})
+                return
+        except KeyError:
+            print({'error': f'BGP Peer IP: {bgp_peer_ip} is not found. Confirm if Peer is in Edge\'s BGP Peers.'})
+            return
+
+        # else
+        bgp_config_neighbors[bgp_peer_ip]['ka'] = keep_alive_timer
+
+        response = self.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(bgp_config_neighbors))
+
+        if not response.status_code == 200:
+            print({'error': response.error, 'message': "Error setting Keep Alive Timer", 'data': response.data})
+            return
+        else:
+            print({'error': None, 'message': 'Keep Alive Timer set successfully','data': response.data})
+
+    def set_hold_timer_on_bgp_peer(self, hold_timer=0, bgp_peer_ip=DEFAULT_BGP_PEER_IP):
+        """
+        Sets Hold Timer for a BGP Peer
+        :param hold_timer: <int> Hold Timer for BGP Peer, default 0
+        :param bgp_peer_ip: <str> IP of BGP Peer, default DEFAULT_BGP_PEER_IP
+        :return: None
+        """
+
+        bgp_config_neighbors = self.api.get_bgp_config_neighbor(applianceID=self.edge_id).data
+
+        try:
+            if bgp_config_neighbors[bgp_peer_ip]['hold'] == hold_timer:
+                print({'error': None, 'message': f"Hold Timer already set to {hold_timer}."})
+                return
+        except KeyError:
+            print({'error': f'BGP Peer IP: {bgp_peer_ip} is not found. Confirm if Peer is in Edge\'s BGP Peers.'})
+            return
+
+        # else
+        bgp_config_neighbors[bgp_peer_ip]['hold'] = hold_timer
+
+        response = self.api.post_bgp_config_neighbor(applianceID=self.edge_id,
+                                                     bgpConfigNeighborData=json.dumps(bgp_config_neighbors))
+
+        if not response.status_code == 200:
+            print({'error': response.error, 'message': "Error setting Hold Timer", 'data': response.data})
+            return
+        else:
+            print({'error': None, 'message': 'Hold Timer set successfully','data': response.data})
+
     def set_as_prepend_count_on_bgp_peer(self, as_prepend_count=0, bgp_peer_ip=DEFAULT_BGP_PEER_IP):
         """
         Enables AS Prepend Count for a BGP Peer
