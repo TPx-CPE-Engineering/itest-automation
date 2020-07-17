@@ -67,8 +67,13 @@ class BGPEdge(SPBaseEdge):
         # Get existing BGP config system data
         bgp_config_sys = self.api.get_bgp_config_system(applianceID=self.edge_id).data
 
-        # Set BGP to disable
-        bgp_config_sys['enable'] = True
+        # Check if BGP already is enabled
+        if bgp_config_sys['enable']:
+            print({'error': None, 'message': 'BGP already enabled'})
+            return
+        else:
+            # enable BGP
+            bgp_config_sys['enable'] = True
 
         # Post change
         response = self.api.post_bgp_config_system(applianceID=self.edge_id,
@@ -86,6 +91,14 @@ class BGPEdge(SPBaseEdge):
         """
         # Get existing BGP config system data
         bgp_config_sys = self.api.get_bgp_config_system(applianceID=self.edge_id).data
+
+        # Check if BGP already disabled
+        if not bgp_config_sys['enable']:
+            print({'error': None, 'message': 'BGP already disabled'})
+            return
+        else:
+            # disable BGP
+            bgp_config_sys['enable'] = False
 
         # Set BGP to disable
         bgp_config_sys['enable'] = False
