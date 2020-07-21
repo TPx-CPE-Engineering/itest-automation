@@ -884,3 +884,55 @@ class Silverpeak(object):
         url = '{}/bgp/state/{}'.format(self.base_url, applianceID)
 
         return self._get(self.session, url)
+
+    def post_broadcast_cli(self, applianceIDsList, commandList):
+        """
+        Post a broadcast CLI commands to all the selected appliances
+        :param applianceIDsList: List of Device key Ids
+        :param commandList: Commands to be executed in a list format
+        :return: get_braodcast_cli_output
+        """
+
+        import json
+
+        url = '{}/broadcastCli'.format(self.base_url)
+
+        data = {'neList': applianceIDsList,
+                'cmdList': commandList
+                }
+
+        broadcast_cli_response =  self._post(session=self.session,
+                                                  url=url,
+                                                  headers={'Content-Type': 'application/json'},
+                                                  data=json.dumps(data),
+                                                  timeout=self.timeout)
+
+        # Get the BroadcastCLI ID key which will be used to obtain the output
+        broadcast_cli_key = broadcast_cli_response.data
+
+        return self.get_broadcast_cli_output(broadcast_cli_key=broadcast_cli_key)
+
+
+    def get_broadcast_cli_output(self, broadcast_cli_key, number_of_attempts=10):
+        """
+        Gets the output from a Broadcast CLI command
+        :param broadcast_cli_key: ID key from broadcastCli call
+        :param number_of_attempts: Number of Attempts to try and get output
+        :return: Result named tuple
+        """
+
+        import time
+
+        url = '{}/action/status?key={}'.format(self.base_url,
+                                               broadcast_cli_key)
+
+        # Continuously check for the output to be completed until number_of_attempts runs out
+        time_wait_between_calls = 2 # in seconds
+        for i in range(0, number_of_attempts):
+            broadcast_cli_output_response = self._get(session=self.session,
+                                                      url=url)
+
+            if broadcast_cli_output_response.data[0]['taskStatus'] == 'COMPLETED':
+                return   broadcast_cli_output_response
+            else:
+                time.sleep(time_wait_between_calls)
