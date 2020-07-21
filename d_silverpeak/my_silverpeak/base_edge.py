@@ -272,7 +272,7 @@ class SPBaseEdge:
                       'filter': 'all',
                       'edgeHA': False,
                       'builtIn': False,
-                      'uptime': 'anytime',
+                      'uptime': 'anytime|term',
                       'bytes': 'last5m',
                       'duration': 'any',
                       'maxFlows': '10000'
