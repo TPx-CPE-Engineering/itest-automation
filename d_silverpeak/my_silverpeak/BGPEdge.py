@@ -371,7 +371,7 @@ class Ixia:
         self.PortMap = self.SessionAssistant.PortMapAssistant()
 
     def start_ix_network(self, config:str, vports:list, vports_force_ownership=True, config_local=True,
-                         enable_md5=False, md5_password=None):
+                         enable_md5=False, md5_password=None, hold_timer=None, update_interval=None):
         # Load Config
         self.IxNetwork.info(f'Loading config: {config}...')
         try:
@@ -416,6 +416,14 @@ class Ixia:
             if not neighbor.Authentication == 'null':
                 self.IxNetwork.info('Setting BGP NeighborRange Authentication to null')
                 neighbor.Authentication = 'null'
+
+        if hold_timer:
+            self.IxNetwork.info(f'Setting BGP NeighborRange Hold Timer to \'{hold_timer}\'.')
+            neighbor.HoldTimer = hold_timer
+
+        if update_interval:
+            self.IxNetwork.info(f'Setting BGP NeighborRange Update Interval to \'{update_interval}\'.')
+            neighbor.UpdateInterval = update_interval
 
         # Start protocols
         self.IxNetwork.info('Starting protocols...')
