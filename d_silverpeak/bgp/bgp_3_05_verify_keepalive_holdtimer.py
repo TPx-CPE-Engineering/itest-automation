@@ -55,9 +55,13 @@ def stop_ix_network():
     # Stop IxNetwork
     IXIA.stop_ix_network()
 
+
+def restore_bgp_default_settings():
     # Restore Edge to its BGP Default Settings
     BGP_EDGE.set_bgp_settings(bgp_settings=DEFAULT_BGP_INFORMATION)
 
+
+def disable_bgp():
     # Disable BGP once done
     BGP_EDGE.disable_bgp()
 
@@ -76,6 +80,14 @@ def show_bgp_neighbors():
     data_list = html_data.split('\\n')
     for item in data_list:
         print(item)
+
+
+def set_keep_alive_timer_on_bgp_peer(keep_alive_timer):
+    BGP_EDGE.set_keep_alive_timer_on_bgp_peer(keep_alive_timer=keep_alive_timer)
+
+
+def set_hold_timer_on_bgp_peer(hold_timer):
+    BGP_EDGE.set_hold_timer_on_bgp_peer(hold_timer=hold_timer)
 
 
 def create_edge(edge_id, enterprise_id=None):
