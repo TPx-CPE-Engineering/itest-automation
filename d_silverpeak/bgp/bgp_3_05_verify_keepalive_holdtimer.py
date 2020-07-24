@@ -41,7 +41,7 @@ def start_ix_network(hold_timer=None, update_interval=None):
 
     IXIA.start_ix_network(config=IX_NET_CONFIG_FILE,
                           vports=PORTS,
-                          config_local=False,
+                          config_local=True,
                           hold_timer=hold_timer,
                           update_interval=update_interval)
 
@@ -94,19 +94,19 @@ def create_edge(edge_id, enterprise_id=None):
     global BGP_EDGE
     BGP_EDGE = BGPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
 
-    # temp_bgp_information = copy.deepcopy(DEFAULT_BGP_INFORMATION)
-    # # Test requirements:
-    # #   iBGP
-    # #
-    # # By default BGP is set to iBGP
+    temp_bgp_information = copy.deepcopy(DEFAULT_BGP_INFORMATION)
+    # Test requirements:
+    #   iBGP
     #
-    # BGP_EDGE.set_bgp_settings(bgp_settings=temp_bgp_information)
-    # time.sleep(5)
-    #
-    # BGP_EDGE.disable_bgp()
-    # time.sleep(10)
-    # BGP_EDGE.enable_bgp()
-    # time.sleep(30)
+    # By default BGP is set to iBGP
+
+    BGP_EDGE.set_bgp_settings(bgp_settings=temp_bgp_information)
+    time.sleep(5)
+
+    BGP_EDGE.disable_bgp()
+    time.sleep(10)
+    BGP_EDGE.enable_bgp()
+    time.sleep(30)
 
 
 if __name__ == '__main__':
