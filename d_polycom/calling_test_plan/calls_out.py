@@ -1,4 +1,4 @@
-from d_polycom.BasePolycom import BasePolycom, POLYCOM_RETURN_CODES
+from BasePolycom import BasePolycom, POLYCOM_RETURN_CODES
 import json
 import time
 
