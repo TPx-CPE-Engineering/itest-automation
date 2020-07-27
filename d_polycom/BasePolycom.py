@@ -1,5 +1,6 @@
 import requests
 import json
+from collections import namedtuple
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -29,6 +30,10 @@ VANILLA_PHONE = {'ipv4 address': '10.255.20.158',
                  'sip address': '7027265809',
                  }
 
+Result = namedtuple('Result', [
+    'status_code', 'status', 'data', 'url'
+])
+
 
 class BasePolycom:
     def __init__(self, ipv4_address: str, model_number: str, sip_address: str):
@@ -40,19 +45,21 @@ class BasePolycom:
         self.session.headers = {'Content-Type': 'application/json'}
         self.session.verify = False
 
-    def wrapper(self, result: dict):
-    # return API call status, call handle (optional), and call state (optional) as dictionary
-        ref_data = json.loads(result.text)
-        api_status = ref_data['Status']  # 2000 == success
+    @staticmethod
+    def parse_response(response: requests.models.Response):
+        # return API call status, call handle (optional), and call state (optional) as dictionary
+
+        ref_data = response.json()
+        api_status_code = ref_data['Status']  # 2000 == success
+        api_status = POLYCOM_RETURN_CODES[api_status_code]
+        api_url = response.url
+
         try:
-            call_state = ref_data['data']['CallState']
-            call_status = ref_data['data']['CallStatus']
-        except ValueError as e:
-            call_state = " Undefined"
-            call_status = " Undefined"
+            data = ref_data['data']
+        except KeyError:
+            data = None
 
-        return (api_status, call_status, call_state)
-
+        return Result(status_code=api_status_code, status=api_status, data=data, url=api_url)
 
     def post_dial(self, dest, line='1', type='TEL'):
         """
@@ -73,7 +80,7 @@ class BasePolycom:
                 }
         data = json.dumps(data)
 
-        return self.wrapper(self.session.post(url=url, data=data))
+        return self.parse_response(self.session.post(url=url, data=data))
 
     def get_call_status(self):
         """
@@ -83,13 +90,13 @@ class BasePolycom:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
 
-        return self.wrapper(self.session.get(url=url))
+        return self.parse_response(self.session.get(url=url))
 
     def post_answer_call(self):
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/answerCall'
 
-        return self.wrapper(self.session.post(url=url))
+        return self.parse_response(self.session.post(url=url))
 
     def post_end_call(self, call_handle):
 
@@ -102,4 +109,4 @@ class BasePolycom:
 
         data = json.dumps(data)
 
-        return self.wrapper(self.session.post(url=url, data=data))
+        return self.parse_response(self.session.post(url=url, data=data))
