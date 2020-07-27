@@ -73,7 +73,7 @@ class BasePolycom:
                 }
         data = json.dumps(data)
 
-        return wrapper(self.session.post(url=url, data=data))
+        return self.wrapper(self.session.post(url=url, data=data))
 
     def get_call_status(self):
         """
@@ -83,13 +83,13 @@ class BasePolycom:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
 
-        return wrapper(self.session.get(url=url))
+        return self.wrapper(self.session.get(url=url))
 
     def post_answer_call(self):
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/answerCall'
 
-        return wrapper(self.session.post(url=url))
+        return self.wrapper(self.session.post(url=url))
 
     def post_end_call(self, call_handle):
 
@@ -102,4 +102,4 @@ class BasePolycom:
 
         data = json.dumps(data)
 
-        return wrapper(self.session.post(url=url, data=data))
+        return self.wrapper(self.session.post(url=url, data=data))
