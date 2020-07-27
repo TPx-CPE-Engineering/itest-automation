@@ -40,6 +40,20 @@ class BasePolycom:
         self.session.headers = {'Content-Type': 'application/json'}
         self.session.verify = False
 
+    def wrapper(self, result: dict):
+    # return API call status, call handle (optional), and call state (optional) as dictionary
+        ref_data = json.loads(result.text)
+        api_status = ref_data['Status']  # 2000 == success
+        try:
+            call_state = ref_data['data']['CallState']
+            call_status = ref_data['data']['CallStatus']
+        except ValueError as e:
+            call_state = " Undefined"
+            call_status = " Undefined"
+
+        return (api_status, call_status, call_state)
+
+
     def post_dial(self, dest, line='1', type='TEL'):
         """
         Initiate a call to a given number and returns a response as an acknowledgment of request received.
@@ -59,7 +73,7 @@ class BasePolycom:
                 }
         data = json.dumps(data)
 
-        return self.session.post(url=url, data=data)
+        return wrapper(self.session.post(url=url, data=data))
 
     def get_call_status(self):
         """
@@ -69,13 +83,13 @@ class BasePolycom:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
 
-        return self.session.get(url=url)
+        return wrapper(self.session.get(url=url))
 
     def post_answer_call(self):
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/answerCall'
 
-        return self.session.post(url=url)
+        return wrapper(self.session.post(url=url))
 
     def post_end_call(self, call_handle):
 
@@ -88,4 +102,4 @@ class BasePolycom:
 
         data = json.dumps(data)
 
-        return self.session.post(url=url, data=data)
+        return wrapper(self.session.post(url=url, data=data))
