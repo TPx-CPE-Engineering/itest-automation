@@ -24,12 +24,17 @@ POLYCOM_RETURN_CODES = {
     '5000': 'Failed to process request.'
 }
 
+VANILLA_PHONE = {'ipv4 address': '10.255.20.158',
+                 'model number': 'VVX 410',
+                 'sip address': '7027265809',
+                 }
+
 
 class BasePolycom:
-    def __init__(self, ipv4_address, model_number, sip_address):
-        self.ipv4_address = ipv4_address
-        self.model_number = model_number
-        self.sip_address = sip_address,
+    def __init__(self, ipv4_address: str, model_number: str, sip_address: str):
+        self.ipv4_address: str = ipv4_address
+        self.model_number: str = model_number
+        self.sip_address: str = sip_address
 
         self.session: requests.Session = requests.Session()
         self.session.headers = {'Content-Type': 'application/json'}
@@ -65,3 +70,22 @@ class BasePolycom:
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
 
         return self.session.get(url=url)
+
+    def post_answer_call(self):
+
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/answerCall'
+
+        return self.session.post(url=url)
+
+    def post_end_call(self, call_handle):
+
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/endCall'
+
+        data = {"data": {
+                    "Ref": call_handle
+                    }
+                }
+
+        data = json.dumps(data)
+
+        return self.session.post(url=url, data=data)
