@@ -1,20 +1,20 @@
-from BasePolycom import BasePolycom, POLYCOM_RETURN_CODES, VANILLA_PHONE
+from BasePolycom import BasePolycom, POLYCOM_RETURN_CODES, TESTER_POLYCOM
 import json
 import time
 
 DUT_POLYCOM: BasePolycom
-OFFICE_POLYCOM: BasePolycom
+TESTER_POLYCOM: BasePolycom
 
 
 def create_polycom(ipv4_address, model_number, sip_address):
-    global DUT_POLYCOM, OFFICE_POLYCOM
+    global DUT_POLYCOM, TESTER_POLYCOM
     DUT_POLYCOM = BasePolycom(ipv4_address=ipv4_address,
                               model_number=model_number,
                               sip_address=sip_address)
 
-    OFFICE_POLYCOM = BasePolycom(ipv4_address='10.255.20.158',
-                                 model_number='VVX 410',
-                                 sip_address='7027265809')
+    TESTER_POLYCOM = BasePolycom(ipv4_address=TESTER_POLYCOM['ipv4 address'],
+                                 model_number=TESTER_POLYCOM['model number'],
+                                 sip_address=TESTER_POLYCOM['sip address'])
 
 
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     status = ref_data['Status']
     print(f'PRE-CHECK: Status from DUT POLYCOM: {status}')
 
-    res = OFFICE_POLYCOM.get_call_status()
+    res = TESTER_POLYCOM.get_call_status()
     ref_data = json.loads(res.text)
     status = ref_data['Status']
     print(f'PRE-CHECK: Status from OFFICE POLYCOM: {status}\n\n')
@@ -61,8 +61,8 @@ if __name__ == '__main__':
 
 
     # 0. Call out (to OFFICE Phone)
-    print(f'Step 0: Calling to {OFFICE_POLYCOM.sip_address} from DUT POLYCOM')
-    res = DUT_POLYCOM.post_dial(dest=OFFICE_POLYCOM.sip_address)
+    print(f'Step 0: Calling to {TESTER_POLYCOM.sip_address} from DUT POLYCOM')
+    res = DUT_POLYCOM.post_dial(dest=TESTER_POLYCOM.sip_address)
     ref_data = json.loads(res.text)
     status = ref_data['Status']
     print(f'Step 0: Status from DUT POLYCOM: {status}\n\n')
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
 
     # 1.Called party receives ringing
-    res = OFFICE_POLYCOM.get_call_status()
+    res = TESTER_POLYCOM.get_call_status()
     ref_data = json.loads(res.text)
     status = ref_data['Status']
     print(f'Step 1: Status from OFFICE POLYCOM: {status}')
@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
 
     # 3.Called party answers call and 2-way path is established"
-    res = OFFICE_POLYCOM.post_answer_call()
+    res = TESTER_POLYCOM.post_answer_call()
     ref_data = json.loads(res.text)
     status = ref_data['Status']
     print(f'Step 3: Status from OFFICE POLYCOM: {status}\n\n')
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     # 3.2 Get call status from both
     # OFFICE POLYCOM
-    res = OFFICE_POLYCOM.get_call_status()
+    res = TESTER_POLYCOM.get_call_status()
     ref_data = json.loads(res.text)
     status = ref_data['Status']
     print(f'Step 1: Status from OFFICE POLYCOM: {status}')
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     print(f'Step 2: Call Handle from DUT POLYCOM: {call_handle2}\n\n')
 
     # 4. End call
-    res = OFFICE_POLYCOM.post_end_call(call_handle=call_handle)
+    res = TESTER_POLYCOM.post_end_call(call_handle=call_handle)
     ref_data = json.loads(res.text)
     status = ref_data['Status']
     print(f'Step 4: Status from OFFICE POLYCOM: {status}\n\n')
