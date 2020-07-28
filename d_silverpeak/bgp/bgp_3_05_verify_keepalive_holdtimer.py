@@ -31,7 +31,7 @@ def get_bgp_summary():
         break
 
 
-def start_ix_network(hold_timer=None, update_interval=None):
+def start_ix_network(hold_timer=None):
     """
     Starts IxNetwork
     :return: None
@@ -42,8 +42,7 @@ def start_ix_network(hold_timer=None, update_interval=None):
     IXIA.start_ix_network(config=IX_NET_CONFIG_FILE,
                           vports=PORTS,
                           config_local=True,
-                          hold_timer=hold_timer,
-                          update_interval=update_interval)
+                          hold_timer=hold_timer)
 
 
 def stop_ix_network():
