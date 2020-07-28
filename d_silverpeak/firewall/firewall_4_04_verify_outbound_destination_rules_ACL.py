@@ -1,5 +1,6 @@
 from my_silverpeak.base_edge import SPBaseEdge
 import json
+import time
 
 """
 Silver Peak Test Plan v2
@@ -77,8 +78,9 @@ def add_firewall_rule_deny_destination_ip_acl() -> None:
 
     # Check results
     if result.status_code == 204:
-        d = {'error': None, 'rows': 1}
-        print(d)
+        print({'error': None, 'rows': 1})
+        time.sleep(10)
+        EDGE.reset_port_flow(port=5060)
     else:
         d = {'error': result.error, 'rows': 0}
         print(d)
