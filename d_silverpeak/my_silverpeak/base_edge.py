@@ -255,7 +255,7 @@ class SPBaseEdge:
                       'port1': port,
                       'ip2': '',
                       'mask2': '',
-                      'port2': '5060',
+                      'port2': port,
                       'ipEitherFlag': True,
                       'portEitherFlag': True,
                       'application': '',
@@ -278,17 +278,24 @@ class SPBaseEdge:
                       'maxFlows': '10000'
                       }
 
-        # Get flow ID to reset
+        # Get flow IDs to reset
         flows = self.api.get_flows(applianceID=self.edge_id, flowsQuery=port_query).data
-        port_flow_id = flows['flows'][0][0]
 
-        flow_reset_data = {'spIds': [port_flow_id]}
+        port_flow_ids = []
+        for flow in flows['flows']:
+            # flow is a list
+            # first item in flow will be the flow id
+            # put them all in a list to reset them
+            port_flow_ids.append(flow[0])
+
+        flow_reset_data = {'spIds': port_flow_ids}
         flow_reset_data = json.dumps(flow_reset_data)
 
         response = self.api.post_flow_reset(applianceID=self.edge_id, flowResetData=flow_reset_data)
-
-        if not response.status_code == 204:
-            print(response)
+        if response.status_code == 204:
+            print({'error reset port flows': None})
+        else:
+            print({'error reset port flows': response.error})
 
 
 def operator_login():
