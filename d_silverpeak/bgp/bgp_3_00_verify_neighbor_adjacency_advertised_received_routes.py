@@ -45,8 +45,15 @@ def stop_ix_network():
     # Stop IxNetwork
     IXIA.stop_ix_network()
 
+
+def restore_bgp_default_settings():
     # Restore Edge to its BGP Default Settings
     BGP_EDGE.set_bgp_settings(bgp_settings=DEFAULT_BGP_INFORMATION)
+
+
+def disable_bgp():
+    # Disable BGP once done
+    BGP_EDGE.disable_bgp()
 
 
 def do_advertise_routes_match(edges_routes):
@@ -159,6 +166,10 @@ def create_edge(edge_id, enterprise_id=None):
     global BGP_EDGE
     BGP_EDGE = BGPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
 
+    # Enable bgp
+    BGP_EDGE.enable_bgp()
+    time.sleep(15)
+
     temp_bgp_information = copy.deepcopy(DEFAULT_BGP_INFORMATION)
     # Test requirements:
     #   iBGP
@@ -166,15 +177,10 @@ def create_edge(edge_id, enterprise_id=None):
     # By default BGP is set to iBGP
 
     BGP_EDGE.set_bgp_settings(bgp_settings=temp_bgp_information)
-    time.sleep(5)
-
-    BGP_EDGE.disable_bgp()
-    time.sleep(10)
-    BGP_EDGE.enable_bgp()
-    time.sleep(30)
+    time.sleep(20)
 
 
 if __name__ == '__main__':
     create_edge(edge_id='18.NE')
-    get_bgp_neighbor_advertised_routes()
+    # get_bgp_neighbor_advertised_routes()
 

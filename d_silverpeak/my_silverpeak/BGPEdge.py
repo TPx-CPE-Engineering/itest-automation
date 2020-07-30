@@ -153,7 +153,19 @@ class BGPEdge(SPBaseEdge):
         for neighbor in bgp_state.data['neighbor']['neighborState']:
             neighbors_state.append({'neighbor': neighbor['peer_ip'],
                                     'state': neighbor['peer_state_str']})
-
+        # neighbors_state = []
+        # for i in range(0, 100):
+        #     while True:
+        #         bgp_state = self.api.get_bgp_state(applianceID=self.edge_id)
+        #         try:
+        #             for neighbor in bgp_state.data['neighbor']['neighborState']:
+        #                 neighbors_state.append({'neighbor': neighbor['peer_ip'],
+        #                                         'state': neighbor['peer_state_str']})
+        #         except KeyError:
+        #             time.sleep(15)
+        #             continue
+        #         break
+        #
         print(neighbors_state)
 
     def set_local_preference_on_bgp_peer(self, local_preference=100, bgp_peer_ip=DEFAULT_BGP_PEER_IP):

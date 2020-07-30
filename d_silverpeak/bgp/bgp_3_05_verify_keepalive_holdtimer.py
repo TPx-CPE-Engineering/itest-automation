@@ -45,14 +45,14 @@ def start_ix_network(hold_timer=None):
                           hold_timer=hold_timer)
 
 
-def stop_ix_network():
+def stop_ix_network(port_map_disconnect=True):
     """
     Stops IxNetwork and Restores Edge's BGP settings to its default
     :return: None
     """
 
     # Stop IxNetwork
-    IXIA.stop_ix_network()
+    IXIA.stop_ix_network(port_map_disconnect=port_map_disconnect)
 
 
 def restore_bgp_default_settings():
@@ -93,6 +93,9 @@ def create_edge(edge_id, enterprise_id=None):
     global BGP_EDGE
     BGP_EDGE = BGPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
 
+    BGP_EDGE.enable_bgp()
+    time.sleep(15)
+
     temp_bgp_information = copy.deepcopy(DEFAULT_BGP_INFORMATION)
     # Test requirements:
     #   iBGP
@@ -100,12 +103,7 @@ def create_edge(edge_id, enterprise_id=None):
     # By default BGP is set to iBGP
 
     BGP_EDGE.set_bgp_settings(bgp_settings=temp_bgp_information)
-    time.sleep(5)
-
-    BGP_EDGE.disable_bgp()
-    time.sleep(10)
-    BGP_EDGE.enable_bgp()
-    time.sleep(30)
+    time.sleep(20)
 
 
 if __name__ == '__main__':
