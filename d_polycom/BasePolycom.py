@@ -25,10 +25,11 @@ POLYCOM_RETURN_CODES = {
     '5000': 'Failed to process request.'
 }
 
-TESTER_POLYCOM = {'ipv4 address': '10.255.20.180',
-                  'model number': 'VVX 501',
-                  'sip address': '7027265814',
-                  }
+# 2nd Polycom Phone used along with DUT Polycom to perform testing
+DEFAULT_TESTER_POLYCOM = {'ipv4 address': '10.255.20.180',
+                          'model number': 'VVX 501',
+                          'sip address': '7027265814',
+                          }
 
 Result = namedtuple('Result', [
     'status_code', 'status', 'data', 'url'
