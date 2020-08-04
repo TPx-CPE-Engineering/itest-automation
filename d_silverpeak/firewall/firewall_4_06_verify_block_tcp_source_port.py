@@ -164,6 +164,8 @@ def remove_firewall_rule_block_tcp_source_port():
     # Check results
     if result.status_code == 204:
         print({'error': None, 'rows': 1})
+        time.sleep(10)
+        EDGE.reset_port_flow(port=5060)
     else:
         print({'error': result.error, 'rows': 0})
 
