@@ -55,11 +55,17 @@ class BasePolycom:
         api_url = response.url
 
         try:
-            data = ref_data['data']
+            api_data = ref_data['data']
         except KeyError:
-            data = None
+            api_data = None
 
-        return Result(status_code=api_status_code, status=api_status, data=data, url=api_url)
+        result = {'status code': api_status_code,
+                  'status': api_status,
+                  'data': api_data,
+                  'url': api_url}
+
+        print(json.dumps(result, sort_keys=True))
+        # return Result(status_code=api_status_code, status=api_status, data=api_data, url=api_url)
 
     def post_dial(self, dest, line='1', type='TEL'):
         """
