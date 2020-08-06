@@ -117,3 +117,9 @@ class BasePolycom:
         data = json.dumps(data)
 
         return self.parse_response(self.session.post(url=url, data=data))
+
+    def get_session_stats(self):
+
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/mgmt/media/sessionStats'
+
+        return self.parse_response(self.session.get(url=url))
