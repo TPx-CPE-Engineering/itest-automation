@@ -4,7 +4,7 @@ import copy
 
 # Ixia Settings
 # Config File
-IX_NET_CONFIG_FILE = 'bgp_3_03_verify_med_SP.ixncfg'
+IX_NET_CONFIG_FILE = 'SP_bgp_3_03_verify_med.ixncfg'
 
 # VPorts
 PORTS = [{'Name': 'LAN',

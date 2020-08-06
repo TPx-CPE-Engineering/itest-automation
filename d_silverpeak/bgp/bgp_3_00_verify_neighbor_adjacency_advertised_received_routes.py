@@ -5,7 +5,7 @@ from ipaddress import ip_address
 
 # Ixia Settings
 # Config File
-IX_NET_CONFIG_FILE = 'bgp_3_00_verify_neighbor_adjacency_advertised_received_routes_SP.ixncfg'
+IX_NET_CONFIG_FILE = 'SP_bgp_3_00_verify_neighbor_adjacency_advertised_received_routes.ixncfg'
 
 # VPorts
 PORTS = [{'Name': 'LAN',

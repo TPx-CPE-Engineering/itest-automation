@@ -4,7 +4,7 @@ import copy
 
 # Ixia Settings
 # Config File
-IX_NET_CONFIG_FILE = 'bgp_3_02_verify_as_prepend_count_SP.ixncfg'
+IX_NET_CONFIG_FILE = 'SP_bgp_3_02_verify_as_prepend_count.ixncfg'
 
 # VPorts
 PORTS = [{'Name': 'LAN',

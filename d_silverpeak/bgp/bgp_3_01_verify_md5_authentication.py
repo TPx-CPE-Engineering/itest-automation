@@ -4,7 +4,7 @@ import copy
 
 # Ixia Settings
 # Config File
-IX_NET_CONFIG_FILE = 'bgp_3_01_verify_md5_authentication_SP.ixncfg'
+IX_NET_CONFIG_FILE = 'SP_bgp_3_01_verify_md5_authentication.ixncfg'
 
 # VPorts
 PORTS = [{'Name': 'LAN',
