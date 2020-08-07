@@ -47,7 +47,7 @@ class BasePolycom:
         self.session.verify = False
 
     @staticmethod
-    def parse_response(response: requests.models.Response):
+    def print_response_in_json(response: requests.models.Response):
         # return API call status, call handle (optional), and call state (optional) as dictionary
 
         ref_data = response.json()
@@ -66,7 +66,28 @@ class BasePolycom:
                   'url': api_url}
 
         print(json.dumps(result, sort_keys=True))
-        # return Result(status_code=api_status_code, status=api_status, data=api_data, url=api_url)
+        return Result(status_code=api_status_code, status=api_status, data=api_data, url=api_url)
+
+    @staticmethod
+    def parse_response(response: requests.models.Response):
+        # return API call status, call handle (optional), and call state (optional) as dictionary
+
+        ref_data = response.json()
+        api_status_code = ref_data['Status']  # 2000 == success
+        api_status = POLYCOM_RETURN_CODES[api_status_code]
+        api_url = response.url
+
+        try:
+            api_data = ref_data['data']
+        except KeyError:
+            api_data = None
+
+        result = {'status code': api_status_code,
+                  'status': api_status,
+                  'data': api_data,
+                  'url': api_url}
+
+        return Result(status_code=api_status_code, status=api_status, data=api_data, url=api_url)
 
     def post_dial(self, dest, line='1', type='TEL'):
         """
@@ -87,7 +108,7 @@ class BasePolycom:
                 }
         data = json.dumps(data)
 
-        return self.parse_response(self.session.post(url=url, data=data))
+        return self.print_response_in_json(self.session.post(url=url, data=data))
 
     def get_call_status(self):
         """
@@ -97,13 +118,13 @@ class BasePolycom:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
 
-        return self.parse_response(self.session.get(url=url))
+        return self.print_response_in_json(self.session.get(url=url))
 
     def post_answer_call(self):
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/answerCall'
 
-        return self.parse_response(self.session.post(url=url))
+        return self.print_response_in_json(self.session.post(url=url))
 
     def post_end_call(self, call_handle):
 
@@ -116,10 +137,37 @@ class BasePolycom:
 
         data = json.dumps(data)
 
-        return self.parse_response(self.session.post(url=url, data=data))
+        return self.print_response_in_json(self.session.post(url=url, data=data))
 
     def get_session_stats(self):
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/mgmt/media/sessionStats'
 
-        return self.parse_response(self.session.get(url=url))
+        return self.print_response_in_json(self.session.get(url=url))
+
+    def get_mos_scores(self, call_handle):
+
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/mgmt/media/sessionStats'
+
+        response = self.parse_response(response=self.session.get(url=url))
+
+        calls = response.data
+
+        for call in calls:
+            if call['Ref'] == call_handle:
+                for stream in call['Streams']:
+                    if stream['Category'] == '0:Voice':
+                        mos_scores = {
+                            'TxMOSCQ': stream['TxMOSCQ'],
+                            'TxMOSLQ': stream['TxMOSLQ'],
+                            'RxMOSCQ': stream['RxMOSCQ'],
+                            'RxMOSLQ': stream['RxMOSLQ']
+                        }
+
+        print(json.dumps(mos_scores))
+
+    def end_any_active_call(self):
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
+
+        response = self.print_response_in_json(self.session.get(url=url))
+

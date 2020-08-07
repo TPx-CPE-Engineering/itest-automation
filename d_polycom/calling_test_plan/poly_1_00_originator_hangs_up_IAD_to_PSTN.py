@@ -22,5 +22,21 @@ if __name__ == '__main__':
                    model_number='VVX 501',
                    sip_address='7027265813')
 
-    DUT_POLYCOM.post_end_call(call_handle="0x3740b48")
-    exit(1)
+    response = DUT_POLYCOM.get_call_status()
+    call_handle = response.data['CallHandle']
+
+    DUT_POLYCOM.get_mos_scores(call_handle=call_handle)
+
+    DUT_POLYCOM.post_end_call(call_handle=call_handle)
+
+    # DUT_POLYCOM.post_dial(dest=TESTER_POLYCOM.sip_address)
+    # time.sleep(3)
+    # TESTER_POLYCOM.post_answer_call()
+    # time.sleep(10)
+    #
+    # response = DUT_POLYCOM.get_call_status()
+    # call_handle = response.data['CallHandle']
+    #
+    # DUT_POLYCOM.get_mos_scores(call_handle=call_handle)
+    #
+    # DUT_POLYCOM.post_end_call(call_handle=call_handle)
