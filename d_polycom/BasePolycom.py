@@ -1,6 +1,7 @@
 import requests
 import json
 from collections import namedtuple
+from typing import Union
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -47,9 +48,7 @@ class BasePolycom:
         self.session.verify = False
 
     @staticmethod
-    def print_response_in_json(response: requests.models.Response):
-        # return API call status, call handle (optional), and call state (optional) as dictionary
-
+    def parse_response(response: requests.models.Response, print_result=True, return_result=False) -> Result:
         ref_data = response.json()
         api_status_code = ref_data['Status']  # 2000 == success
         api_status = POLYCOM_RETURN_CODES[api_status_code]
@@ -65,31 +64,13 @@ class BasePolycom:
                   'data': api_data,
                   'url': api_url}
 
-        print(json.dumps(result, sort_keys=True))
-        return Result(status_code=api_status_code, status=api_status, data=api_data, url=api_url)
+        if print_result:
+            print(json.dumps(result, sort_keys=True))
 
-    @staticmethod
-    def parse_response(response: requests.models.Response):
-        # return API call status, call handle (optional), and call state (optional) as dictionary
+        if return_result:
+            return Result(status_code=api_status_code, status=api_status, data=api_data, url=api_url)
 
-        ref_data = response.json()
-        api_status_code = ref_data['Status']  # 2000 == success
-        api_status = POLYCOM_RETURN_CODES[api_status_code]
-        api_url = response.url
-
-        try:
-            api_data = ref_data['data']
-        except KeyError:
-            api_data = None
-
-        result = {'status code': api_status_code,
-                  'status': api_status,
-                  'data': api_data,
-                  'url': api_url}
-
-        return Result(status_code=api_status_code, status=api_status, data=api_data, url=api_url)
-
-    def post_dial(self, dest, line='1', type='TEL'):
+    def post_dial(self, dest, line='1', type='TEL', print_result=True, return_result=False) -> Union[None, Result]:
         """
         Initiate a call to a given number and returns a response as an acknowledgment of request received.
         :param dest: <str> Phone number dialing to
@@ -108,9 +89,11 @@ class BasePolycom:
                 }
         data = json.dumps(data)
 
-        return self.print_response_in_json(self.session.post(url=url, data=data))
+        return self.parse_response(response=self.session.post(url=url,data=data),
+                                   print_result=print_result,
+                                   return_result=return_result)
 
-    def get_call_status(self):
+    def get_call_status(self, print_result=True, return_result=False) -> Union[None, Result]:
         """
         Provides all the information of calls on the phone.
         :return: response.models.Response
@@ -118,15 +101,19 @@ class BasePolycom:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
 
-        return self.print_response_in_json(self.session.get(url=url))
+        return self.parse_response(self.session.get(url=url),
+                                   print_result=print_result,
+                                   return_result=return_result)
 
-    def post_answer_call(self):
+    def post_answer_call(self, print_result=True, return_result=False) -> Union[None, Result]:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/answerCall'
 
-        return self.print_response_in_json(self.session.post(url=url))
+        return self.parse_response(self.session.post(url=url),
+                                   print_result=print_result,
+                                   return_result=return_result)
 
-    def post_end_call(self, call_handle):
+    def post_end_call(self, call_handle, print_result=True, return_result=False) -> Union[None, Result]:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/endCall'
 
@@ -137,37 +124,66 @@ class BasePolycom:
 
         data = json.dumps(data)
 
-        return self.print_response_in_json(self.session.post(url=url, data=data))
+        return self.parse_response(self.session.post(url=url, data=data),
+                                   print_result=print_result,
+                                   return_result=return_result)
 
-    def get_session_stats(self):
-
-        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/mgmt/media/sessionStats'
-
-        return self.print_response_in_json(self.session.get(url=url))
-
-    def get_mos_scores(self, call_handle):
+    def get_session_stats(self, print_result=True, return_result=False) -> Union[None, Result]:
 
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/mgmt/media/sessionStats'
 
-        response = self.parse_response(response=self.session.get(url=url))
+        return self.parse_response(self.session.get(url=url),
+                                   print_result=print_result,
+                                   return_result=return_result)
 
+    def get_voice_mos_scores(self, call_handle, print_result=True, return_result=False) -> Union[None, dict]:
+
+        # Obtain the Session Stats for the phone
+        response = self.get_session_stats(print_result=False, return_result=True)
+
+        # Get calls data
         calls = response.data
 
+        mos_scores = None
+        # Filter through the calls based on the call handle aka Ref
+        # There might be more than one call
+
+        # Once the selected call is found, obtain the voice stream, other option is the video stream.
+        # Return the voice stream based on the call handle aka Ref
         for call in calls:
             if call['Ref'] == call_handle:
                 for stream in call['Streams']:
                     if stream['Category'] == '0:Voice':
                         mos_scores = {
+                            'Ref': call_handle,
                             'TxMOSCQ': stream['TxMOSCQ'],
                             'TxMOSLQ': stream['TxMOSLQ'],
                             'RxMOSCQ': stream['RxMOSCQ'],
                             'RxMOSLQ': stream['RxMOSLQ']
                         }
 
-        print(json.dumps(mos_scores))
+        if mos_scores is None:
+            mos_scores = {
+                'Ref': f'Call hanldle: {call_handle} was not found',
+                'TxMOSCQ': None,
+                'TxMOSLQ': None,
+                'RxMOSCQ': None,
+                'RxMOSLQ': None
+            }
 
-    def end_any_active_call(self):
+        if print_result:
+            print(json.dumps(mos_scores))
+
+        if return_result:
+            return mos_scores
+
+    def end_any_active_call(self, print_result=True, return_result=False) -> Union[None, Result]:
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
+        response = self.parse_response(self.session.get(url=url), print_result=print_result, return_result=return_result)
 
-        response = self.print_response_in_json(self.session.get(url=url))
-
+        if not response.status_code == '4007':
+            # Get call handle & End call
+            call_handle = response.data['CallHandle']
+            return self.post_end_call(call_handle=call_handle,
+                                      print_result=print_result,
+                                      return_result=return_result)
