@@ -936,3 +936,92 @@ class Silverpeak(object):
                 return   broadcast_cli_output_response
             else:
                 time.sleep(time_wait_between_calls)
+
+    def get_ospf_config_system(self, applianceID):
+        """
+        Get appliance's OSPF system level configuration data for appliance
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/ospf/config/system/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
+
+    def post_ospf_config_system(self, applianceID, ospfConfigSystemData):
+        """
+        Post OSPF system configuration data
+        :param applianceID: The node ID of the appliance
+        :param ospfConfigSystemData: OSPF config system data
+        :return: Result named tuple
+        """
+
+        url = '{}/appliance/rest/{}/ospf/config/system'.format(self.base_url, applianceID)
+
+        return self._post(session=self.session,
+                          url=url,
+                          headers={'Content-Type': 'application/json'},
+                          data=ospfConfigSystemData,
+                          timeout=30
+                          )
+
+    def get_ospf_interfaces(self, applianceID):
+        """
+        Get OSPF interfaces configuration data for appliance
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/ospf/config/interfaces/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
+
+    def post_ospf_interfaces(self, applianceID, interfaceConfigData):
+        """
+        Post OSPF interfaces configuration data for appliance
+        :param applianceID: The node ID of the appliance
+        :param interfaceConfigData: OSPF config data
+        :return: Result named tuple
+        """
+
+        url = '{}/appliance/rest/{}/ospf/config/interfaces'.format(self.base_url, applianceID)
+
+        return self._post(session=self.session,
+                          url=url,
+                          headers={'Content-Type': 'application/json'},
+                          data=interfaceConfigData,
+                          timeout=30
+                          )
+
+    def get_ospf_state_system(self, applianceID):
+        """
+        Get the state of the OSPF for appliance
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/ospf/state/system/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
+
+    def get_ospf_state_interface(self, applianceID):
+        """
+        Get the state of the OSPF interfaces for appliance
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/ospf/state/interfaces/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
+
+    def get_ospf_state_neighbors(self, applianceID):
+        """
+        Get the state of the OSPF neighbors for appliance
+        :param applianceID: The node ID of the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/ospf/state/neighbors/{}'.format(self.base_url, applianceID)
+
+        return self._get(self.session, url)
