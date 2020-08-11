@@ -1,9 +1,57 @@
-from my_silverpeak.OSPFEdge import OSPFEdge
-import json
+from my_silverpeak.OSPFEdge import OSPFEdge, Ixia
+import time
+import copy
+
+# Ixia Settings
+# Config File
+IX_NET_CONFIG_FILE = 'SP_ospf_2_00_verify_neighbor_adjacency_advertised_received_routes.ixncfg'
+
+# VPorts
+PORTS = [{'Name': 'Ethernet - 001',
+          'Chassis IP': '10.255.224.70',
+          'Card': 3,
+          'Port': 3
+          }]
 
 
-def create_edge(edge_id, enterprise_id):
-    print('todo')
+# Object for SilverPeak
+OSPF_EDGE: OSPFEdge
+
+# Objects for Ixia IxNetwork
+IXIA: Ixia
+
+
+def start_ix_network():
+    """
+    Starts IxNetwork
+    :return: None
+    """
+    global IXIA
+    IXIA = Ixia()
+
+    IXIA.start_ix_network(config=IX_NET_CONFIG_FILE,
+                          vports=PORTS,
+                          config_local=False)
+
+
+def stop_ix_network(port_map_disconnect=True):
+    """
+    Stops IxNetwork
+    :return: None
+    """
+
+    # Stop IxNetwork
+    try:
+        global IXIA
+        IXIA.stop_ix_network(port_map_disconnect=port_map_disconnect)
+    except NameError:
+        IXIA = Ixia(clear_config=False)
+        IXIA.stop_ix_network()
+
+
+def create_edge(edge_id, enterprise_id=None):
+    global OSPF_EDGE
+    OSPF_EDGE = OSPFEdge(edge_id=edge_id, enterprise_id=None)
 
 
 if __name__ == '__main__':
