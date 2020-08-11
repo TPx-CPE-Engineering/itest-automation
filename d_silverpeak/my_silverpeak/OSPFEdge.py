@@ -135,7 +135,7 @@ class Ixia:
         self.PortMap = self.SessionAssistant.PortMapAssistant()
 
     def start_ix_network(self, config:str, vports:list, vports_force_ownership=True, config_local=True,
-                         enable_md5=False, md5_password=None, hold_timer=None):
+                         enable_md5=False, md5_password=None):
         # Load Config
         self.IxNetwork.info(f'Loading config: {config}...')
         try:
@@ -161,60 +161,51 @@ class Ixia:
         vport_name = vports[0]['Name']
         vport = self.IxNetwork.Vport.find(Name=vport_name)
 
-        # Set up IPv4 Peers Neighbors
-        # First get BGP
-        bgp = vport.Protocols.find().Bgp
-        # Get BGPs Neighbor object
-        neighbor = bgp.NeighborRange.find()
+        # Get OSPF Protocol
+        ospf = vport.Protocols.find().Ospf
+        # Get OSPF interface
+        ospf_interface = ospf.Router.find().Interface.find()
 
-        # Enable BGP MD5 Auth on NeighborRange
+        # Enable MD5 Auth in interface
         if enable_md5:
-            if not neighbor.Authentication == 'md5':
-                self.IxNetwork.info('Setting BGP NeighborRange Authentication to \'md5\'.')
-                neighbor.Authentication = 'md5'
+            if not ospf_interface.AuthenticationMethods == 'md5':
+                self.IxNetwork.info('Setting OSPF Interface Authentication Method to \'md5\'.')
+                ospf_interface.AuthenticationMethods = 'md5'
 
-            if not neighbor.Md5Key == md5_password:
-                self.IxNetwork.info(f"Setting BGP NeighborRange MD5 password to \'{md5_password}\'")
-                neighbor.Md5Key = md5_password
+            if not ospf_interface.AuthenticationPassword == md5_password:
+                self.IxNetwork.info(f"Setting OSPF Interface MD5 password to \'{md5_password}\'")
+                ospf_interface.AuthenticationPassword = md5_password
         else:
-            if not neighbor.Authentication == 'null':
-                self.IxNetwork.info('Setting BGP NeighborRange Authentication to null')
-                neighbor.Authentication = 'null'
-
-        if hold_timer:
-            self.IxNetwork.info(f'Setting BGP NeighborRange Hold Timer to \'{hold_timer}\'.')
-            neighbor.HoldTimer = hold_timer
+            if not ospf_interface.AuthenticationMethods == 'null':
+                self.IxNetwork.info('Setting OSPF Interface Authentication Method to null')
+                ospf_interface.AuthenticationMethods = 'null'
 
         # Start protocols
         self.IxNetwork.info('Starting protocols...')
         self.IxNetwork.StartAllProtocols()
-        # self.IxNetwork.info('Starting BGP Protocol...')
-        # bgp.Start()
-        # time.sleep(10)
-        # self.IxNetwork.info('BGP Protocol started.')
         self.IxNetwork.info('Protocols have started.')
 
-        # Wait until Sess. Up is 1
-        self.IxNetwork.info('Checking for BGP Session Up...')
-        bgp_aggregated_stats = self.SessionAssistant.StatViewAssistant(ViewName='BGP Aggregated Statistics',
-                                                                       Timeout=180)
+        # Wait until Full Nbrs is 1
+        self.IxNetwork.info('Checking for OSPF Full Nbrs equal 1...')
+        ospf_aggregated_stats = self.SessionAssistant.StatViewAssistant(ViewName='OSPF Aggregated Statistics',
+                                                                        Timeout=180)
 
         while True:
             try:
-                while not bgp_aggregated_stats.CheckCondition(ColumnName='Sess. Up',
-                                                              Comparator=StatViewAssistant.EQUAL,
-                                                              ConditionValue=1,
-                                                              Timeout=120):
-                    self.IxNetwork.info('Waiting for BGP Session Up to equal 1...')
+                while not ospf_aggregated_stats.CheckCondition(ColumnName='Full Nbrs.',
+                                                               Comparator=StatViewAssistant.EQUAL,
+                                                               ConditionValue=1,
+                                                               Timeout=120):
+                    self.IxNetwork.info('Waiting for OSPF Full Nbrs to equal 1...')
                     time.sleep(10)
             except SyntaxError:
                 continue
             except NotFoundError:
-                print({'error': 'BGP Session Timeout'})
+                print({'error': 'OSPF Full Nbrs Timeout'})
                 return
             break
 
-        self.IxNetwork.info('BGP Session Up.')
+        self.IxNetwork.info('OSPF Full Nbrs equals 1')
 
     def stop_ix_network(self, port_map_disconnect=True):
         # Stopping All Protocols
