@@ -1,4 +1,5 @@
 from my_silverpeak.OSPFEdge import OSPFEdge, Ixia
+import json
 import time
 import copy
 
@@ -49,9 +50,14 @@ def stop_ix_network(port_map_disconnect=True):
         IXIA.stop_ix_network()
 
 
+def get_ospf_neighbors():
+    response = OSPF_EDGE.api.get_ospf_state_neighbors(applianceID=OSPF_EDGE.edge_id)
+    print(json.dumps(response.data))
+
+
 def create_edge(edge_id, enterprise_id=None):
     global OSPF_EDGE
-    OSPF_EDGE = OSPFEdge(edge_id=edge_id, enterprise_id=None)
+    OSPF_EDGE = OSPFEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
 
 
 if __name__ == '__main__':
