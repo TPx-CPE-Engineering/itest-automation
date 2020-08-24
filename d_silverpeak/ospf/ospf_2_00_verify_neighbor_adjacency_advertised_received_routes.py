@@ -50,9 +50,19 @@ def stop_ix_network(port_map_disconnect=True):
         IXIA.stop_ix_network()
 
 
-def get_ospf_neighbors():
+def get_ospf_neighbor_count():
     response = OSPF_EDGE.api.get_ospf_state_neighbors(applianceID=OSPF_EDGE.edge_id)
-    print(json.dumps(response.data))
+
+    neighbor_count = {
+        'Neighbor Count': None
+    }
+    if response.data:
+        neighbor_count['Neighbor Count'] = response.data['neighborCount']
+        print(json.dumps(neighbor_count))
+        print(json.dumps(response.data))
+    else:
+        neighbor_count['Neighbor Count'] = 0
+        print(json.dumps(neighbor_count))
 
 
 def create_edge(edge_id, enterprise_id=None):
@@ -61,6 +71,5 @@ def create_edge(edge_id, enterprise_id=None):
 
 
 if __name__ == '__main__':
-    Edge = OSPFEdge(edge_id='18.NE', enterprise_id=None, ssh_port=None)
-    res = Edge.api.get_ospf_state_neighbors(applianceID=Edge.edge_id)
-    print(res)
+    OSPF_EDGE = OSPFEdge(edge_id='18.NE', enterprise_id=None, ssh_port=None)
+    get_ospf_neighbor_count()
