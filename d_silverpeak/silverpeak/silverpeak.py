@@ -1025,3 +1025,16 @@ class Silverpeak(object):
         url = '{}/ospf/state/neighbors/{}'.format(self.base_url, applianceID)
 
         return self._get(self.session, url)
+
+    def get_subnets(self, applianceID, getCachedData=False):
+        """
+        Get an appliance's subnets information
+        :param applianceID: The node ID of the appliance
+        :param getCachedData: True means to get the information from Orchestrator database, while false means to get
+        from the appliance
+        :return: Result named tuple
+        """
+
+        url = '{}/subnets/{}/{}'.format(self.base_url, str(getCachedData), applianceID)
+
+        return self._get(self.session, url)
