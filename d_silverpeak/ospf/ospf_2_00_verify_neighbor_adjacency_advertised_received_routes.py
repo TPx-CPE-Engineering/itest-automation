@@ -1,4 +1,4 @@
-from my_silverpeak.OSPFEdge import OSPFEdge, Ixia
+from my_silverpeak.OSPFEdge import OSPFEdge, Ixia, DEFAULT_OSPF_INFORMATION
 import json
 import time
 import copy
@@ -63,6 +63,29 @@ def get_ospf_neighbor_count():
     else:
         neighbor_count['Neighbor Count'] = 0
         print(json.dumps(neighbor_count))
+
+
+def get_ospf_received_routes():
+    # Get default interface
+    interface_name = None
+    try:
+        interface_name = DEFAULT_OSPF_INFORMATION['Interfaces'][0]['lan0']['self']
+    except KeyError as e:
+        print('Please verify DEFAULT_OSPF_INFORMATION interface: \'lan0\' exists.'
+              'If default interface changed please update here too.')
+
+    # Getting all routes
+    response = OSPF_EDGE.api.get_subnets(applianceID=OSPF_EDGE.edge_id)
+
+    received_routes = []
+    # Filter routes based based on default interface
+    for entry in response.data['subnets']['entries']:
+        if entry['state']['ifName'] == interface_name:
+            # Ignore '192.168.x.x' route
+            if '192.168.' not in entry['state']['prefix']:
+                received_routes.append(entry['state']['prefix'])
+
+    print(json.dumps(received_routes))
 
 
 def create_edge(edge_id, enterprise_id=None):
