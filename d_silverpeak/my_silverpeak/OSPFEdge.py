@@ -26,7 +26,7 @@ DEFAULT_OSPF_INFORMATION = {
         "localRedistMetric": 0,                 # Metric, default 0
         "localRedistTag": 0                     # Tag, default 0
     },
-    'Interfaces': [{
+    'Interfaces': {
         'lan0': {
             "self": "lan0",             # Interface, default lan0
             "area": "0.0.0.0",          # Area ID, default 0.0.0.0
@@ -43,7 +43,7 @@ DEFAULT_OSPF_INFORMATION = {
             "md5Password": "",          # MD5 Password if authType set to 'MD5', default empty
             "comment": "Config set by iTest"    # Comment
         }
-    }]
+    }
 }
 
 # File Path where all IxNetwork configs live in
