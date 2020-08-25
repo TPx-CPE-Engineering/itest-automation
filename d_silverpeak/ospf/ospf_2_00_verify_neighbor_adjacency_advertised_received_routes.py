@@ -191,6 +191,15 @@ def create_edge(edge_id, enterprise_id=None):
     global OSPF_EDGE
     OSPF_EDGE = OSPFEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
 
+    OSPF_EDGE.enable_ospf()
+    time.sleep(15)
+
+    # Test requirements:
+    #   Enable OSPF to OSPF Defaults
+
+    OSPF_EDGE.set_ospf_settings_to_default()
+    time.sleep(20)
+
 
 if __name__ == '__main__':
     OSPF_EDGE = OSPFEdge(edge_id='18.NE', enterprise_id=None, ssh_port=None)
