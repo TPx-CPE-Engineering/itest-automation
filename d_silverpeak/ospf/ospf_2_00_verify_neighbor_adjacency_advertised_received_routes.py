@@ -33,7 +33,7 @@ def start_ix_network():
 
     IXIA.start_ix_network(config=IX_NET_CONFIG_FILE,
                           vports=PORTS,
-                          config_local=False)
+                          config_local=True)
 
 
 def stop_ix_network(port_map_disconnect=True):
