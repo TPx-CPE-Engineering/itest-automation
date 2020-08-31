@@ -66,20 +66,20 @@ def get_ospf_neighbor_count():
         print(json.dumps(neighbor_count))
 
 
-def get_edge_ospf_advertised_routes():
+def get_edge_ospf_learned_routes():
     # Getting all routes
     response = OSPF_EDGE.api.get_subnets(applianceID=OSPF_EDGE.edge_id)
 
-    received_routes = []
-    # Filter routes based based on default interface
+    learned_routes = []
+    # Filter routes based if they are learned
     for entry in response.data['subnets']['entries']:
         if entry['state']['learned_ospf']:
-            received_routes.append(entry['state']['prefix'])
+            learned_routes.append(entry['state']['prefix'])
 
-    return received_routes
+    return learned_routes
 
 
-def get_ixia_ospf_advertised_routes():
+def get_ixia_ospf_learned_routes():
     """
     Get Ixia's route ranges
     :return: list, Ixia's route ranges
@@ -111,11 +111,11 @@ def get_ixia_ospf_advertised_routes():
     return route_ranges_ips
 
 
-def verify_if_edge_advertised_routes_match_ix_network():
-    ixia_ad_routes = get_ixia_ospf_advertised_routes()
-    edge_ad_routes = get_edge_ospf_advertised_routes()
+def verify_if_learned_routes_match():
+    ixia_ad_routes = get_ixia_ospf_learned_routes()
+    edge_ad_routes = get_edge_ospf_learned_routes()
 
-    # Create a list of Ixia Advertised routes with their mask
+    # Create a list of Ixia Learned routes with their mask
     ixia_ad_routes_with_mask = []
     for route in ixia_ad_routes:
         route_with_mask = route['Network Number'] + '/' + str(route['Mask'])
@@ -132,7 +132,7 @@ def verify_if_edge_advertised_routes_match_ix_network():
         print({'IxNetwork': ixia_ad_routes_with_mask})
 
 
-def get_ixia_ospf_received_routes():
+def get_ixia_ospf_advertised_routes():
     # Refresh Learned Info
     interface = IXIA.IxNetwork.Vport.find().Protocols.find().Ospf.Router.find().Interface.find()
     interface.RefreshLearnedInfo()
@@ -148,34 +148,33 @@ def get_ixia_ospf_received_routes():
     return learned_lsa_ips
 
 
-def get_edge_ospf_all_routes():
+def get_edge_ospf_advertised_routes():
     # Getting all routes
     response = OSPF_EDGE.api.get_subnets(applianceID=OSPF_EDGE.edge_id)
 
-    routes = []
+    advertised_routes = []
     # Filter routes based based on default interface
     for entry in response.data['subnets']['entries']:
-        routes.append(entry['state']['prefix'])
+        if entry['state']['advert_ospf'] and not entry['state']['learned_ospf']:
+            advertised_routes.append(entry['state']['prefix'])
 
-    return routes
+    return advertised_routes
 
 
-def verify_if_edge_received_routes_match_ix_network():
-    ixia_rec_routes = get_ixia_ospf_received_routes()
+def verify_if_advertised_routes_match():
+    ixia_advertised_routes = get_ixia_ospf_advertised_routes()
+    edge_advertised_routes = get_edge_ospf_advertised_routes()
 
-    # Since there isn't a clear way to obtain the specific received routes from Edge,
-    # we will get all of them and verify if Ixia received routes are found.
-    edge_all_routes = get_edge_ospf_all_routes()
-
-    # Because Ixia does not provide mask will need to remove mask from Edge routes
-    for n, route in enumerate(edge_all_routes):
+    # Because Ixia does not provide mask (ex. /24) will need to remove mask from Edge routes
+    # so they can be in the same format
+    for n, route in enumerate(edge_advertised_routes):
         temp = route.split('/')
-        edge_all_routes[n] = temp[0]
+        edge_advertised_routes[n] = temp[0]
 
-    # Verify if every ixia route is present in edge routes
+    # Verify if every edge advertised route is in ixia
     routes_not_found = []
-    for route in ixia_rec_routes:
-        if route not in edge_all_routes:
+    for route in edge_advertised_routes:
+        if route not in ixia_advertised_routes:
             routes_not_found.append(route)
 
     if len(routes_not_found) == 0:
@@ -184,7 +183,7 @@ def verify_if_edge_received_routes_match_ix_network():
     else:
         # Verification failed
         print({'match': 'no'})
-        print({'Ixia Routes not found in Edge': routes_not_found})
+        print({'Edge Routes not found in Ixia': routes_not_found})
 
 
 def create_edge(edge_id, enterprise_id=None):
@@ -203,4 +202,7 @@ def create_edge(edge_id, enterprise_id=None):
 
 if __name__ == '__main__':
     OSPF_EDGE = OSPFEdge(edge_id='18.NE', enterprise_id=None, ssh_port=None)
-    get_ospf_neighbor_count()
+    IXIA = Ixia(clear_config=False)
+
+    verify_if_learned_routes_match()
+    verify_if_advertised_routes_match()
