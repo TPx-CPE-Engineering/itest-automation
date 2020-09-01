@@ -23,6 +23,21 @@ OSPF_EDGE: OSPFEdge
 IXIA: Ixia
 
 
+def get_ospf_neighbor_count():
+    response = OSPF_EDGE.api.get_ospf_state_neighbors(applianceID=OSPF_EDGE.edge_id)
+
+    neighbor_count = {
+        'Neighbor Count': None
+    }
+    if response.data:
+        neighbor_count['Neighbor Count'] = response.data['neighborCount']
+        print(json.dumps(neighbor_count))
+        print(json.dumps(response.data))
+    else:
+        neighbor_count['Neighbor Count'] = 0
+        print(json.dumps(neighbor_count))
+
+
 def start_ix_network(enable_ospf_md5=False, key_id='1', password='maule123'):
     """
     Starts IxNetwork
