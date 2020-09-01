@@ -277,7 +277,7 @@ class Ixia:
                 return
             break
 
-        self.IxNetwork.info('OSPF Full Nbrs equals 1')
+        self.IxNetwork.info('OSPF Full Nbrs equals 1.')
 
     def stop_ix_network(self, port_map_disconnect=True):
         # Stopping All Protocols
