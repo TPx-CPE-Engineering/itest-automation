@@ -9,6 +9,8 @@ import time
 
 DEFAULT_OSPF_PEER_IP = '192.168.131.99'
 
+DEFAULT_OSPF_INTERFACE = 'lan0'
+
 DEFAULT_OSPF_INFORMATION = {
     'Config System': {
         "enable": True,                     # Enable OSPF, default True
@@ -26,9 +28,9 @@ DEFAULT_OSPF_INFORMATION = {
         "localRedistMetric": 0,                 # Metric, default 0
         "localRedistTag": 0                     # Tag, default 0
     },
-    'Interfaces': [{
-        'lan0': {
-            "self": "lan0",             # Interface, default lan0
+    'Interfaces': {
+        DEFAULT_OSPF_INTERFACE: {
+            "self": DEFAULT_OSPF_INTERFACE,             # Interface, default lan0
             "area": "0.0.0.0",          # Area ID, default 0.0.0.0
             "cost": 1,                  # Cost, default 1
             "priority": 1,              # Priority, default 1
@@ -43,7 +45,7 @@ DEFAULT_OSPF_INFORMATION = {
             "md5Password": "",          # MD5 Password if authType set to 'MD5', default empty
             "comment": "Config set by iTest"    # Comment
         }
-    }]
+    }
 }
 
 # File Path where all IxNetwork configs live in
@@ -125,6 +127,72 @@ class OSPFEdge(SPBaseEdge):
 
         print({'error': None, 'message': 'OSPF disabled successfully', 'data': response.data})
 
+    def disable_ospf_md5_auth(self):
+        """
+        Disables OSPF MD5 Authentication on DEFAULT OSPF INTERFACE
+        :return: None
+        """
+
+        # Get existing OSPF interfaces data
+        ospf_interfaces = self.api.get_ospf_interfaces(applianceID=self.edge_id).data
+
+        # Check if MD5 Auth is already disabled
+        if ospf_interfaces[DEFAULT_OSPF_INTERFACE]['authType'] == "None":
+            print({'error': None, 'message': f'OSPF MD5 Auth already disabled'})
+            return
+
+        # If not already disabled, then disable
+        ospf_interfaces[DEFAULT_OSPF_INTERFACE]['authType'] = "None"
+
+        # Post update
+        response = self.api.post_ospf_interfaces(applianceID=self.edge_id,
+                                                 interfaceConfigData=json.dumps(ospf_interfaces))
+
+        if not response.status_code == 200:
+            print({'error': response.error,
+                   'message': "Error disabling OSPF MD5 Auth",
+                   'data': response.data})
+        else:
+            print({'error': None,
+                   'message': "Disabled OSPF MD5 Auth successfully",
+                   'data': response.data})
+
+    def enable_ospf_md5_auth(self, md5_password, md5_key):
+        """
+        Enables OSPF MD5 Authentication on DEFAULT OSPF INTERFACE
+        :param md5_password: md5 password for interface
+        :param md5_key: md5 key for interface
+        :return: None
+        """
+
+        # Get existing OSPF interfaces data
+        ospf_interfaces = self.api.get_ospf_interfaces(applianceID=self.edge_id).data
+
+        # Check if OSPF is enabled with the same md5 password and md5 key
+        if ospf_interfaces[DEFAULT_OSPF_INTERFACE]['authType'] == 'MD5' and \
+                ospf_interfaces[DEFAULT_OSPF_INTERFACE]['md5Key'] == md5_key and \
+                ospf_interfaces[DEFAULT_OSPF_INTERFACE]['md5Password'] == md5_password:
+            print({'error': None, 'message': f'OSPF MD5 Auth already enabled'})
+            return
+
+        # If not enabled, then enable and set passwords
+        ospf_interfaces[DEFAULT_OSPF_INTERFACE]['authType'] = 'MD5'
+        ospf_interfaces[DEFAULT_OSPF_INTERFACE]['md5Key'] = md5_key
+        ospf_interfaces[DEFAULT_OSPF_INTERFACE]['md5Password'] = md5_password
+
+        # Post update
+        response = self.api.post_ospf_interfaces(applianceID=self.edge_id,
+                                                 interfaceConfigData=json.dumps(ospf_interfaces))
+
+        if not response.status_code == 200:
+            print({'error': response.error,
+                   'message': "Error enabling OSPF MD5 Auth",
+                   'data': response.data})
+        else:
+            print({'error': None,
+                   'message': f"Enabled OSPF MD5 Auth with password: '{md5_password}' and key '{md5_key}' successfully",
+                   'data': response.data})
+
 
 class Ixia:
     def __init__(self, ip_address=IX_NETWORK_IP, log_level=SessionAssistant.LOGLEVEL_INFO, clear_config=True):
@@ -135,7 +203,7 @@ class Ixia:
         self.PortMap = self.SessionAssistant.PortMapAssistant()
 
     def start_ix_network(self, config:str, vports:list, vports_force_ownership=True, config_local=True,
-                         enable_md5=False, md5_password=None):
+                         enable_md5=False, md5_password=None, md5_key=None):
         # Load Config
         self.IxNetwork.info(f'Loading config: {config}...')
         try:
@@ -175,6 +243,10 @@ class Ixia:
             if not ospf_interface.AuthenticationPassword == md5_password:
                 self.IxNetwork.info(f"Setting OSPF Interface MD5 password to \'{md5_password}\'")
                 ospf_interface.AuthenticationPassword = md5_password
+
+            if not ospf_interface.Md5AuthenticationKeyId == md5_key:
+                self.IxNetwork.info(f'Setting OSPF Interface Authentication key to {md5_key}...')
+                ospf_interface.Md5AuthenticationKeyId = md5_key
         else:
             if not ospf_interface.AuthenticationMethods == 'null':
                 self.IxNetwork.info('Setting OSPF Interface Authentication Method to null')
