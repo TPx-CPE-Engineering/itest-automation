@@ -240,7 +240,7 @@ class Ixia:
                 self.IxNetwork.info('Setting OSPF Interface Authentication Method to \'md5\'.')
                 ospf_interface.AuthenticationMethods = 'md5'
 
-            if not ospf_interface.AuthenticationPassword == md5_password:
+            if not ospf_interface.Md5AuthenticationKey == md5_password:
                 self.IxNetwork.info(f"Setting OSPF Interface MD5 password to \'{md5_password}\'")
                 ospf_interface.AuthenticationPassword = md5_password
 
