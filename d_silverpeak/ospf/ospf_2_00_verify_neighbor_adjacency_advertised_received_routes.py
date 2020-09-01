@@ -121,6 +121,9 @@ def verify_if_learned_routes_match():
         route_with_mask = route['Network Number'] + '/' + str(route['Mask'])
         ixia_ad_routes_with_mask.append(route_with_mask)
 
+    ixia_ad_routes_with_mask.sort()
+    edge_ad_routes.sort()
+
     # If both lists match...
     if edge_ad_routes == ixia_ad_routes_with_mask:
         # Verification passed
@@ -177,6 +180,9 @@ def verify_if_advertised_routes_match():
     for route in edge_advertised_routes:
         if route not in ixia_advertised_routes:
             routes_not_found.append(route)
+
+    ixia_advertised_routes.sort()
+    edge_advertised_routes.sort()
 
     if len(routes_not_found) == 0:
         # Verification passed
