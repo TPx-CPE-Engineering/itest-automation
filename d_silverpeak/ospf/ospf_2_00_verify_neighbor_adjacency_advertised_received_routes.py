@@ -128,8 +128,9 @@ def verify_if_learned_routes_match():
     else:
         # Verification failed
         print({'match': 'no'})
-        print({'Edge': edge_ad_routes})
-        print({'IxNetwork': ixia_ad_routes_with_mask})
+
+    print({'Edge Routes': edge_ad_routes})
+    print({'IxNetwork Routes': ixia_ad_routes_with_mask})
 
 
 def get_ixia_ospf_advertised_routes():
@@ -184,6 +185,9 @@ def verify_if_advertised_routes_match():
         # Verification failed
         print({'match': 'no'})
         print({'Edge Routes not found in Ixia': routes_not_found})
+
+    print({'Edge Routes': edge_advertised_routes})
+    print({'IxNetwork Routes': ixia_advertised_routes})
 
 
 def create_edge(edge_id, enterprise_id=None):
