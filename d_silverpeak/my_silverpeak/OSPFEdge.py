@@ -242,7 +242,7 @@ class Ixia:
 
             if not ospf_interface.Md5AuthenticationKey == md5_password:
                 self.IxNetwork.info(f"Setting OSPF Interface MD5 password to \'{md5_password}\'")
-                ospf_interface.AuthenticationPassword = md5_password
+                ospf_interface.Md5AuthenticationKey = md5_password
 
             if not ospf_interface.Md5AuthenticationKeyId == md5_key:
                 self.IxNetwork.info(f'Setting OSPF Interface Authentication key to {md5_key}...')
@@ -273,11 +273,11 @@ class Ixia:
             except SyntaxError:
                 continue
             except NotFoundError:
-                print({'error': 'OSPF Full Nbrs Timeout'})
+                print({'error': 'OSPF Session Timeout'})
                 return
             break
 
-        self.IxNetwork.info('OSPF Full Nbrs equals 1.')
+        self.IxNetwork.info('OSPF Full Nbrs equals to 1.')
 
     def stop_ix_network(self, port_map_disconnect=True):
         # Stopping All Protocols

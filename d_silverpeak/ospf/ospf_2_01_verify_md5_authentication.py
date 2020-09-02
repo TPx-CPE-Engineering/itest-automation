@@ -54,7 +54,7 @@ def start_ix_network(enable_ospf_md5=False, key_id='1', password='maule123'):
                           md5_key=key_id)
 
 
-def stop_ix_network(port_map_disconnect=True):
+def stop_ix_network(disconnect_ports=True):
     """
     Stops IxNetwork
     :return: None
@@ -63,7 +63,7 @@ def stop_ix_network(port_map_disconnect=True):
     # Stop IxNetwork
     try:
         global IXIA
-        IXIA.stop_ix_network(port_map_disconnect=port_map_disconnect)
+        IXIA.stop_ix_network(port_map_disconnect=disconnect_ports)
     except NameError:
         IXIA = Ixia(clear_config=False)
         IXIA.stop_ix_network()
