@@ -170,7 +170,7 @@ class DHCPEdge(BaseEdge):
         # Set api parameters
         param = ConfigurationUpdateConfigurationModule(id=device_settings_module.id,
                                                        enterpriseId=self.enterprise_id,
-                                                       update=device_settings_module)
+                                                       update=ConfigurationModule(data=device_settings_module.data))
 
         # Push change
         res = EDGE.api.configurationUpdateConfigurationModule(param)
