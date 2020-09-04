@@ -1,5 +1,6 @@
 from velocloud.models import *
 from my_velocloud.BaseEdge import BaseEdge
+from velocloud import ConfigurationModule
 
 # Globals
 EDGE: BaseEdge
@@ -91,7 +92,7 @@ def add_icmp_block_outbound_app_rule():
         if seg['segment']['name'] == 'Voice':
             seg['outbound'].append(icmp_block_rule)
             param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=EDGE.enterprise_id,
-                                                           update=firewall_module)
+                                                           update=ConfigurationModule(data=firewall_module.data))
 
             res = EDGE.api.configurationUpdateConfigurationModule(param)
             print(res)
@@ -127,7 +128,7 @@ def remove_icmp_block_outbound_app_rule():
                     seg['outbound'].remove(rule)
                     param = ConfigurationUpdateConfigurationModule(id=firewall_module.id,
                                                                    enterpriseId=EDGE.enterprise_id,
-                                                                   update=firewall_module)
+                                                                   update=ConfigurationModule(data=firewall_module.data))
                     res = EDGE.api.configurationUpdateConfigurationModule(param)
                     print(res)
                     return
