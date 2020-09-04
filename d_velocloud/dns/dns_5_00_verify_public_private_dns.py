@@ -54,7 +54,14 @@ class DNSEdge(BaseEdge):
         if 'deviceSettings:dns:privateProviders' not in ds_module_refs.keys():
             ds_module_refs['deviceSettings:dns:privateProviders'] = lab_dns_settings
 
-            param = {'id': enterprise_ds_module['id'], 'enterpriseId': self.enterprise_id,
+            # Due to VCO update 3.4.x, Velo does not want Id, Type, or ConfigurationId to be passed to api push command
+            # due to security reasons. So pop them off.
+            enterprise_id = enterprise_ds_module['id']
+            enterprise_ds_module.pop('id')
+            enterprise_ds_module.pop('type')
+            enterprise_ds_module.pop('configurationId')
+
+            param = {'id': enterprise_id, 'enterpriseId': self.enterprise_id,
                      '_update': enterprise_ds_module}
 
             # Push change
@@ -81,7 +88,14 @@ class DNSEdge(BaseEdge):
         if not ds_module_refs.pop('deviceSettings:dns:privateProviders', None):
             return
 
-        param = {'id': enterprise_ds_module['id'], 'enterpriseId': self.enterprise_id, '_update': enterprise_ds_module}
+        # Due to VCO update 3.4.x, Velo does not want Id, Type, or ConfigurationId to be passed to api push command
+        # due to security reasons. So pop them off.
+        enterprise_id = enterprise_ds_module['id']
+        enterprise_ds_module.pop('id')
+        enterprise_ds_module.pop('type')
+        enterprise_ds_module.pop('configurationId')
+
+        param = {'id': enterprise_id, 'enterpriseId': self.enterprise_id, '_update': enterprise_ds_module}
 
         # Push change
         try:
@@ -138,5 +152,5 @@ def is_conditional_dns_forwarding_set_to_lab_dns():
 
 
 if __name__ == '__main__':
-    create_edge(edge_id='1', enterprise_id='1', ssh_port='2201')
-    is_conditional_dns_forwarding_set_to_lab_dns()
+    create_edge(edge_id='239', enterprise_id='1', ssh_port='2201')
+    set_conditional_dns_forwarding_to_lab_dns()
