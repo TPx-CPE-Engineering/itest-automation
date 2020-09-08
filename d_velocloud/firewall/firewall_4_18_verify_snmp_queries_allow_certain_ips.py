@@ -78,7 +78,7 @@ class FirewallSNMPQueriesEdge(BaseEdge):
 
         # Set api parameters
         param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
-                                                       update=firewall_module)
+                                                       update=ConfigurationModule(data=firewall_module.data))
 
         # Push api call
         res = self.api.configurationUpdateConfigurationModule(param)
@@ -108,7 +108,7 @@ class FirewallSNMPQueriesEdge(BaseEdge):
 
         # Set api parameters
         param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
-                                                       update=firewall_module)
+                                                       update=ConfigurationModule(data=firewall_module.data))
 
         # Push api call
         res = self.api.configurationUpdateConfigurationModule(param)
@@ -164,4 +164,5 @@ def is_snmp_access_set_to_deny_all() -> None:
 
 
 if __name__ == '__main__':
-    set_globals(edge_id=1, enterprise_id=1, ssh_port=2201, public_ip='216.241.61.9')
+    set_globals(edge_id=239, enterprise_id=1, ssh_port=2201, public_ip='216.241.61.9')
+    set_snmp_access_to_deny_all()

@@ -90,7 +90,7 @@ class FirewallSNMPEdge(BaseEdge):
 
         # Set api's parameters
         param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
-                                                       update=firewall_module)
+                                                       update=ConfigurationModule(data=firewall_module.data))
 
         # Push change
         res = self.api.configurationUpdateConfigurationModule(param)
@@ -121,4 +121,5 @@ def set_globals(edge_id, enterprise_id, ssh_port, public_ip) -> None:
 
 
 if __name__ == '__main__':
-    set_globals(edge_id=4, enterprise_id=1, ssh_port=2201, public_ip="216.241.61.7")
+    set_globals(edge_id=239, enterprise_id=1, ssh_port=2201, public_ip="216.241.61.7")
+    set_snmp_access_to_deny_all()

@@ -131,7 +131,7 @@ class Edge(BaseEdge):
 
         # Push change
         param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=self.enterprise_id,
-                                                       update=edges_firewall)
+                                                       update=ConfigurationModule(data=edges_firewall.data))
         res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
 
@@ -168,7 +168,7 @@ class Edge(BaseEdge):
 
         # Push change
         param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=self.enterprise_id,
-                                                       update=edges_firewall)
+                                                       update=ConfigurationModule(data=edges_firewall.data))
         res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
 
@@ -192,3 +192,8 @@ def add_firewall_outbound_rule_with_destination_ip(destination_ip: str):
 
 def remove_firewall_outbound_rule_with_destination_ip(destination_ip: str):
     EDGE.remove_firewall_outbound_rule_with_destination_ip(destination_ip=destination_ip)
+
+
+if __name__ == '__main__':
+    set_globals(edge_id='239', enterprise_id='1', ssh_port="2201")
+    remove_firewall_outbound_rule_with_destination_ip(destination_ip='1.1.1.1')
