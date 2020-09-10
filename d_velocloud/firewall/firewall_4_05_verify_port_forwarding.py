@@ -65,7 +65,7 @@ def remove_ssh_rule() -> None:
             firewall_module.data['inbound'].remove(rule)
 
     param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=EDGE.enterprise_id,
-                                                   update=firewall_module)
+                                                   update=ConfigurationModule(data=firewall_module.data))
 
     res = EDGE.api.configurationUpdateConfigurationModule(param)
     print(res)
@@ -88,12 +88,15 @@ def add_ssh_rule() -> None:
     firewall_module.data['inbound'].append(EDGE.cpe_ssh_port_forwarding_rule)
 
     param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=EDGE.enterprise_id,
-                                                   update=firewall_module)
+                                                   update=ConfigurationModule(data=firewall_module.data))
 
     res = EDGE.api.configurationUpdateConfigurationModule(param)
     print(res)
 
 
 if __name__ == "__main__":
-    set_globals(edge_id=4, enterprise_id=1, ssh_port=2202)
-    is_ssh_rule_present()
+    set_globals(edge_id=239, enterprise_id=1, ssh_port=2201)
+    import time
+    remove_ssh_rule()
+    time.sleep(30)
+    add_ssh_rule()

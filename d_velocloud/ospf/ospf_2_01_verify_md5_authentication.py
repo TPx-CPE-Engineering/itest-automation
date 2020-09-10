@@ -1,5 +1,5 @@
 from my_velocloud.BaseEdge import BaseEdge
-from velocloud import ConfigurationUpdateConfigurationModule
+from velocloud import ConfigurationUpdateConfigurationModule, ConfigurationModule
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
 from ixnetwork_restpy.errors import BadRequestError, NotFoundError
 import json
@@ -207,7 +207,7 @@ class OSPFRoutingEdge(BaseEdge):
             # Setup API parameter
             param = ConfigurationUpdateConfigurationModule(id=device_module.id,
                                                            enterpriseId=self.enterprise_id,
-                                                           update=device_module)
+                                                           update=ConfigurationModule(data=device_module.data))
             # Execute API call
             res = EDGE.api.configurationUpdateConfigurationModule(param)
 
@@ -246,7 +246,7 @@ class OSPFRoutingEdge(BaseEdge):
             # Setup API parameter
             param = ConfigurationUpdateConfigurationModule(id=device_module.id,
                                                            enterpriseId=self.enterprise_id,
-                                                           update=device_module)
+                                                           update=ConfigurationModule(data=device_module.data))
             # Execute API call
             res = EDGE.api.configurationUpdateConfigurationModule(param)
 
@@ -266,7 +266,7 @@ PORT_MAP: SessionAssistant.PortMapAssistant
 
 
 # noinspection PyTypeChecker
-def start_ix_network(enable_ospf_md5=False, key_id=0, password='maule123'):
+def start_ix_network(enable_ospf_md5=False, key_id=1, password='maule123'):
     # Initiate IxNetwork session
     global PORT_MAP, SESSION_ASSISTANT, IX_NETWORK
 
@@ -390,5 +390,5 @@ def enable_ospf_md5_auth(key_id=0, password='maule123'):
 
 if __name__ == '__main__':
     create_edge(edge_id=4, enterprise_id=1)
-    EDGE.enable_ospf_md5_auth(key_id=0, password='maule123')
+    EDGE.enable_ospf_md5_auth(key_id=1, password='maule123')
     # EDGE.disable_ospf_md5_auth()

@@ -32,7 +32,7 @@ class DOT1QEdge(BaseEdge):
 
         param = ConfigurationUpdateConfigurationModule(id=device_settings.id,
                                                        enterpriseId=self.enterprise_id,
-                                                       update=device_settings)
+                                                       update=ConfigurationModule(data=device_settings.data))
 
         response = EDGE.api.configurationUpdateConfigurationModule(param)
 

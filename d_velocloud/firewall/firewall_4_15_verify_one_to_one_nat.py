@@ -212,7 +212,7 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         # Push change
         param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
-                                                       update=firewall_module)
+                                                       update=ConfigurationModule(data=firewall_module.data))
         res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
 
@@ -244,7 +244,7 @@ class FirewallOneToOneNatEdge(BaseEdge):
 
         # Push change
         param = ConfigurationUpdateConfigurationModule(id=firewall_module.id, enterpriseId=self.enterprise_id,
-                                                       update=firewall_module)
+                                                       update=ConfigurationModule(data=firewall_module.data))
         res = self.api.configurationUpdateConfigurationModule(param)
         print(res)
 
@@ -276,4 +276,5 @@ def print_sdwan_public_wan_ip():
 
 
 if __name__ == '__main__':
-    set_globals(edge_id=1, enterprise_id=1, ssh_port=2202, public_ip="216.241.61.7")
+    set_globals(edge_id=1, enterprise_id=1, ssh_port=2202, public_ip="66.17.13.160")
+    remove_one_to_one_nat_rule()

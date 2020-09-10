@@ -152,7 +152,7 @@ def add_deny_source_address_rule() -> None:
 
     # Push change
     param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=EDGE.enterprise_id,
-                                                   update=edges_firewall)
+                                                   update=ConfigurationModule(data=edges_firewall.data))
     res = EDGE.api.configurationUpdateConfigurationModule(param)
     print(res)
 
@@ -207,7 +207,7 @@ def remove_deny_source_address_rule() -> None:
             voice_segment['outbound'].remove(rule)
 
             param = ConfigurationUpdateConfigurationModule(id=edges_firewall.id, enterpriseId=EDGE.enterprise_id,
-                                                           update=edges_firewall)
+                                                           update=ConfigurationModule(data=edges_firewall.data))
             res = EDGE.api.configurationUpdateConfigurationModule(param)
             print(res)
             return
@@ -246,3 +246,8 @@ def get_cpe_lan_ip() -> str:
 
     print('No rule found')
     exit()
+
+
+if __name__ == '__main__':
+    set_globals(edge_id='239', enterprise_id='1', ssh_port="2201")
+    remove_deny_source_address_rule()
