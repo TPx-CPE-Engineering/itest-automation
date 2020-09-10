@@ -23,10 +23,10 @@ FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 IX_NET_CHASSIS_IP = '10.255.224.70'
 
 # VPorts
-PORTS = [{'Name': 'Single 540 LAN',
+PORTS = [{'Name': 'Single 8540 LAN',
           'Chassis IP': IX_NET_CHASSIS_IP,
           'Card': 3,
-          'Port': 1,
+          'Port': 3,
           'DUT': True
           }]
 

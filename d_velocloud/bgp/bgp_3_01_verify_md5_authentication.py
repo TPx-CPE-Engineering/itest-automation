@@ -1,5 +1,5 @@
 from my_velocloud.BaseEdge import BaseEdge
-from velocloud import ConfigurationUpdateConfigurationModule
+from velocloud import ConfigurationUpdateConfigurationModule, ConfigurationModule
 from ixnetwork_restpy import SessionAssistant, Files, StatViewAssistant
 from ixnetwork_restpy.errors import BadRequestError, NotFoundError
 import json
@@ -26,10 +26,10 @@ FULL_CONFIG = IX_NET_CONFIG_FILE_BASE + IX_NET_CONFIG_FILE
 IX_NET_CHASSIS_IP = '10.255.224.70'
 
 # VPorts
-PORTS = [{'Name': 'Single 540 LAN',
+PORTS = [{'Name': 'Single 840 LAN',
           'Chassis IP': IX_NET_CHASSIS_IP,
           'Card': 3,
-          'Port': 1,
+          'Port': 3,
           'DUT': True
           },
          {'Name': '520HA LAN',
@@ -172,7 +172,7 @@ class BGPRoutingEdge(BaseEdge):
         # Setup API parameter
         param = ConfigurationUpdateConfigurationModule(id=device_module.id,
                                                        enterpriseId=self.enterprise_id,
-                                                       update=device_module)
+                                                       update=ConfigurationModule(data=device_module.data))
         # Execute API call
         res = EDGE.api.configurationUpdateConfigurationModule(param)
 
@@ -216,7 +216,7 @@ class BGPRoutingEdge(BaseEdge):
         # Setup API parameter
         param = ConfigurationUpdateConfigurationModule(id=device_module.id,
                                                        enterpriseId=self.enterprise_id,
-                                                       update=device_module)
+                                                       update=ConfigurationModule(data=device_module.data))
         # Execute API call
         res = EDGE.api.configurationUpdateConfigurationModule(param)
 
@@ -532,6 +532,6 @@ def disable_bgp_md5_auth():
 
 
 if __name__ == '__main__':
-    create_edge(edge_id=3, enterprise_id=1)
+    create_edge(edge_id=4, enterprise_id=1)
     # EDGE.enable_bgp_md5_auth(password=VELO_BGP_SETTINGS['MD5 Password'])
     EDGE.disable_bgp_md5_auth()
