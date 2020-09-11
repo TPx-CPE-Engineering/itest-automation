@@ -177,6 +177,57 @@ class BasePolycom:
         if return_result:
             return mos_scores
 
+    def validate_voice_mos_scores(self, call_handle, mos_score_threshold="3.6", print_result=True, return_result=False):
+
+        voice_mos_scores = self.get_voice_mos_scores(call_handle=call_handle, print_result=False, return_result=True)
+
+        voice_mos_scores_validation = {
+            'All passed': False,
+            'TxMOSCQ': {
+                'passed': False,
+                'score': '0'
+            },
+            'TxMOSLQ': {
+                'passed': False,
+                'score': '0'
+            },
+            'RxMOSCQ': {
+                'passed': False,
+                'score': '0'
+            },
+            'RxMOSLQ': {
+                'passed': False,
+                'score': '0'
+            }
+        }
+        if float(voice_mos_scores['TxMOSCQ']) >= float(mos_score_threshold):
+            voice_mos_scores_validation['TxMOSCQ']['passed'] = True
+        voice_mos_scores_validation['TxMOSCQ']['score'] = voice_mos_scores['TxMOSCQ']
+
+        if float(voice_mos_scores['TxMOSLQ']) >= float(mos_score_threshold):
+            voice_mos_scores_validation['TxMOSLQ']['passed'] = True
+        voice_mos_scores_validation['TxMOSLQ']['score'] = voice_mos_scores['TxMOSLQ']
+
+        if float(voice_mos_scores['RxMOSCQ']) >= float(mos_score_threshold):
+            voice_mos_scores_validation['RxMOSCQ']['passed'] = True
+        voice_mos_scores_validation['RxMOSCQ']['score'] = voice_mos_scores['RxMOSCQ']
+
+        if float(voice_mos_scores['RxMOSLQ']) >= float(mos_score_threshold):
+            voice_mos_scores_validation['RxMOSLQ']['passed'] = True
+        voice_mos_scores_validation['RxMOSLQ']['score'] = voice_mos_scores['RxMOSLQ']
+
+        if voice_mos_scores_validation['TxMOSCQ']['passed'] and \
+                voice_mos_scores_validation['TxMOSLQ']['passed'] and \
+                voice_mos_scores_validation['RxMOSCQ']['passed'] and \
+                voice_mos_scores_validation['RxMOSLQ']['passed']:
+            voice_mos_scores_validation['All passed'] = True
+
+        if print_result:
+            print(json.dumps(voice_mos_scores_validation))
+
+        if return_result:
+            return voice_mos_scores_validation
+
     def end_any_active_call(self, print_result=True, return_result=False) -> Union[None, Result]:
         url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
         response = self.parse_response(self.session.get(url=url), print_result=print_result, return_result=return_result)
