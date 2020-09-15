@@ -1,5 +1,6 @@
 from my_velocloud import Globals
 from my_velocloud.VcoRequestManager import VcoRequestManager, ApiException
+import json
 
 
 class VeloCloudEdge:
@@ -99,3 +100,78 @@ class VeloCloudEdge:
         for module in enterprise_profile['modules']:
             if module['name'] == module_name:
                 return module
+
+    @staticmethod
+    def print_as_json(text):
+        """
+        Prints text as json
+        :param text: Text to print as json
+        :return: None
+        """
+
+        "This was written in order to add text into a json beautifyer to read data easily"
+        print(json.dumps(text))
+
+
+# Class for BGP Testing
+class BGPVeloCloudEdge(VeloCloudEdge):
+
+    def enable_bgp_on_enterprise_segment(self, segment_name='Global Segment'):
+
+        device_settings = self.get_module_from_enterprise_profile(module_name='deviceSettings')
+
+        # Find the segment to enable BGP on
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                # Segment Found
+                # Enable bgp
+                segment['bgp']['enabled'] = True
+
+        method = 'configuration/updateConfigurationModule'
+
+        update = {'data': device_settings['data'],
+                  'refs': device_settings['refs'],
+                  'description': None,
+                  'name': 'deviceSettings'}
+
+        params = {'id': device_settings['id'],
+                  '_update': update,
+                  'returnData': False,
+                  'enterpriseId': self.enterprise_id}
+
+        try:
+            response = self.client.call_api(method=method,
+                                            params=params)
+            print(response)
+        except ApiException as e:
+            print(e)
+
+    def disable_bgp_on_enterprise_segment(self, segment_name='Global Segment'):
+
+        device_settings = self.get_module_from_enterprise_profile(module_name='deviceSettings')
+
+        # Find the segment to disable BGP on
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                # Segment Found
+                # Disable bgp
+                segment['bgp']['enabled'] = False
+
+        method = 'configuration/updateConfigurationModule'
+
+        update = {'data': device_settings['data'],
+                  'refs': device_settings['refs'],
+                  'description': None,
+                  'name': 'deviceSettings'}
+
+        params = {'id': device_settings['id'],
+                  '_update': update,
+                  'returnData': False,
+                  'enterpriseId': self.enterprise_id}
+
+        try:
+            response = self.client.call_api(method=method,
+                                            params=params)
+            print(response)
+        except ApiException as e:
+            print(e)
