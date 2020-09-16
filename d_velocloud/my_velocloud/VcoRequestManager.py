@@ -77,7 +77,7 @@ class VcoRequestManager(object):
         Returns method result as a Python dictionary
         """
         self._seqno += 1
-        headers = { "Content-Type": "application/json" }
+        headers = {"Content-Type": "application/json"}
         method = self._clean_method_name(method)
         payload = {"jsonrpc": "2.0",
                    "id": self._seqno,
@@ -94,7 +94,8 @@ class VcoRequestManager(object):
 
         response_dict = r.json()
         if "error" in response_dict:
-            raise ApiException(response_dict["error"]["message"])
+            raise ApiException("Encountered API error in call to '{}' : '{}'".format(method,
+                                                                                     response_dict['error']['message']))
         return response_dict["result"]
 
     @staticmethod
