@@ -5,7 +5,7 @@ import time
 from bs4 import BeautifulSoup
 
 
-class VeloCloudEdge:
+class VeloCloudEdge(object):
     def __init__(self, edge_id, enterprise_id, cpe_ssh_port=None, authenticate=True, hostname=Globals.VC_SERVER,
                  verify_ssl=False, username=Globals.VC_USERNAME, password=Globals.VC_PASSWORD, is_operator=True):
         self.id = edge_id
@@ -110,6 +110,57 @@ class VeloCloudEdge:
             if module['name'] == module_name:
                 return module
 
+    def get_device_settings_segments(self) -> list:
+        """
+        Get all Edge' device settings segments
+        :return: All Edge's device settings segments
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        edges_segments = []
+
+        for segment in device_settings['data']['segments']:
+            edges_segments.append(segment)
+
+        return edges_segments
+
+    def get_a_device_settings_segment(self, segment_name) -> dict:
+        """
+        Get a specific Edge segment from device settings
+        :param segment_name: Name of segment you want to get
+        :return: Edge device settings segment
+        """
+
+        device_settings_segments = self.get_device_settings_segments()
+
+        for segment in device_settings_segments:
+            if segment['segment']['name'] == segment_name:
+                return segment
+
+        return {}
+
+    def update_configuration_module(self, module):
+        """
+        Update Edge Configuration Module
+        :param module: Module you wish to update
+        :return: API response
+        """
+
+        update = {'data': module['data'],
+                  'refs': module['refs'],
+                  'description': None,
+                  'name': module['name']}
+
+        params = {'id': module['id'],
+                  '_update': update,
+                  'returnData': False,
+                  'enterpriseId': self.enterprise_id}
+
+        method = 'configuration/updateConfigurationModule'
+
+        return self.client.call_api(method, params)
+
     def get_html_results_from_action_key(self, action_key):
         """
         Get HTML Results based on Live Mode action key
@@ -201,11 +252,15 @@ class VeloCloudEdge:
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
+    
+    def __init__(self, edge_id, enterprise_id):
+        super().__init__(edge_id, enterprise_id)
 
-    BGP_DEFAULT_SEGMENT_NAME = 'Global Segment'
-    BGP_DEFAULT_SEGMENT_ID = 1
+        # Default Values for BGP Testing
+        self.default_bgp_segment_name = 'Global Segment'
+        self.default_bgp_segment = self.get_a_device_settings_segment(segment_name=self.default_bgp_segment_name)
 
-    def enable_bgp_on_enterprise_segment(self, segment_name=BGP_DEFAULT_SEGMENT_NAME):
+    def enable_bgp_on_enterprise_segment(self, segment_name='Global Segment'):
         """
         Enable BGP on Enterprise's given segment
         :param segment_name: Segment name you want to enable BGP on
@@ -221,23 +276,10 @@ class BGPVeloCloudEdge(VeloCloudEdge):
                 # Enable bgp
                 segment['bgp']['enabled'] = True
 
-        method = 'configuration/updateConfigurationModule'
-
-        update = {'data': device_settings['data'],
-                  'refs': device_settings['refs'],
-                  'description': None,
-                  'name': 'deviceSettings'}
-
-        params = {'id': device_settings['id'],
-                  '_update': update,
-                  'returnData': False,
-                  'enterpriseId': self.enterprise_id}
-
-        response = self.client.call_api(method=method,
-                                        params=params)
+        response = self.update_configuration_module(module=device_settings)
         print(response)
 
-    def disable_bgp_on_enterprise_segment(self, segment_name=BGP_DEFAULT_SEGMENT_NAME):
+    def disable_bgp_on_enterprise_segment(self, segment_name='Global Segment'):
         """
         Disable BGP on Enterprise's given segment
         :param segment_name: Segment name you want to enable BGP on
@@ -253,20 +295,64 @@ class BGPVeloCloudEdge(VeloCloudEdge):
                 # Disable bgp
                 segment['bgp']['enabled'] = False
 
-        method = 'configuration/updateConfigurationModule'
+        response = self.update_configuration_module(module=device_settings)
+        print(response)
 
-        update = {'data': device_settings['data'],
-                  'refs': device_settings['refs'],
-                  'description': None,
-                  'name': 'deviceSettings'}
+    def overwrite_bgp_neighbor(self, neighbor_ip, neighbor_asn, segment_name='Global Segment'):
+        """
+        Overwrite a BGP Neighbor on Edge through Edge Override
 
-        params = {'id': device_settings['id'],
-                  '_update': update,
-                  'returnData': False,
-                  'enterpriseId': self.enterprise_id}
+        Old BGP Neighbors will be deleted
+        :param segment_name: Name of Segment
+        :param neighbor_ip: IP of BGP Neighbor to add
+        :param neighbor_asn: ASN of BGP Neighbor to add
+        :return: None
+        """
 
-        response = self.client.call_api(method=method,
-                                        params=params)
+        bgp_data = {
+              "enabled": True,
+              "routerId": None,
+              "ASN": "65535",
+              "networks": [],
+              "neighbors": [
+                {
+                  "neighborIp": neighbor_ip,
+                  "neighborAS": neighbor_asn,
+                  "inboundFilter": {
+                    "ids": []
+                  },
+                  "outboundFilter": {
+                    "ids": []
+                  }
+                }
+              ],
+              "overlayPrefix": True,
+              "disableASPathCarryOver": True,
+              "uplinkCommunity": None,
+              "connectedRoutes": True,
+              "propagateUplink": False,
+              "ospf": {
+                "enabled": True,
+                "metric": 20
+              },
+              "defaultRoute": {
+                "enabled": False,
+                "advertise": "CONDITIONAL"
+              },
+              "asn": None,
+              "isEdge": True,
+              "filters": [],
+              "override": True
+            }
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Update BGP on given segment
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                segment['bgp'] = bgp_data
+
+        response = self.update_configuration_module(module=device_settings)
         print(response)
 
     def get_bgp_summary(self):
