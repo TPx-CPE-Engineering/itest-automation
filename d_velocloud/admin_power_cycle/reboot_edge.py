@@ -229,7 +229,7 @@ def find_shut_and_edge_interface_up_event_time_difference():
     while True:
         events = EDGE.get_events(interval_start=EPOCH)
 
-        for event in reversed(events):
+        for event in events:
             if event['event'] == 'EDGE_INTERFACE_UP':
                 has_edge_interface_up_event['result'] = True
                 utc_dt = datetime.strptime(event['eventTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -261,14 +261,22 @@ def print_all_edge_reboot_events():
     events_list = []
 
     for event in reversed(events):
-        events_list.append(event['message'])
 
-    print(events_list)
+        event_as_dict = {
+            "event": event['event'],
+            "category": event['category'],
+            "message": event['message'],
+            "time": event['eventTime']
+        }
+        events_list.append(event_as_dict)
+
+    print(json.dumps(events_list, indent=4))
 
 
-# if __name__ == '__main__':
-#     # create_edge(edge_id=1, enterprise_id=1, ssh_port=2201)
-#     # reboot_edge()
-#     # time.sleep(120)
-#     # find_shut_and_start_event_time_difference()
-#     # find_shut_and_edge_interface_up_event_time_difference()
+if __name__ == '__main__':
+    create_edge(edge_id=239, enterprise_id=1, ssh_port=2201)
+    # reboot_edge()
+    # time.sleep(120)
+    # find_shut_and_start_event_time_difference()
+    # find_shut_and_edge_interface_up_event_time_difference()
+    print_all_edge_reboot_events()
