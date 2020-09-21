@@ -47,6 +47,8 @@ class BasePolycom:
         self.session.headers = {'Content-Type': 'application/json'}
         self.session.verify = False
 
+        self.get_line_info()
+
     @staticmethod
     def parse_response(response: requests.models.Response, print_result=True, return_result=False) -> Result:
         ref_data = response.json()
@@ -177,17 +179,6 @@ class BasePolycom:
         if return_result:
             return mos_scores
 
-    def end_any_active_call(self, print_result=True, return_result=False) -> Union[None, Result]:
-        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
-        response = self.parse_response(self.session.get(url=url), print_result=print_result, return_result=return_result)
-
-        if not response.status_code == '4007':
-            # Get call handle & End call
-            call_handle = response.data['CallHandle']
-            return self.post_end_call(call_handle=call_handle,
-                                      print_result=print_result,
-                                      return_result=return_result)
-
     def validate_voice_mos_scores(self, call_handle, mos_score_threshold="3.6", print_result=True, return_result=False):
 
         voice_mos_scores = self.get_voice_mos_scores(call_handle=call_handle, print_result=False, return_result=True)
@@ -238,3 +229,21 @@ class BasePolycom:
 
         if return_result:
             return voice_mos_scores_validation
+
+    def end_any_active_call(self, print_result=True, return_result=False) -> Union[None, Result]:
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/webCallControl/callStatus'
+        response = self.parse_response(self.session.get(url=url), print_result=print_result, return_result=return_result)
+
+        if not response.status_code == '4007':
+            # Get call handle & End call
+            call_handle = response.data['CallHandle']
+            return self.post_end_call(call_handle=call_handle,
+                                      print_result=print_result,
+                                      return_result=return_result)
+
+    def get_line_info(self, print_result=True, return_result=False):
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/mgmt/lineinfo'
+
+        return self.parse_response(self.session.get(url=url),
+                                   print_result=print_result,
+                                   return_result=return_result)
