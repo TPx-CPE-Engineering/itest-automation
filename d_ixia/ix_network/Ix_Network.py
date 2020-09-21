@@ -40,27 +40,32 @@ class IxNetwork:
         try:
             self.IxNetwork.LoadConfig(Files(file_path=IX_NET_CONFIG_FILE_BASE + config,
                                             local_file=config_local))
+            time.sleep(10)
+            self.IxNetwork.info('Config loaded.')
         except BadRequestError as e:
             print({'error': f"{e.message}"})
             exit(-1)
-        self.IxNetwork.info('Config loaded.')
 
-    def connect_vports(self, vports, force_ownership=True):
-        # Connect every port in vports
-        for port in vports:
-            self.PortMap.Map(IpAddress=port['Chassis IP'],
-                             CardId=port['Card'],
-                             PortId=port['Port'],
-                             Name=port['Name'])
+    def connect_vport(self, vport_name='DUT Edge'):
+        """
+        Connect and wait until vport is connected
+        :param vport_name: Name of Vport
+        :return: Vport
+        """
 
-        self.IxNetwork.info('Connecting to ports...')
-        self.PortMap.Connect(ForceOwnership=force_ownership)
-        self.IxNetwork.info('Ports connected.')
+        self.IxNetwork.info(f'Connecting vport \'{vport_name}\'...')
+        vport = self.IxNetwork.Vport.find(Name='DUT Edge')
+
+        while True:
+            if not vport.IsConnected:
+                time.sleep(3)
+                vport.refresh()
+            else:
+                self.IxNetwork.info(f'\'{vport_name}\' is Connected.')
+                return vport
 
     def start_bgp_ix_network(self,
                              config: str,
-                             vports: list,
-                             vports_force_ownership=True,
                              config_local=True,
                              enable_md5=False,
                              md5_password=None,
@@ -70,45 +75,40 @@ class IxNetwork:
                              ipv4_gateway=None):
 
         self.load_config(config, config_local)
+        vport = self.connect_vport(vport_name='DUT Edge')
 
-        self.connect_vports(vports, )
+        # Adjust Interface IP
+        ipv4_interface = vport.Interface.find().Ipv4.find()
+        ipv4_interface.Gateway = ipv4_gateway
+        ipv4_interface.Ip = ipv4_address
+        ipv4_interface.MaskWidth = ipv4_mask_width
 
-        # Get Vport
-        vport = self.IxNetwork.Vport.find()
-
-        # Set IPv4 Interface
-        interface = vport.Interface.find()
-        print(interface)
-        print('testing')
-        # ipv4.add(Gateway=ipv4_gateway,
-        #          Ip=ipv4_address,
-        #          MaskWidth=ipv4_mask_width)
-
-        # Enable BGP
+        # Adjust BGP Protocol
         bgp = vport.Protocols.find().Bgp
-        bgp.Enabled = True
-        time.sleep(30)
 
-        # Get BGPs Neighbor object
-        neighbor = bgp.NeighborRange.find()
+        bgp_neighbor_range = bgp.NeighborRange.find()
+        bgp_neighbor_range.BgpId = ipv4_address
+        bgp_neighbor_range.DutIpAddress = ipv4_gateway
+        bgp_neighbor_range.LocalAsNumber = 65535
+        bgp_neighbor_range.LocalIpAddress = ipv4_address
 
         # Enable BGP MD5 Auth on NeighborRange
         if enable_md5:
-            if not neighbor.Authentication == 'md5':
+            if not bgp_neighbor_range.Authentication == 'md5':
                 self.IxNetwork.info('Setting BGP NeighborRange Authentication to \'md5\'.')
-                neighbor.Authentication = 'md5'
+                bgp_neighbor_range.Authentication = 'md5'
 
-            if not neighbor.Md5Key == md5_password:
+            if not bgp_neighbor_range.Md5Key == md5_password:
                 self.IxNetwork.info(f"Setting BGP NeighborRange MD5 password to \'{md5_password}\'")
-                neighbor.Md5Key = md5_password
+                bgp_neighbor_range.Md5Key = md5_password
         else:
-            if not neighbor.Authentication == 'null':
+            if not bgp_neighbor_range.Authentication == 'null':
                 self.IxNetwork.info('Setting BGP NeighborRange Authentication to null')
-                neighbor.Authentication = 'null'
+                bgp_neighbor_range.Authentication = 'null'
 
         if hold_timer:
             self.IxNetwork.info(f'Setting BGP NeighborRange Hold Timer to \'{hold_timer}\'.')
-            neighbor.HoldTimer = hold_timer
+            bgp_neighbor_range.HoldTimer = hold_timer
 
         # Start protocols
         self.IxNetwork.info('Starting protocols...')

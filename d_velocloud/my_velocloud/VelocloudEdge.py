@@ -298,7 +298,7 @@ class BGPVeloCloudEdge(VeloCloudEdge):
         response = self.update_configuration_module(module=device_settings)
         print(response)
 
-    def overwrite_bgp_neighbor(self, neighbor_ip, neighbor_asn, segment_name='Global Segment'):
+    def overwrite_bgp_neighbors(self, neighbor_ip, neighbor_asn, segment_name='Global Segment'):
         """
         Overwrite a BGP Neighbor on Edge through Edge Override
 
@@ -354,6 +354,35 @@ class BGPVeloCloudEdge(VeloCloudEdge):
 
         response = self.update_configuration_module(module=device_settings)
         print(response)
+
+    def get_vlan_ip_address_from_segment(self, segment_name='Global Segment') -> str:
+        """
+        Get VLAN IP Address from segment
+        :param segment_name: Segment you want to retrieve VLAN IP Address from
+        :return: IP Address
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        segment = self.get_a_device_settings_segment(segment_name=segment_name)
+        segment_id = segment['segment']['segmentId']
+
+        # Find VLAN
+        for network in device_settings['data']['lan']['networks']:
+            if network['segmentId'] == segment_id:
+                return network['cidrIp']
+
+    def get_new_bgp_neighbor_ip(self) -> str:
+        """
+        Get New BGP Neighbor IP taken from VLAN (that is on Global Segment) + 1
+        :return:
+        """
+        from ipaddress import ip_address
+
+        # Get VLAN IP
+        ip = ip_address(address=self.get_vlan_ip_address_from_segment(segment_name='Global Segment'))
+        # Increase VLAN IP address by 1 to set neighbor
+        return str(ip + 1)
 
     def get_bgp_summary(self):
         """
