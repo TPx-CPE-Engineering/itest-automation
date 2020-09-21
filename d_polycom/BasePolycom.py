@@ -47,6 +47,8 @@ class BasePolycom:
         self.session.headers = {'Content-Type': 'application/json'}
         self.session.verify = False
 
+        self.get_line_info()
+
     @staticmethod
     def parse_response(response: requests.models.Response, print_result=True, return_result=False) -> Result:
         ref_data = response.json()
@@ -238,3 +240,10 @@ class BasePolycom:
             return self.post_end_call(call_handle=call_handle,
                                       print_result=print_result,
                                       return_result=return_result)
+
+    def get_line_info(self, print_result=True, return_result=False):
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/mgmt/lineinfo'
+
+        return self.parse_response(self.session.get(url=url),
+                                   print_result=print_result,
+                                   return_result=return_result)
