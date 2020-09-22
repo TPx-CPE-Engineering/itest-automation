@@ -37,7 +37,7 @@ def create_edge(edge_id, enterprise_id):
 
 
 def get_bgp_summary():
-    DUT_EDGE.get_bgp_summary()
+    print(DUT_EDGE.get_bgp_summary())
 
 
 def get_bgp_neighbor_advertised_routes():
