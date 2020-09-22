@@ -8,8 +8,8 @@ from bs4 import BeautifulSoup
 class VeloCloudEdge(object):
     def __init__(self, edge_id, enterprise_id, cpe_ssh_port=None, authenticate=True, hostname=Globals.VC_SERVER,
                  verify_ssl=False, username=Globals.VC_USERNAME, password=Globals.VC_PASSWORD, is_operator=True):
-        self.id = edge_id
-        self.enterprise_id = enterprise_id
+        self.id = int(edge_id)
+        self.enterprise_id = int(enterprise_id)
         self.cpe_ssh_port = cpe_ssh_port
         self.voice_segment_name = Globals.VOICE_SEGMENT_NAME
         self.client = VcoRequestManager(hostname=hostname, verify_ssl=verify_ssl)
