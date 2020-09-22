@@ -5,7 +5,7 @@ DUT_EDGE: BGPVeloCloudEdge
 IX_NETWORK: IxNetwork
 
 
-def start_ixia():
+def start_ix_network():
     ix_network_config = 'VC_bgp_3_00_verify_neighbor_adjacency_advertised_received_routes.ixncfg'
 
     # IX Network IPV4 should be of neighbor
