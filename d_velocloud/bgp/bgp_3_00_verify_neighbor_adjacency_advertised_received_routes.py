@@ -1,5 +1,5 @@
 from my_velocloud.VelocloudEdge import BGPVeloCloudEdge
-from d_ixia.ix_network.Ix_Network import IxNetwork
+from ix_network.Ix_Network import IxNetwork
 
 DUT_EDGE: BGPVeloCloudEdge
 IX_NETWORK: IxNetwork
