@@ -23,6 +23,18 @@ def start_ix_network():
                                     ipv4_gateway=ipv4_gateway)
 
 
+def stop_ix_network():
+    IX_NETWORK.stop_ix_network()
+
+
+def restore_bgp_default_settings():
+    print('')
+
+
+def disable_bgp():
+    DUT_EDGE.disable_bgp_edge_override_on_edge_segment()
+
+
 def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, IX_NETWORK
     DUT_EDGE = BGPVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)

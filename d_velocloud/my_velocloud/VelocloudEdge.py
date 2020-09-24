@@ -298,6 +298,27 @@ class BGPVeloCloudEdge(VeloCloudEdge):
         response = self.update_configuration_module(module=device_settings)
         print(response)
 
+    def disable_bgp_edge_override_on_edge_segment(self, segment_name='Global Segment'):
+        """
+        Disable BGP Edge Override on Edge's segment
+        :param segment_name: Segment name to disable BGP on. Default 'Global Segment'
+        :return: None
+        """
+
+        # Get Device Settings
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Update BGP on given segment
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                try:
+                    del segment['bgp']
+                except KeyError:
+                    pass
+
+        response = self.update_configuration_module(module=device_settings)
+        print(response)
+
     def overwrite_bgp_neighbors(self, neighbor_ip, neighbor_asn, segment_name='Global Segment'):
         """
         Overwrite a BGP Neighbor on Edge through Edge Override
