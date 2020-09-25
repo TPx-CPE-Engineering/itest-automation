@@ -546,8 +546,9 @@ class BGPVeloCloudEdge(VeloCloudEdge):
                 # Segment Found
                 # Now look for BGP Neighbor
                 for neighbor in segment['bgp']['neighbors']:
-                    neighbor['enableMd5'] = True
-                    neighbor['md5Password'] = md5_password
+                    if neighbor['neighborIp'] == neighbor_ip:
+                        neighbor['enableMd5'] = True
+                        neighbor['md5Password'] = md5_password
 
         return self.update_configuration_module(module=device_settings)
 
@@ -567,7 +568,8 @@ class BGPVeloCloudEdge(VeloCloudEdge):
                 # Segment Found
                 # Now look for BGP Neighbor
                 for neighbor in segment['bgp']['neighbors']:
-                    neighbor['enableMd5'] = False
-                    neighbor.pop('md5Password', None)
+                    if neighbor['neighborIp'] == neighbor_ip:
+                        neighbor['enableMd5'] = False
+                        neighbor.pop('md5Password', None)
 
         return self.update_configuration_module(module=device_settings)
