@@ -15,10 +15,12 @@ def start_ix_network(enable_md5=False, md5_password=None):
     ipv4_gateway = DUT_EDGE.get_vlan_ip_address_from_segment(segment_name='Global Segment')
 
     IX_NETWORK.start_bgp_ix_network(config=ix_network_config,
-                                    config_local=True,
+                                    config_local=False,
                                     ipv4_address=ipv4_address,
                                     ipv4_mask_width='24',
-                                    ipv4_gateway=ipv4_gateway)
+                                    ipv4_gateway=ipv4_gateway,
+                                    enable_md5=enable_md5,
+                                    md5_password=md5_password)
 
 
 def stop_ix_network():
@@ -55,7 +57,7 @@ def create_edge(edge_id, enterprise_id):
     DUT_EDGE.overwrite_bgp_neighbors(neighbor_ip=new_neighbor_ip, neighbor_asn=new_neighbor_asn)
 
     # Initiate Ix Network
-    IX_NETWORK = IxNetwork(clear_config=False)
+    IX_NETWORK = IxNetwork(clear_config=True)
 
 
 def get_bgp_summary():
@@ -64,4 +66,4 @@ def get_bgp_summary():
 
 if __name__ == '__main__':
     create_edge(edge_id=240, enterprise_id=1)
-    disable_bgp_md5_auth()
+    start_ix_network(enable_md5=False)

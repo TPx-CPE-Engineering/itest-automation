@@ -47,7 +47,7 @@ def create_edge(edge_id, enterprise_id):
     DUT_EDGE.overwrite_bgp_neighbors(neighbor_ip=new_neighbor_ip, neighbor_asn=new_neighbor_asn)
 
     # Initiate Ix Network
-    IX_NETWORK = IxNetwork(clear_config=False)
+    IX_NETWORK = IxNetwork(clear_config=True)
 
 
 def get_bgp_summary():
