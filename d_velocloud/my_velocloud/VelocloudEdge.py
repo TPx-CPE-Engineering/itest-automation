@@ -528,3 +528,46 @@ class BGPVeloCloudEdge(VeloCloudEdge):
 
         # Look up the live action's results based on the action key
         return self.get_html_results_from_action_key(action_key=action_key)
+
+    def enable_md5_on_bgp_neighbor(self, neighbor_ip, md5_password, segment_name='Global Segment'):
+        """
+        Enable MD5 for specific BGP Neighbor on an Edge Segment
+        :param segment_name: Name of Segment to look in, default 'Global Segment'
+        :param neighbor_ip: IP of Neighbor to enable MD5 on
+        :param md5_password: MD5 password you wish to set
+        :return: API response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Look for the segment, and search through BGP neighbors within segment to find the right neighbor
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                # Segment Found
+                # Now look for BGP Neighbor
+                for neighbor in segment['bgp']['neighbors']:
+                    neighbor['enableMd5'] = True
+                    neighbor['md5Password'] = md5_password
+
+        return self.update_configuration_module(module=device_settings)
+
+    def disable_md5_on_bgp_neighbor(self, neighbor_ip, segment_name='Global Segment'):
+        """
+        Disable MD5 for specific BGP Neighbor on an Edge Segment
+        :param neighbor_ip: Ip of Neighbor to disable md5 on
+        :param segment_name: Name of Segment to look in, default 'Global Segment'
+        :return: API response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Look for the segment, and search through its BGP neighbors to find specific neighbor
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                # Segment Found
+                # Now look for BGP Neighbor
+                for neighbor in segment['bgp']['neighbors']:
+                    neighbor['enableMd5'] = False
+                    neighbor.pop('md5Password', None)
+
+        return self.update_configuration_module(module=device_settings)
