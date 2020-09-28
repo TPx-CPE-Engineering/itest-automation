@@ -247,3 +247,17 @@ class BasePolycom:
         return self.parse_response(self.session.get(url=url),
                                    print_result=print_result,
                                    return_result=return_result)
+
+    def hold_call(self, print_result=True, return_result=False):
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/holdCall'
+
+        return self.parse_response(self.session.post(url=url),
+                                   print_result=print_result,
+                                   return_result=return_result)
+
+    def resume_call(self, print_result=True, return_result=False):
+        url = 'https://' + CREDS + self.ipv4_address + '/api/v1/callctrl/resumeCall'
+
+        return self.parse_response(self.session.post(url=url),
+                                   print_result=print_result,
+                                   return_result=return_result)
