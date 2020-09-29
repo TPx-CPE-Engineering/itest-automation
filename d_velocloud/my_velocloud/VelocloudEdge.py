@@ -573,3 +573,11 @@ class BGPVeloCloudEdge(VeloCloudEdge):
                         neighbor.pop('md5Password', None)
 
         return self.update_configuration_module(module=device_settings)
+
+
+# Class for OSPF Testing
+# Class for BGP Testing
+class OSPFVeloCloudEdge(VeloCloudEdge):
+
+    def __init__(self, edge_id, enterprise_id):
+        super().__init__(edge_id, enterprise_id)
