@@ -249,6 +249,29 @@ class VeloCloudEdge(object):
 
         print(json.dumps(text))
 
+    def restore_config_from_filename(self, filename):
+        """
+        Restore an Edge's module name config based on filename
+        :param filename: Filename to read from
+        :return: API response
+        """
+
+        with open(filename) as json_file:
+            config_data = json.load(json_file)
+            return self.update_configuration_module(module=config_data)
+
+    @staticmethod
+    def delete_filename(filename):
+        """
+        Delete a filename
+        :param filename: Name of filename to delete
+        :return: None
+        """
+        import os
+
+        if os.path.isfile(filename):
+            os.remove(filename)
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
@@ -581,3 +604,193 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
 
     def __init__(self, edge_id, enterprise_id):
         super().__init__(edge_id, enterprise_id)
+
+    def get_vlan_interfaces(self, vlan_id=1):
+        """
+        Get Interfaces that are on a VLAN ID
+        :param vlan_id: ID of VLAN you want to retrieve the interfaces from, default VLAN 1
+        :return: list of interfaces
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        vlan_interfaces = []
+        for interface in device_settings['data']['lan']['interfaces']:
+            if vlan_id in interface['vlanIds']:
+                vlan_interfaces.append(interface)
+
+        return vlan_interfaces
+
+    def get_vlan_ip_address(self, vlan_id=1):
+        """
+        Get IP Address of a VLAN
+        :param vlan_id: ID of VLAN you want to retrieve the IP Address from
+        :return: VLAN ID IP Address
+        """
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == vlan_id:
+                return network['cidrIp']
+
+    @staticmethod
+    def make_ospf_interface_config(interface, ip_address):
+        """
+        Make JSON Config needed to add OSPF Interface
+        :param interface: Interface you want to change into OSPF Interface
+        :param ip_address: IP Address
+        :return: JSON config to add OSPF Interface
+        """
+
+        interface_name = interface['name']
+        interface_ip = ip_address
+
+        ospf_interface_config = {
+                                  "name": interface_name,
+                                  "disabled": False,
+                                  "addressing": {
+                                    "type": "STATIC",
+                                    "cidrPrefix": 24,
+                                    "cidrIp": interface_ip,
+                                    "netmask": "255.255.255.0",
+                                    "gateway": None,
+                                    "username": None,
+                                    "password": None
+                                  },
+                                  "wanOverlay": "AUTO_DISCOVERED",
+                                  "encryptOverlay": True,
+                                  "radiusAuthentication": {
+                                    "enabled": False,
+                                    "macBypass": []
+                                  },
+                                  "advertise": False,
+                                  "pingResponse": True,
+                                  "natDirect": True,
+                                  "trusted": False,
+                                  "rpf": "SPECIFIC",
+                                  "ospf": {
+                                    "enabled": True,
+                                    "area": [
+                                      0
+                                    ],
+                                    "authentication": False,
+                                    "authId": 0,
+                                    "authPassphrase": "",
+                                    "helloTimer": 10,
+                                    "mode": "BCAST",
+                                    "deadTimer": 40,
+                                    "md5Authentication": False,
+                                    "cost": 1,
+                                    "MTU": 1380,
+                                    "passive": False,
+                                    "inboundRouteLearning": {
+                                      "defaultAction": "LEARN",
+                                      "filters": []
+                                    },
+                                    "outboundRouteAdvertisement": {
+                                      "defaultAction": "ADVERTISE",
+                                      "filters": []
+                                    }
+                                  },
+                                  "multicast": {
+                                    "igmp": {
+                                      "enabled": False,
+                                      "type": "IGMP_V2"
+                                    },
+                                    "pim": {
+                                      "enabled": False,
+                                      "type": "PIM_SM"
+                                    },
+                                    "pimHelloTimerSeconds": None,
+                                    "pimKeepAliveTimerSeconds": None,
+                                    "pimPruneIntervalSeconds": None,
+                                    "igmpHostQueryIntervalSeconds": None,
+                                    "igmpMaxQueryResponse": None
+                                  },
+                                  "vlanId": None,
+                                  "underlayAccounting": True,
+                                  "segmentId": -1,
+                                  "l2": {
+                                    "autonegotiation": True,
+                                    "speed": "100M",
+                                    "duplex": "FULL",
+                                    "MTU": 1500
+                                  },
+                                  "override": True,
+                                  "dhcpServer": {
+                                    "enabled": False,
+                                    "leaseTimeSeconds": 3600,
+                                    "options": [],
+                                    "baseDhcpAddr": "",
+                                    "numDhcpAddr": 0,
+                                    "staticReserved": 10
+                                  }
+                                }
+
+        return ospf_interface_config
+
+    def get_ospf_interface_config(self):
+        """
+        Get JSON config to add OSPF Interface
+        :return: OSPF Interface as JSON config
+        """
+
+        # Find list of interfaces on VLAN 1- Corporate, Segment: Global Segment
+        vlan_1_interfaces = self.get_vlan_interfaces(vlan_id=1)
+
+        # Get IP Address of VLAN 1 - Corporate
+        vlan_1_ip_address = self.get_vlan_ip_address(vlan_id=1)
+
+        # We'll pick the first one in the list
+        return self.make_ospf_interface_config(interface=vlan_1_interfaces[0], ip_address=vlan_1_ip_address)
+
+    def add_routed_interface(self, interface):
+        """
+        Add Interface to Edge interfaces
+        :param interface: Interface to add
+        :return: API Response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Save device settings before modifying
+        with open('ospf_device_settings.txt', 'w') as outfile:
+            json.dump(device_settings, outfile)
+
+        for existing_interface in device_settings['data']['routedInterfaces']:
+            if existing_interface['name'] == interface['name']:
+                print('Interface \'{}\' already exists in Edges interfaces'.format(interface['name']))
+                return
+
+        # Delete Interface from Edges LAN Interfaces
+        lan_interfaces_without_interface = []
+        for existing_interface in device_settings['data']['lan']['interfaces']:
+            if existing_interface['name'] == interface['name']:
+                continue
+            else:
+                lan_interfaces_without_interface.append(existing_interface)
+
+        # Update LAN Interfaces without the interface
+        device_settings['data']['lan']['interfaces'] = lan_interfaces_without_interface
+        print(lan_interfaces_without_interface)
+        print('\n\n\n')
+        # Delete Interface from Edges LAN Networks interfaces
+        lan_networks_without_interface = []
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == 1:
+                for existing_interface in network['interfaces']:
+                    if existing_interface == interface['name']:
+                        continue
+                    else:
+                        lan_networks_without_interface.append(existing_interface)
+
+        print(lan_networks_without_interface)
+        # Update LAN Networks without the interface
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == 1:
+                network['interfaces'] = lan_networks_without_interface
+
+        # Append interface to Edges interfaces
+        device_settings['data']['routedInterfaces'].insert(0, interface)
+
+        return self.update_configuration_module(module=device_settings)
