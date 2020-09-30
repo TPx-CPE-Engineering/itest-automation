@@ -272,6 +272,72 @@ class VeloCloudEdge(object):
         if os.path.isfile(filename):
             os.remove(filename)
 
+    def get_vlan(self, vlan_id) -> dict:
+        """
+        Get Edge VLAN
+        :param vlan_id: ID of VLAN you want to retrieve
+        :return: Edge's VLAN if vlan_id exists
+
+        Return example:
+        {
+          "vlanId": 1,
+          "name": "Corporate",
+          "segmentId": 0,
+          "disabled": false,
+          "advertise": true,
+          "cost": 10,
+          "cidrIp": "192.168.184.1",
+          "cidrPrefix": 24,
+          "netmask": "255.255.255.0",
+          "dhcp": {
+            "enabled": true,
+            "leaseTimeSeconds": 86400,
+            "options": []
+          },
+          "staticReserved": 10,
+          "baseDhcpAddr": 13,
+          "numDhcpAddr": 242,
+          "multicast": {
+            "igmp": {
+              "enabled": false,
+              "type": "IGMP_V2"
+            },
+            "pim": {
+              "enabled": false,
+              "type": "PIM_SM"
+            },
+            "pimKeepAliveTimerSeconds": null,
+            "pimPruneIntervalSeconds": null,
+            "igmpHostQueryIntervalSeconds": null,
+            "igmpMaxQueryResponse": null
+          },
+          "ospf": {
+            "enabled": true,
+            "area": 0,
+            "passiveInterface": true,
+            "override": false
+          },
+          "pingResponse": true,
+          "fixedIp": [
+            {
+              "macAddress": "00:0c:29:3d:d6:60",
+              "lanIp": "192.168.184.23",
+              "description": "Private DNS Server"
+            }
+          ],
+          "interfaces": [
+            "GE2"
+          ]
+        }
+        """
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == vlan_id:
+                return network
+
+        return {}
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
@@ -772,8 +838,7 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
 
         # Update LAN Interfaces without the interface
         device_settings['data']['lan']['interfaces'] = lan_interfaces_without_interface
-        print(lan_interfaces_without_interface)
-        print('\n\n\n')
+
         # Delete Interface from Edges LAN Networks interfaces
         lan_networks_without_interface = []
         for network in device_settings['data']['lan']['networks']:
@@ -784,7 +849,6 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
                     else:
                         lan_networks_without_interface.append(existing_interface)
 
-        print(lan_networks_without_interface)
         # Update LAN Networks without the interface
         for network in device_settings['data']['lan']['networks']:
             if network['vlanId'] == 1:
