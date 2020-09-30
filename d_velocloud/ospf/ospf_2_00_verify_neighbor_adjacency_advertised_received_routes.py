@@ -6,6 +6,25 @@ DUT_EDGE: OSPFVeloCloudEdge
 IX_NETWORK: IxNetwork
 
 
+def start_ix_network():
+    ix_network_config = 'VC_ospf_2_00_verify_neighbor_adjacency_advertised_received_routes.ixncfg'
+
+    corporate_vlan = DUT_EDGE.get_vlan(vlan_id=1)
+
+    # Get IP Address of VLAN
+    corporate_vlan_ip_address = corporate_vlan['cidrIp']
+
+    IX_NETWORK.start_bgp_ix_network(config=ix_network_config,
+                                    config_local=True,
+                                    ipv4_address=ipv4_address,
+                                    ipv4_mask_width='24',
+                                    ipv4_gateway=ipv4_gateway)
+
+
+def stop_ix_network():
+    IX_NETWORK.stop_ix_network()
+
+
 def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, IX_NETWORK
     DUT_EDGE = OSPFVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
