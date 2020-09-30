@@ -858,3 +858,83 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
         device_settings['data']['routedInterfaces'].insert(0, interface)
 
         return self.update_configuration_module(module=device_settings)
+
+    def get_ospf_database(self):
+        """
+        Get the OSPF link state database summary
+        :return:
+        """
+
+        # A token is needed to perform Live Mode API Calls
+        # If token is empty then get a token
+        if not self.live_mode_token:
+            self.set_live_mode_token()
+
+        method = 'liveMode/requestLiveActions'
+        params = {
+                  "actions": [
+                    {
+                      "action": "runDiagnostics",
+                      "parameters": {
+                        "tests": [
+                          {
+                            "name": "QUAGGA_OSPF_DB",
+                            "parameters": [
+                                "\"{}\""
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "token": self.live_mode_token
+                }
+
+        # Execute API call
+        action_result = self.client.call_api(method=method, params=params)
+
+        # Obtain live action's key
+        action_key = action_result['actionsRequested'][0]['actionId']
+
+        # Look up the live action's results based on the action key
+        return self.get_html_results_from_action_key(action_key=action_key)
+
+    def get_ospf_neighbors(self):
+        """
+        Get all the OSPF neighbors and associated info
+        :return:
+        """
+
+        # A token is needed to perform Live Mode API Calls
+        # If token is empty then get a token
+        if not self.live_mode_token:
+            self.set_live_mode_token()
+
+        method = 'liveMode/requestLiveActions'
+        params = {
+                  "actions": [
+                    {
+                      "action": "runDiagnostics",
+                      "parameters": {
+                        "tests": [
+                          {
+                            "name": "QUAGGA_OSPF_TBL",
+                            "parameters": [
+                                "\"{}\""
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "token": self.live_mode_token
+                }
+
+        # Execute API call
+        action_result = self.client.call_api(method=method, params=params)
+
+        # Obtain live action's key
+        action_key = action_result['actionsRequested'][0]['actionId']
+
+        # Look up the live action's results based on the action key
+        return self.get_html_results_from_action_key(action_key=action_key)
