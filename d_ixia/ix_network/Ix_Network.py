@@ -141,6 +141,25 @@ class IxNetwork:
 
         self.IxNetwork.info('BGP Session Up.')
 
+    def start_ospf(self,
+                   config: str,
+                   config_local=True,
+                   enable_md5=False,
+                   md5_password=None,
+                   hold_timer=None,
+                   ipv4_address=None,
+                   ipv4_mask_width=None,
+                   ipv4_gateway=None):
+
+        self.load_config(config, config_local)
+        vport = self.connect_vport(vport_name='DUT Edge')
+
+        # Adjust Interface IP
+        ipv4_interface = vport.Interface.find().Ipv4.find()
+        ipv4_interface.Gateway = ipv4_gateway
+        ipv4_interface.Ip = ipv4_address
+        ipv4_interface.MaskWidth = ipv4_mask_width
+
     def stop_ix_network(self, port_map_disconnect=True):
         # Stopping All Protocols
         self.IxNetwork.info('Stopping all protocols...')
