@@ -160,6 +160,41 @@ class IxNetwork:
         ipv4_interface.Ip = ipv4_address
         ipv4_interface.MaskWidth = ipv4_mask_width
 
+        # Adjust OSPF Protocol
+        ospf = vport.Protocols.find().Ospf
+
+        # Set OSPF Router
+        ospf_router = ospf.Router.find()
+        ospf_router.RouterId = ipv4_address
+
+        # Set OSPF Interface
+        ospf_router_interface = ospf_router.Interface.find()
+        ospf_router_interface.InterfaceIpAddress = ipv4_address
+
+        self.IxNetwork.info('Starting OSPF Protocol...')
+        ospf.Start()
+        self.IxNetwork.info('OSPF Protocol started.')
+
+        self.IxNetwork.info('Checking for OSPF Full Nbrs to equal to 1...')
+        ospf_aggregated_stats = self.SessionAssistant.StatViewAssistant(ViewName='OSPF Aggregated Statistics',
+                                                                        Timeout=200)
+        while True:
+            try:
+                while not ospf_aggregated_stats.CheckCondition(ColumnName='Full Nbrs.',
+                                                               Comparator=StatViewAssistant.EQUAL,
+                                                               ConditionValue=1,
+                                                               Timeout=240):
+                    self.IxNetwork.info('Waiting for OSPF Full Nbrs. to equal 1...')
+                    time.sleep(10)
+            except SyntaxError:
+                continue
+            except NotFoundError:
+                print({'error': "OSPF Session Timeout"})
+                return
+            break
+
+        self.IxNetwork.info('OSPF Full Nbrs equals to 1.')
+
     def stop_ix_network(self, port_map_disconnect=True):
         # Stopping All Protocols
         self.IxNetwork.info('Stopping all protocols...')
