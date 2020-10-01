@@ -34,24 +34,6 @@ def stop_ix_network():
     restore_settings()
 
 
-def create_edge(edge_id, enterprise_id):
-    global DUT_EDGE, IX_NETWORK
-    DUT_EDGE = OSPFVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
-
-    # Steps to configure edge for OSPF
-    # Find a Interface that is in the Global Segment Interfaces, in this case it'll be 'GE2'
-    interface_config = DUT_EDGE.get_ospf_interface_config()
-    print('Adding \'{}\' as a static interface with IP Address \'{}\' for OSPF testing...'.format(
-        interface_config['name'], interface_config['addressing']['cidrIp']
-    ))
-
-    # Add Interface Config to Edge
-    print(DUT_EDGE.add_routed_interface(interface=interface_config))
-
-    # Initiate Ix Network
-    IX_NETWORK = IxNetwork(clear_config=True)
-
-
 def restore_settings():
     file = 'ospf_device_settings.txt'
     print(DUT_EDGE.restore_config_from_filename(filename=file))
@@ -59,16 +41,62 @@ def restore_settings():
 
 
 def verify_if_advertised_routes_match():
-    routes = get_advertised_routes()
 
-    for route in routes:
-        print(route)
+    # Get Edges OSPF Routes
+    edge_routes = get_advertised_routes()
+
+    # Get Edges Router ID
+    # Edges Router ID will be VLAN 1 IP Address plus 1
+    corporate_vlan = DUT_EDGE.get_vlan(vlan_id=1)
+
+    edge_router_id = str(ip_address(corporate_vlan['cidrIp']) + 1)
+
+    # Get all Edges OSPF routes and extract the routes with matching Edge Router Id
+    edges_routes_with_id = []
+    for route in edge_routes:
+        if route['ADV Router'] == edge_router_id:
+            edges_routes_with_id.append({route['Link ID']: route['ADV Router']})
+
+    # Now get Ix Networks information
+    # Get the Router Id from IxNetwork
+    # Protocols -> OSPF -> "DUT Edge" -> "RID - 192.168.184.2" -> Router ID
+    router = IX_NETWORK.IxNetwork.Vport.find().Protocols.find().Ospf.Router.find()
+    router_id = router.RouterId
+
+    # Get Route Ranges from IxNetwork
+    # Protocols -> OSPF -> "DUT Edge" -> "RID - 192.168.184.2" -> RouteRanges
+    route_ranges = router.RouteRange.find()
+
+    # Grab each first route in route ranges and add routes based on the number of routes.
+    # ex.   first route = '172.17.55.0' and number of routes 2
+    #       second route = '172.17.56.0'
+    # Will create a list of dict with the router_id being the value
+    # ex.   [{172.17.55.0: 192.168.184.2}
+    #           ...
+    #            ...
+    #       ]
+    # These values come from IxNetwork
+    route_ranges_ips = []
+    for route in route_ranges:
+        number_of_routes = route.NumberOfRoutes
+        ip = ip_address(address=route.NetworkNumber)
+        while number_of_routes > 0:
+            route_ranges_ips.append({str(ip): router_id})
+            ip = ip + 256
+            number_of_routes -= 1
+
+    # Verify if the list created from Velo and list created from IxNetwork match
+    if route_ranges_ips == edges_routes_with_id:
+        print({'match': 'yes'})
+    else:
+        print({'match': 'no'})
+
+    print({'Velo': edges_routes_with_id})
+    print({'IxNetwork': route_ranges_ips})
 
 
 def get_advertised_routes():
     response = DUT_EDGE.get_ospf_database()
-    print(response)
-    print('\n\n\n')
     response_lines = response.splitlines()
 
     # Find header start
@@ -131,6 +159,58 @@ def get_ospf_neighbors_count():
     print(len(ospf_neighbors))
 
 
+def verify_if_received_routes_match():
+    # Get Edges OSPF Routes
+    edge_routes = get_advertised_routes()
+
+    # Get Edges Router ID
+    # Edges Router ID will be VLAN 1 IP Address plus 1
+    corporate_vlan = DUT_EDGE.get_vlan(vlan_id=1)
+    edge_router_id = str(ip_address(corporate_vlan['cidrIp']) + 1)
+
+    # Get all Edges OSPF routes and extract the routes that do not match Edge Router Id
+    edges_routes_with_id = []
+    for route in edge_routes:
+        if not route['ADV Router'] == edge_router_id:
+            edges_routes_with_id.append({route['Link ID']: route['ADV Router']})
+
+    # Now get Ix Networks information
+    ospf_interface = IX_NETWORK.IxNetwork.Vport.find().Protocols.find().Ospf.Router.find().Interface.find()
+    ospf_interface.RefreshLearnedInfo()
+    time.sleep(10)
+
+    learned_lsa = ospf_interface.LearnedLsa.find()
+    learned_lsa_ips = []
+    for lsa in learned_lsa:
+        if lsa.LsaType == 'external':
+            learned_lsa_ips.append({lsa.LinkStateId: lsa.AdvRouterId})
+
+    if learned_lsa_ips == edges_routes_with_id:
+        print({'match': 'yes'})
+    else:
+        print({'match': 'no'})
+    print({'Velo': edges_routes_with_id})
+    print({'IxNetwork': learned_lsa_ips})
+
+
+def create_edge(edge_id, enterprise_id):
+    global DUT_EDGE, IX_NETWORK
+    DUT_EDGE = OSPFVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
+
+    # # Steps to configure edge for OSPF
+    # # Find a Interface that is in the Global Segment Interfaces, in this case it'll be 'GE2'
+    # interface_config = DUT_EDGE.get_ospf_interface_config()
+    # print('Adding \'{}\' as a static interface with IP Address \'{}\' for OSPF testing...'.format(
+    #     interface_config['name'], interface_config['addressing']['cidrIp']
+    # ))
+    #
+    # # Add Interface Config to Edge
+    # print(DUT_EDGE.add_routed_interface(interface=interface_config))
+
+    # Initiate Ix Network
+    IX_NETWORK = IxNetwork(clear_config=False)
+
+
 if __name__ == '__main__':
-    create_edge(edge_id=221, enterprise_id=1)
-    print(get_ospf_neighbors_count())
+    create_edge(edge_id=4, enterprise_id=1)
+    verify_if_received_routes_match()
