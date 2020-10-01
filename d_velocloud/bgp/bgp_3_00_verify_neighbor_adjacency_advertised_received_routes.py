@@ -164,6 +164,9 @@ def do_advertise_routes_match():
     print({'Edge Advertise Routes IPs': edge_advertise_routes_ips})
     print({'IxNetwork Advertise Routes IPs': ix_network_advertise_routes_ips})
 
+    missing_routes_ips = list(set(ix_network_advertise_routes_ips).difference(edge_advertise_routes_ips))
+    print({'Missing Received Routes IPs': missing_routes_ips})
+
 
 def get_learned_routes() -> []:
     """
