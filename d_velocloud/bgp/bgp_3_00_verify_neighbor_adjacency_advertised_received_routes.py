@@ -39,15 +39,15 @@ def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, IX_NETWORK
     DUT_EDGE = BGPVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
 
-    # # For this test ...
-    # # Set Neighbors
-    # new_neighbor_ip = DUT_EDGE.get_new_bgp_neighbor_ip()
-    # new_neighbor_asn = '65535'
-    # print(f"Overwriting BGP neighbors and adding new neighbor \'{new_neighbor_ip}\' with ASN \'{new_neighbor_asn}\'.")
-    # DUT_EDGE.overwrite_bgp_neighbors(neighbor_ip=new_neighbor_ip, neighbor_asn=new_neighbor_asn)
+    # For this test ...
+    # Set Neighbors
+    new_neighbor_ip = DUT_EDGE.get_new_bgp_neighbor_ip()
+    new_neighbor_asn = '65535'
+    print(f"Overwriting BGP neighbors and adding new neighbor \'{new_neighbor_ip}\' with ASN \'{new_neighbor_asn}\'.")
+    DUT_EDGE.overwrite_bgp_neighbors(neighbor_ip=new_neighbor_ip, neighbor_asn=new_neighbor_asn)
 
     # Initiate Ix Network
-    IX_NETWORK = IxNetwork(clear_config=False)
+    IX_NETWORK = IxNetwork(clear_config=True)
 
 
 def get_bgp_summary():
@@ -236,6 +236,9 @@ def do_received_routes_match():
 
     print({'Edge Received Routes IPs': edge_received_routes_ips})
     print({'IxNetwork Received Routes IPs': ix_network_received_routes_ips})
+
+    missing_routes_ips = list(set(ix_network_received_routes_ips).difference(edge_received_routes_ips))
+    print({'Missing Received Routes IPs': missing_routes_ips})
 
 
 if __name__ == '__main__':
