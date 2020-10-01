@@ -22,7 +22,7 @@ def start_ix_network():
     ip = ip + 1
 
     IX_NETWORK.start_ospf(config=ix_network_config,
-                          config_local=False,
+                          config_local=True,
                           ipv4_address=str(ip),
                           ipv4_mask_width='24',
                           ipv4_gateway=corporate_vlan_ip_address)
