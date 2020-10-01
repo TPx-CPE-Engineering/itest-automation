@@ -39,15 +39,15 @@ def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, IX_NETWORK
     DUT_EDGE = BGPVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
 
-    # For this test ...
-    # Set Neighbors
-    new_neighbor_ip = DUT_EDGE.get_new_bgp_neighbor_ip()
-    new_neighbor_asn = '65535'
-    print(f"Overwriting BGP neighbors and adding new neighbor \'{new_neighbor_ip}\' with ASN \'{new_neighbor_asn}\'.")
-    DUT_EDGE.overwrite_bgp_neighbors(neighbor_ip=new_neighbor_ip, neighbor_asn=new_neighbor_asn)
+    # # For this test ...
+    # # Set Neighbors
+    # new_neighbor_ip = DUT_EDGE.get_new_bgp_neighbor_ip()
+    # new_neighbor_asn = '65535'
+    # print(f"Overwriting BGP neighbors and adding new neighbor \'{new_neighbor_ip}\' with ASN \'{new_neighbor_asn}\'.")
+    # DUT_EDGE.overwrite_bgp_neighbors(neighbor_ip=new_neighbor_ip, neighbor_asn=new_neighbor_asn)
 
     # Initiate Ix Network
-    IX_NETWORK = IxNetwork(clear_config=True)
+    IX_NETWORK = IxNetwork(clear_config=False)
 
 
 def get_bgp_summary():
@@ -81,27 +81,51 @@ def get_advertised_routes() -> []:
     header_start = 0
     for item in range(0, len(response_lines)):
         # Find Header
-        if 'Network' in response_lines[item] and 'Next Hop' in response_lines[item] and 'Metric' in response_lines[item]:
+        if 'Network' in response_lines[item] and 'Next Hop' in response_lines[item] and \
+                'Metric' in response_lines[item]:
             header_start = item
 
-    bgp_advertised_routes = []
-    # Get all the bgp entries after the table header
-    for line in response_lines[header_start + 1:]:
-        line_split = line.split()
+    # Format routes right
+    # Sometimes they overspill
+    # ex:
+    #   ['*>', '192.168.169.169/32']
+    #   ['192.168.184.1', '42', '100', '32768', '?']
+    # That should be in one list, not two
 
-        if len(line_split) == 7:
-            bgp_entry = {
-                'Status Code': line_split[0],
-                'Network': line_split[1],
-                'Next Hop': line_split[2],
-                'Metric': line_split[3],
-                'LocPrf': line_split[4],
-                'Weight': line_split[5],
-                'Path': line_split[6]
+    # Get every route after header
+    routes = [route.split() for route in response_lines[header_start + 1:]]
+
+    # Join any route that is not complete
+    routes_iter = iter(routes)
+    clean_routes = []
+    while True:
+        try:
+            route = next(routes_iter)
+            if route is not None:
+                if len(route) == 7:
+                    clean_routes.append(route)
+                else:
+                    first_half_route = route
+                    second_half_route = next(routes_iter)
+                    clean_routes.append(first_half_route + second_half_route)
+        except StopIteration:
+            break
+
+    advertised_routes = []
+    for route in clean_routes:
+        if len(route) == 7:
+            entry = {
+                'Status Code': route[0],
+                'Network': route[1],
+                'Next Hop': route[2],
+                'Metric': route[3],
+                'LocPrf': route[4],
+                'Weight': route[5],
+                'Path': route[6]
             }
-            bgp_advertised_routes.append(bgp_entry)
+            advertised_routes.append(entry)
 
-    return bgp_advertised_routes
+    return advertised_routes
 
 
 def do_advertise_routes_match():
@@ -155,7 +179,8 @@ def get_learned_routes() -> []:
     # Find header start
     header_start = 0
     for item in range(0, len(response_lines)):
-        if 'Network' in response_lines[item] and 'Next Hop' in response_lines[item] and 'Metric' in response_lines[item]:
+        if 'Network' in response_lines[item] and 'Next Hop' in response_lines[item] and \
+                'Metric' in response_lines[item]:
             header_start = item
 
     bgp_learned_routes = []
@@ -178,7 +203,7 @@ def get_learned_routes() -> []:
 
 def do_received_routes_match():
     """
-    Prints yes or no if IxNetwork Route Range IPs match with Velo BGP Recieved Routes IPs
+    Prints yes or no if IxNetwork Route Range IPs match with Velo BGP Received Routes IPs
     :return: none
     """
     # Parameter 'edges_routes' comes from VC BGP Neighbor Advertised Function.
