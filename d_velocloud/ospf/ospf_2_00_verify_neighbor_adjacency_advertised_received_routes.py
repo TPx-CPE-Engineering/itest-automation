@@ -88,12 +88,17 @@ def verify_if_advertised_routes_match():
 
     # Verify if the list created from Velo and list created from IxNetwork match
     if route_ranges_ips == edges_routes_with_id:
-        print(json.dumps({'match': 'yes'}))
+        match = True
     else:
-        print(json.dumps({'match': 'no'}))
+        match = False
 
-    print(json.dumps({'Velo': edges_routes_with_id}))
-    print(json.dumps({'IxNetwork': route_ranges_ips}))
+    response = {
+        'match': match,
+        'Velo': edges_routes_with_id,
+        'IxNetwork': route_ranges_ips
+    }
+
+    print(json.dumps(response))
 
 
 def get_advertised_routes():
@@ -187,12 +192,17 @@ def verify_if_received_routes_match():
             learned_lsa_ips.append({lsa.LinkStateId: lsa.AdvRouterId})
 
     if learned_lsa_ips == edges_routes_with_id:
-        print(json.dumps({'match': 'yes'}))
+        match = True
     else:
-        print(json.dumps({'match': 'no'}))
+        match = False
 
-    print(json.dumps({'Velo': edges_routes_with_id}))
-    print(json.dumps({'IxNetwork': learned_lsa_ips}))
+    response = {
+        'match': match,
+        'Velo': edges_routes_with_id,
+        'IxNetwork': learned_lsa_ips
+    }
+
+    print(json.dumps(response))
 
 
 def create_edge(edge_id, enterprise_id):
