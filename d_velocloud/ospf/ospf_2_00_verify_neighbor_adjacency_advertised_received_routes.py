@@ -1,6 +1,7 @@
 from my_velocloud.VelocloudEdge import OSPFVeloCloudEdge
 from ix_network.Ix_Network import IxNetwork
 import time
+import json
 from ipaddress import ip_address
 
 DUT_EDGE: OSPFVeloCloudEdge
@@ -87,12 +88,12 @@ def verify_if_advertised_routes_match():
 
     # Verify if the list created from Velo and list created from IxNetwork match
     if route_ranges_ips == edges_routes_with_id:
-        print({'match': 'yes'})
+        print(json.dumps({'match': 'yes'}))
     else:
-        print({'match': 'no'})
+        print(json.dumps({'match': 'no'}))
 
-    print({'Velo': edges_routes_with_id})
-    print({'IxNetwork': route_ranges_ips})
+    print(json.dumps({'Velo': edges_routes_with_id}))
+    print(json.dumps({'IxNetwork': route_ranges_ips}))
 
 
 def get_advertised_routes():
@@ -186,29 +187,30 @@ def verify_if_received_routes_match():
             learned_lsa_ips.append({lsa.LinkStateId: lsa.AdvRouterId})
 
     if learned_lsa_ips == edges_routes_with_id:
-        print({'match': 'yes'})
+        print(json.dumps({'match': 'yes'}))
     else:
-        print({'match': 'no'})
-    print({'Velo': edges_routes_with_id})
-    print({'IxNetwork': learned_lsa_ips})
+        print(json.dumps({'match': 'no'}))
+
+    print(json.dumps({'Velo': edges_routes_with_id}))
+    print(json.dumps({'IxNetwork': learned_lsa_ips}))
 
 
 def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, IX_NETWORK
     DUT_EDGE = OSPFVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
 
-    # # Steps to configure edge for OSPF
-    # # Find a Interface that is in the Global Segment Interfaces, in this case it'll be 'GE2'
-    # interface_config = DUT_EDGE.get_ospf_interface_config()
-    # print('Adding \'{}\' as a static interface with IP Address \'{}\' for OSPF testing...'.format(
-    #     interface_config['name'], interface_config['addressing']['cidrIp']
-    # ))
-    #
-    # # Add Interface Config to Edge
-    # print(DUT_EDGE.add_routed_interface(interface=interface_config))
+    # Steps to configure edge for OSPF
+    # Find a Interface that is in the Global Segment Interfaces, in this case it'll be 'GE2'
+    interface_config = DUT_EDGE.get_ospf_interface_config()
+    print('Adding \'{}\' as a static interface with IP Address \'{}\' for OSPF testing...'.format(
+        interface_config['name'], interface_config['addressing']['cidrIp']
+    ))
+
+    # Add Interface Config to Edge
+    print(DUT_EDGE.add_routed_interface(interface=interface_config))
 
     # Initiate Ix Network
-    IX_NETWORK = IxNetwork(clear_config=False)
+    IX_NETWORK = IxNetwork(clear_config=True)
 
 
 if __name__ == '__main__':
