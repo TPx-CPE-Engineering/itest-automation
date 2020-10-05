@@ -129,39 +129,8 @@ def get_advertised_routes():
     return routes
 
 
-def get_ospf_neighbors():
-    response = DUT_EDGE.get_ospf_neighbors()
-    response_lines = response.splitlines()
-
-    # Find header start
-    header_start = 0
-    for item in range(0, len(response_lines)):
-        if 'Neighbor ID' in response_lines[item] and 'Pri' in response_lines[item] and 'Dead' in response_lines[item]:
-            header_start = item
-
-    routes = []
-    # Get all entries after the table header
-    for line in response_lines[header_start + 1:]:
-        line_split = line.split()
-        if len(line_split) == 9:
-            entry = {
-                'Neighbor ID': line_split[0],
-                'Pri': line_split[1],
-                'State': line_split[2],
-                'Dead Time': line_split[3],
-                'Address': line_split[4],
-                'Interface': line_split[5],
-                'RXmtL': line_split[6],
-                'RqstL': line_split[7],
-                'DBsmL': line_split[8]
-            }
-            routes.append(entry)
-
-    return routes
-
-
 def get_ospf_neighbors_count():
-    ospf_neighbors = get_ospf_neighbors()
+    ospf_neighbors = DUT_EDGE.get_ospf_neighbors()
     print(len(ospf_neighbors))
 
 
