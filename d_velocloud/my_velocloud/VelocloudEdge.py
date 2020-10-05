@@ -937,4 +937,58 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
         action_key = action_result['actionsRequested'][0]['actionId']
 
         # Look up the live action's results based on the action key
-        return self.get_html_results_from_action_key(action_key=action_key)
+        ospf_neighbors_html = self.get_html_results_from_action_key(action_key=action_key)
+        return self.parse_ospf_neighbors_html(html_response=ospf_neighbors_html)
+
+    @staticmethod
+    def parse_ospf_neighbors_html(html_response):
+        """
+        Parses OSPF Neighbors HTML response
+
+        Velocloud responds with HTML text when requesting Remote Diagnostics command: Show OSPF Neighbors
+
+        The following is an example of the HTML response:
+        Neighbor ID Pri State           Dead Time Address         Interface            RXmtL RqstL DBsmL
+        192.168.184.2     0 Full/DROther      32.616s 192.168.184.2   GE2:192.168.184.1        0     0     0
+
+        This function will parse each neighbor with its properties and return it in a list
+        :param html_response: OSPF Neighbors HTML response
+        :return: OSPF Neighbors parsed in a list of dict
+        """
+        html_response_lines = html_response.splitlines()
+
+        # Find header start
+        # Header looks like:
+        # Neighbor ID Pri State           Dead Time Address         Interface            RXmtL RqstL DBsmL
+        header_start = 0
+        for item in range(0, len(html_response_lines)):
+            if 'Neighbor ID' in html_response_lines[item] and 'Pri' in html_response_lines[item] and 'Dead' in \
+                    html_response_lines[item]:
+                header_start = item
+
+        ospf_neighbors = []
+        # Get all entries after the table header
+        for entry in html_response_lines[header_start + 1:]:
+            """
+            Split each entry so obtain each column
+            entry example:
+            192.168.184.2     0 Full/DROther      32.616s 192.168.184.2   GE2:192.168.184.1        0     0     0
+            after its splits:
+            ["192.168.184.2", "0", "Full/DROther", "32.616s", "192.168.184.2", "GE2:192.168.184.1", "0", "0", "0"]
+            """
+            entry_split = entry.split()
+            if len(entry_split) == 9:
+                neighbor = {
+                    'Neighbor ID': entry_split[0],
+                    'Pri': entry_split[1],
+                    'State': entry_split[2],
+                    'Dead Time': entry_split[3],
+                    'Address': entry_split[4],
+                    'Interface': entry_split[5],
+                    'RXmtL': entry_split[6],
+                    'RqstL': entry_split[7],
+                    'DBsmL': entry_split[8]
+                }
+                ospf_neighbors.append(neighbor)
+
+        return ospf_neighbors
