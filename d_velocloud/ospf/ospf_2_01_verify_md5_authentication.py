@@ -35,8 +35,8 @@ def start_ix_network(enable_ospf_md5, key_id=None, password=None):
                           )
 
 
-def stop_ix_network():
-    IX_NETWORK.stop_ix_network()
+def stop_ix_network(disconnect_ports=True):
+    IX_NETWORK.stop_ix_network(port_map_disconnect=disconnect_ports)
 
 
 def restore_settings():
