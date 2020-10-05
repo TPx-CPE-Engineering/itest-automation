@@ -182,7 +182,7 @@ class IxNetwork:
             ospf_router_interface.Md5AuthenticationKey = str(md5_key)
 
         if md5_key_id:
-            self.IxNetwork.inf(f'Setting OSPF Router Interface Authentication Key Id to: \'{md5_key_id}\'')
+            self.IxNetwork.info(f'Setting OSPF Router Interface Authentication Key Id to: \'{md5_key_id}\'')
             ospf_router_interface.Md5AuthenticationKeyId = str(md5_key_id)
 
         self.IxNetwork.info('Starting OSPF Protocol...')
