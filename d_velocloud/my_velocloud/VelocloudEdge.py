@@ -338,6 +338,25 @@ class VeloCloudEdge(object):
 
         return {}
 
+    def save_module_settings_to_file(self, module_name, filename='edge_module_config.txt', enterprise_level=False):
+        """
+        Save a module settings to a file. This file can later be used to reformat Edge.
+
+        :param module_name: Name of module to save
+        :param filename: Name of file
+        :param enterprise_level: Module level, either on Edge or Enterprise, default False
+        :return: None
+        """
+
+        if enterprise_level:
+            # Module wishing to save exists in the enterprise level
+            module_settings = self.get_module_from_enterprise_profile(module_name=module_name)
+        else:
+            module_settings = self.get_module_from_edge_specific_profile(module_name=module_name)
+
+        with open(filename, 'w') as outfile:
+            json.dump(module_settings, outfile)
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
@@ -795,17 +814,17 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
 
         return ospf_interface_config
 
-    def get_ospf_interface_config(self):
+    def get_ospf_interface_config(self, vlan_id=1):
         """
         Get JSON config to add OSPF Interface
         :return: OSPF Interface as JSON config
         """
 
         # Find list of interfaces on VLAN 1- Corporate, Segment: Global Segment
-        vlan_1_interfaces = self.get_vlan_interfaces(vlan_id=1)
+        vlan_1_interfaces = self.get_vlan_interfaces(vlan_id=vlan_id)
 
         # Get IP Address of VLAN 1 - Corporate
-        vlan_1_ip_address = self.get_vlan_ip_address(vlan_id=1)
+        vlan_1_ip_address = self.get_vlan_ip_address(vlan_id=vlan_id)
 
         # We'll pick the first one in the list
         return self.make_ospf_interface_config(interface=vlan_1_interfaces[0], ip_address=vlan_1_ip_address)
@@ -818,10 +837,6 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
         """
 
         device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
-
-        # Save device settings before modifying
-        with open('ospf_device_settings.txt', 'w') as outfile:
-            json.dump(device_settings, outfile)
 
         for existing_interface in device_settings['data']['routedInterfaces']:
             if existing_interface['name'] == interface['name']:
@@ -855,6 +870,19 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
                 network['interfaces'] = lan_networks_without_interface
 
         # Append interface to Edges interfaces
+        """
+        Order matters!
+        The following should be the order:
+        'GE1'
+        'GE2'
+        .
+        .
+        .
+        'SFP1'
+        'SFP2'        
+        """
+        # TODO create a function that can order the interfaces in the right order
+
         device_settings['data']['routedInterfaces'].insert(0, interface)
 
         return self.update_configuration_module(module=device_settings)
@@ -992,3 +1020,55 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
                 ospf_neighbors.append(neighbor)
 
         return ospf_neighbors
+
+    def disable_ospf_md5_authentication(self, ospf_interface_name):
+        """
+        Disable OSPF MD5 Authentication on an OSPF Interface
+        :param ospf_interface_name: Interface name to disable OSPF MD5 Authentication on
+        :return: API response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Find the OSPF Interface
+        ospf_interface = None
+        for routed_interface in device_settings['data']['routedInterfaces']:
+            if routed_interface['name'] == ospf_interface_name:
+                ospf_interface = routed_interface
+
+        if ospf_interface is None:
+            raise ValueError(f'Interface: \'{ospf_interface_name}\' was not found in Edges Routed Interfaces.')
+
+        # Disable MD5 on OSPF Interface
+        ospf_interface['ospf']['authentication'] = False
+        ospf_interface['ospf']['authId'] = None
+        ospf_interface['ospf']['authPassphrase'] = None
+
+        return self.update_configuration_module(module=device_settings)
+
+    def enable_ospf_md5_authentication(self, ospf_interface_name, key_id, password):
+        """
+        Enable OSPF MD5 Authentication on an OSPF Interface
+        :param ospf_interface_name: Interface name to enable OSPF MD5 Authentication on
+        :param key_id: MD5 key id, number from 1 - 255, default 1
+        :param password: MD5 password
+        :return: API response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Find the OSPF Interface
+        ospf_interface = None
+        for routed_interface in device_settings['data']['routedInterfaces']:
+            if routed_interface['name'] == ospf_interface_name:
+                ospf_interface = routed_interface
+
+        if ospf_interface is None:
+            raise ValueError(f'Interface: \'{ospf_interface_name}\' was not found in Edges Routed Interfaces.')
+
+        # Enable MD5 on OSPF Interface
+        ospf_interface['ospf']['authentication'] = True
+        ospf_interface['ospf']['authId'] = key_id
+        ospf_interface['ospf']['authPassphrase'] = password
+
+        return self.update_configuration_module(module=device_settings)
