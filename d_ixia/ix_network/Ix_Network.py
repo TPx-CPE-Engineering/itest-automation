@@ -141,6 +141,74 @@ class IxNetwork:
 
         self.IxNetwork.info('BGP Session Up.')
 
+    def start_ospf(self,
+                   config: str,
+                   config_local=True,
+                   authentication_method=None,
+                   md5_key=None,
+                   md5_key_id=None,
+                   hold_timer=None,
+                   ipv4_address=None,
+                   ipv4_mask_width=None,
+                   ipv4_gateway=None):
+
+        self.load_config(config, config_local)
+        vport = self.connect_vport(vport_name='DUT Edge')
+
+        # Adjust Interface IP
+        ipv4_interface = vport.Interface.find().Ipv4.find()
+        ipv4_interface.Gateway = ipv4_gateway
+        ipv4_interface.Ip = ipv4_address
+        ipv4_interface.MaskWidth = ipv4_mask_width
+
+        # Adjust OSPF Protocol
+        ospf = vport.Protocols.find().Ospf
+
+        # Set OSPF Router
+        ospf_router = ospf.Router.find()
+        ospf_router.RouterId = ipv4_address
+
+        # Set OSPF Interface
+        ospf_router_interface = ospf_router.Interface.find()
+        ospf_router_interface.InterfaceIpAddress = ipv4_address
+
+        # Enable authentication if passed
+        if authentication_method:
+            self.IxNetwork.info(f'Setting OSPF Router Interface Authentication to: \'{authentication_method}\'')
+            ospf_router_interface.AuthenticationMethods = authentication_method
+
+        if md5_key:
+            self.IxNetwork.info(f'Setting OSPF Router Interface Authentication Key to: \'{md5_key}\'')
+            ospf_router_interface.Md5AuthenticationKey = str(md5_key)
+
+        if md5_key_id:
+            self.IxNetwork.info(f'Setting OSPF Router Interface Authentication Key Id to: \'{md5_key_id}\'')
+            ospf_router_interface.Md5AuthenticationKeyId = str(md5_key_id)
+
+        self.IxNetwork.info('Starting OSPF Protocol...')
+        ospf.Start()
+        self.IxNetwork.info('OSPF Protocol started.')
+
+        self.IxNetwork.info('Checking for OSPF Full Nbrs to equal to 1...')
+        ospf_aggregated_stats = self.SessionAssistant.StatViewAssistant(ViewName='OSPF Aggregated Statistics',
+                                                                        Timeout=200)
+        while True:
+            try:
+                while not ospf_aggregated_stats.CheckCondition(ColumnName='Full Nbrs.',
+                                                               Comparator=StatViewAssistant.EQUAL,
+                                                               ConditionValue=1,
+                                                               Timeout=240):
+                    self.IxNetwork.info('Waiting for OSPF Full Nbrs. to equal 1...')
+                    time.sleep(10)
+            except SyntaxError:
+                continue
+            except NotFoundError:
+                print({'error': "OSPF Session Timeout"})
+                return
+            break
+
+        self.IxNetwork.info('OSPF Full Nbrs equals to 1.')
+
     def stop_ix_network(self, port_map_disconnect=True):
         # Stopping All Protocols
         self.IxNetwork.info('Stopping all protocols...')

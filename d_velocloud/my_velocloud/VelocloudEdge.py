@@ -249,6 +249,114 @@ class VeloCloudEdge(object):
 
         print(json.dumps(text))
 
+    def restore_config_from_filename(self, filename):
+        """
+        Restore an Edge's module name config based on filename
+        :param filename: Filename to read from
+        :return: API response
+        """
+
+        with open(filename) as json_file:
+            config_data = json.load(json_file)
+            return self.update_configuration_module(module=config_data)
+
+    @staticmethod
+    def delete_filename(filename):
+        """
+        Delete a filename
+        :param filename: Name of filename to delete
+        :return: None
+        """
+        import os
+
+        if os.path.isfile(filename):
+            os.remove(filename)
+
+    def get_vlan(self, vlan_id) -> dict:
+        """
+        Get Edge VLAN
+        :param vlan_id: ID of VLAN you want to retrieve
+        :return: Edge's VLAN if vlan_id exists
+
+        Return example:
+        {
+          "vlanId": 1,
+          "name": "Corporate",
+          "segmentId": 0,
+          "disabled": false,
+          "advertise": true,
+          "cost": 10,
+          "cidrIp": "192.168.184.1",
+          "cidrPrefix": 24,
+          "netmask": "255.255.255.0",
+          "dhcp": {
+            "enabled": true,
+            "leaseTimeSeconds": 86400,
+            "options": []
+          },
+          "staticReserved": 10,
+          "baseDhcpAddr": 13,
+          "numDhcpAddr": 242,
+          "multicast": {
+            "igmp": {
+              "enabled": false,
+              "type": "IGMP_V2"
+            },
+            "pim": {
+              "enabled": false,
+              "type": "PIM_SM"
+            },
+            "pimKeepAliveTimerSeconds": null,
+            "pimPruneIntervalSeconds": null,
+            "igmpHostQueryIntervalSeconds": null,
+            "igmpMaxQueryResponse": null
+          },
+          "ospf": {
+            "enabled": true,
+            "area": 0,
+            "passiveInterface": true,
+            "override": false
+          },
+          "pingResponse": true,
+          "fixedIp": [
+            {
+              "macAddress": "00:0c:29:3d:d6:60",
+              "lanIp": "192.168.184.23",
+              "description": "Private DNS Server"
+            }
+          ],
+          "interfaces": [
+            "GE2"
+          ]
+        }
+        """
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == vlan_id:
+                return network
+
+        return {}
+
+    def save_module_settings_to_file(self, module_name, filename='edge_module_config.txt', enterprise_level=False):
+        """
+        Save a module settings to a file. This file can later be used to reformat Edge.
+
+        :param module_name: Name of module to save
+        :param filename: Name of file
+        :param enterprise_level: Module level, either on Edge or Enterprise, default False
+        :return: None
+        """
+
+        if enterprise_level:
+            # Module wishing to save exists in the enterprise level
+            module_settings = self.get_module_from_enterprise_profile(module_name=module_name)
+        else:
+            module_settings = self.get_module_from_edge_specific_profile(module_name=module_name)
+
+        with open(filename, 'w') as outfile:
+            json.dump(module_settings, outfile)
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
@@ -571,5 +679,396 @@ class BGPVeloCloudEdge(VeloCloudEdge):
                     if neighbor['neighborIp'] == neighbor_ip:
                         neighbor['enableMd5'] = False
                         neighbor.pop('md5Password', None)
+
+        return self.update_configuration_module(module=device_settings)
+
+
+# Class for OSPF Testing
+# Class for BGP Testing
+class OSPFVeloCloudEdge(VeloCloudEdge):
+
+    def __init__(self, edge_id, enterprise_id):
+        super().__init__(edge_id, enterprise_id)
+
+    def get_vlan_interfaces(self, vlan_id=1):
+        """
+        Get Interfaces that are on a VLAN ID
+        :param vlan_id: ID of VLAN you want to retrieve the interfaces from, default VLAN 1
+        :return: list of interfaces
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        vlan_interfaces = []
+        for interface in device_settings['data']['lan']['interfaces']:
+            if vlan_id in interface['vlanIds']:
+                vlan_interfaces.append(interface)
+
+        return vlan_interfaces
+
+    def get_vlan_ip_address(self, vlan_id=1):
+        """
+        Get IP Address of a VLAN
+        :param vlan_id: ID of VLAN you want to retrieve the IP Address from
+        :return: VLAN ID IP Address
+        """
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == vlan_id:
+                return network['cidrIp']
+
+    @staticmethod
+    def make_ospf_interface_config(interface, ip_address):
+        """
+        Make JSON Config needed to add OSPF Interface
+        :param interface: Interface you want to change into OSPF Interface
+        :param ip_address: IP Address
+        :return: JSON config to add OSPF Interface
+        """
+
+        interface_name = interface['name']
+        interface_ip = ip_address
+
+        ospf_interface_config = {
+                                  "name": interface_name,
+                                  "disabled": False,
+                                  "addressing": {
+                                    "type": "STATIC",
+                                    "cidrPrefix": 24,
+                                    "cidrIp": interface_ip,
+                                    "netmask": "255.255.255.0",
+                                    "gateway": None,
+                                    "username": None,
+                                    "password": None
+                                  },
+                                  "wanOverlay": "AUTO_DISCOVERED",
+                                  "encryptOverlay": True,
+                                  "radiusAuthentication": {
+                                    "enabled": False,
+                                    "macBypass": []
+                                  },
+                                  "advertise": False,
+                                  "pingResponse": True,
+                                  "natDirect": True,
+                                  "trusted": False,
+                                  "rpf": "SPECIFIC",
+                                  "ospf": {
+                                    "enabled": True,
+                                    "area": [
+                                      0
+                                    ],
+                                    "authentication": False,
+                                    "authId": 0,
+                                    "authPassphrase": "",
+                                    "helloTimer": 10,
+                                    "mode": "BCAST",
+                                    "deadTimer": 40,
+                                    "md5Authentication": False,
+                                    "cost": 1,
+                                    "MTU": 1380,
+                                    "passive": False,
+                                    "inboundRouteLearning": {
+                                      "defaultAction": "LEARN",
+                                      "filters": []
+                                    },
+                                    "outboundRouteAdvertisement": {
+                                      "defaultAction": "ADVERTISE",
+                                      "filters": []
+                                    }
+                                  },
+                                  "multicast": {
+                                    "igmp": {
+                                      "enabled": False,
+                                      "type": "IGMP_V2"
+                                    },
+                                    "pim": {
+                                      "enabled": False,
+                                      "type": "PIM_SM"
+                                    },
+                                    "pimHelloTimerSeconds": None,
+                                    "pimKeepAliveTimerSeconds": None,
+                                    "pimPruneIntervalSeconds": None,
+                                    "igmpHostQueryIntervalSeconds": None,
+                                    "igmpMaxQueryResponse": None
+                                  },
+                                  "vlanId": None,
+                                  "underlayAccounting": True,
+                                  "segmentId": -1,
+                                  "l2": {
+                                    "autonegotiation": True,
+                                    "speed": "100M",
+                                    "duplex": "FULL",
+                                    "MTU": 1500
+                                  },
+                                  "override": True,
+                                  "dhcpServer": {
+                                    "enabled": False,
+                                    "leaseTimeSeconds": 3600,
+                                    "options": [],
+                                    "baseDhcpAddr": "",
+                                    "numDhcpAddr": 0,
+                                    "staticReserved": 10
+                                  }
+                                }
+
+        return ospf_interface_config
+
+    def get_ospf_interface_config(self, vlan_id=1):
+        """
+        Get JSON config to add OSPF Interface
+        :return: OSPF Interface as JSON config
+        """
+
+        # Find list of interfaces on VLAN 1- Corporate, Segment: Global Segment
+        vlan_1_interfaces = self.get_vlan_interfaces(vlan_id=vlan_id)
+
+        # Get IP Address of VLAN 1 - Corporate
+        vlan_1_ip_address = self.get_vlan_ip_address(vlan_id=vlan_id)
+
+        # We'll pick the first one in the list
+        return self.make_ospf_interface_config(interface=vlan_1_interfaces[0], ip_address=vlan_1_ip_address)
+
+    def add_routed_interface(self, interface):
+        """
+        Add Interface to Edge interfaces
+        :param interface: Interface to add
+        :return: API Response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for existing_interface in device_settings['data']['routedInterfaces']:
+            if existing_interface['name'] == interface['name']:
+                print('Interface \'{}\' already exists in Edges interfaces'.format(interface['name']))
+                return
+
+        # Delete Interface from Edges LAN Interfaces
+        lan_interfaces_without_interface = []
+        for existing_interface in device_settings['data']['lan']['interfaces']:
+            if existing_interface['name'] == interface['name']:
+                continue
+            else:
+                lan_interfaces_without_interface.append(existing_interface)
+
+        # Update LAN Interfaces without the interface
+        device_settings['data']['lan']['interfaces'] = lan_interfaces_without_interface
+
+        # Delete Interface from Edges LAN Networks interfaces
+        lan_networks_without_interface = []
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == 1:
+                for existing_interface in network['interfaces']:
+                    if existing_interface == interface['name']:
+                        continue
+                    else:
+                        lan_networks_without_interface.append(existing_interface)
+
+        # Update LAN Networks without the interface
+        for network in device_settings['data']['lan']['networks']:
+            if network['vlanId'] == 1:
+                network['interfaces'] = lan_networks_without_interface
+
+        # Append interface to Edges interfaces
+        """
+        Order matters!
+        The following should be the order:
+        'GE1'
+        'GE2'
+        .
+        .
+        .
+        'SFP1'
+        'SFP2'        
+        """
+        # TODO create a function that can order the interfaces in the right order
+
+        device_settings['data']['routedInterfaces'].insert(0, interface)
+
+        return self.update_configuration_module(module=device_settings)
+
+    def get_ospf_database(self):
+        """
+        Get the OSPF link state database summary
+        :return:
+        """
+
+        # A token is needed to perform Live Mode API Calls
+        # If token is empty then get a token
+        if not self.live_mode_token:
+            self.set_live_mode_token()
+
+        method = 'liveMode/requestLiveActions'
+        params = {
+                  "actions": [
+                    {
+                      "action": "runDiagnostics",
+                      "parameters": {
+                        "tests": [
+                          {
+                            "name": "QUAGGA_OSPF_DB",
+                            "parameters": [
+                                "\"{}\""
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "token": self.live_mode_token
+                }
+
+        # Execute API call
+        action_result = self.client.call_api(method=method, params=params)
+
+        # Obtain live action's key
+        action_key = action_result['actionsRequested'][0]['actionId']
+
+        # Look up the live action's results based on the action key
+        return self.get_html_results_from_action_key(action_key=action_key)
+
+    def get_ospf_neighbors(self):
+        """
+        Get all the OSPF neighbors and associated info
+        :return:
+        """
+
+        # A token is needed to perform Live Mode API Calls
+        # If token is empty then get a token
+        if not self.live_mode_token:
+            self.set_live_mode_token()
+
+        method = 'liveMode/requestLiveActions'
+        params = {
+                  "actions": [
+                    {
+                      "action": "runDiagnostics",
+                      "parameters": {
+                        "tests": [
+                          {
+                            "name": "QUAGGA_OSPF_TBL",
+                            "parameters": [
+                                "\"{}\""
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "token": self.live_mode_token
+                }
+
+        # Execute API call
+        action_result = self.client.call_api(method=method, params=params)
+
+        # Obtain live action's key
+        action_key = action_result['actionsRequested'][0]['actionId']
+
+        # Look up the live action's results based on the action key
+        ospf_neighbors_html = self.get_html_results_from_action_key(action_key=action_key)
+        return self.parse_ospf_neighbors_html(html_response=ospf_neighbors_html)
+
+    @staticmethod
+    def parse_ospf_neighbors_html(html_response):
+        """
+        Parses OSPF Neighbors HTML response
+
+        Velocloud responds with HTML text when requesting Remote Diagnostics command: Show OSPF Neighbors
+
+        The following is an example of the HTML response:
+        Neighbor ID Pri State           Dead Time Address         Interface            RXmtL RqstL DBsmL
+        192.168.184.2     0 Full/DROther      32.616s 192.168.184.2   GE2:192.168.184.1        0     0     0
+
+        This function will parse each neighbor with its properties and return it in a list
+        :param html_response: OSPF Neighbors HTML response
+        :return: OSPF Neighbors parsed in a list of dict
+        """
+        html_response_lines = html_response.splitlines()
+
+        # Find header start
+        # Header looks like:
+        # Neighbor ID Pri State           Dead Time Address         Interface            RXmtL RqstL DBsmL
+        header_start = 0
+        for item in range(0, len(html_response_lines)):
+            if 'Neighbor ID' in html_response_lines[item] and 'Pri' in html_response_lines[item] and 'Dead' in \
+                    html_response_lines[item]:
+                header_start = item
+
+        ospf_neighbors = []
+        # Get all entries after the table header
+        for entry in html_response_lines[header_start + 1:]:
+            """
+            Split each entry so obtain each column
+            entry example:
+            192.168.184.2     0 Full/DROther      32.616s 192.168.184.2   GE2:192.168.184.1        0     0     0
+            after its splits:
+            ["192.168.184.2", "0", "Full/DROther", "32.616s", "192.168.184.2", "GE2:192.168.184.1", "0", "0", "0"]
+            """
+            entry_split = entry.split()
+            if len(entry_split) == 9:
+                neighbor = {
+                    'Neighbor ID': entry_split[0],
+                    'Pri': entry_split[1],
+                    'State': entry_split[2],
+                    'Dead Time': entry_split[3],
+                    'Address': entry_split[4],
+                    'Interface': entry_split[5],
+                    'RXmtL': entry_split[6],
+                    'RqstL': entry_split[7],
+                    'DBsmL': entry_split[8]
+                }
+                ospf_neighbors.append(neighbor)
+
+        return ospf_neighbors
+
+    def disable_ospf_md5_authentication(self, ospf_interface_name):
+        """
+        Disable OSPF MD5 Authentication on an OSPF Interface
+        :param ospf_interface_name: Interface name to disable OSPF MD5 Authentication on
+        :return: API response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Find the OSPF Interface
+        ospf_interface = None
+        for routed_interface in device_settings['data']['routedInterfaces']:
+            if routed_interface['name'] == ospf_interface_name:
+                ospf_interface = routed_interface
+
+        if ospf_interface is None:
+            raise ValueError(f'Interface: \'{ospf_interface_name}\' was not found in Edges Routed Interfaces.')
+
+        # Disable MD5 on OSPF Interface
+        ospf_interface['ospf']['authentication'] = False
+        ospf_interface['ospf']['authId'] = None
+        ospf_interface['ospf']['authPassphrase'] = None
+
+        return self.update_configuration_module(module=device_settings)
+
+    def enable_ospf_md5_authentication(self, ospf_interface_name, key_id, password):
+        """
+        Enable OSPF MD5 Authentication on an OSPF Interface
+        :param ospf_interface_name: Interface name to enable OSPF MD5 Authentication on
+        :param key_id: MD5 key id, number from 1 - 255, default 1
+        :param password: MD5 password
+        :return: API response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Find the OSPF Interface
+        ospf_interface = None
+        for routed_interface in device_settings['data']['routedInterfaces']:
+            if routed_interface['name'] == ospf_interface_name:
+                ospf_interface = routed_interface
+
+        if ospf_interface is None:
+            raise ValueError(f'Interface: \'{ospf_interface_name}\' was not found in Edges Routed Interfaces.')
+
+        # Enable MD5 on OSPF Interface
+        ospf_interface['ospf']['authentication'] = True
+        ospf_interface['ospf']['authId'] = key_id
+        ospf_interface['ospf']['authPassphrase'] = password
 
         return self.update_configuration_module(module=device_settings)
