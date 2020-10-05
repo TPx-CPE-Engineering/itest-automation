@@ -144,8 +144,9 @@ class IxNetwork:
     def start_ospf(self,
                    config: str,
                    config_local=True,
-                   enable_md5=False,
-                   md5_password=None,
+                   authentication_method=None,
+                   md5_key=None,
+                   md5_key_id=None,
                    hold_timer=None,
                    ipv4_address=None,
                    ipv4_mask_width=None,
@@ -170,6 +171,19 @@ class IxNetwork:
         # Set OSPF Interface
         ospf_router_interface = ospf_router.Interface.find()
         ospf_router_interface.InterfaceIpAddress = ipv4_address
+
+        # Enable authentication if passed
+        if authentication_method:
+            self.IxNetwork.info(f'Setting OSPF Router Interface Authentication to: \'{authentication_method}\'')
+            ospf_router_interface.AuthenticationMethods = authentication_method
+
+        if md5_key:
+            self.IxNetwork.info(f'Setting OSPF Router Interface Authentication Key to: \'{md5_key}\'')
+            ospf_router_interface.Md5AuthenticationKey = str(md5_key)
+
+        if md5_key_id:
+            self.IxNetwork.inf(f'Setting OSPF Router Interface Authentication Key Id to: \'{md5_key_id}\'')
+            ospf_router_interface.Md5AuthenticationKeyId = str(md5_key_id)
 
         self.IxNetwork.info('Starting OSPF Protocol...')
         ospf.Start()
