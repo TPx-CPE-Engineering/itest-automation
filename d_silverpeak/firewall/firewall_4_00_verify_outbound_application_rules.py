@@ -26,7 +26,27 @@ class SPEdge(SPBaseEdge):
 EDGE: SPEdge
 
 
+# TODO delete this function but before doing so check if test case works
 def set_globals(edge_id: str, enterprise_id: str):
+    """
+    Creates Silver Peak EDGE object
+    :param edge_id: Silver Peak EDGE ID
+    :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
+    :return: None
+    """
+    global EDGE
+    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=0)
+
+    # Set REAL TIME overlay FW Zone to ONE
+    if not EDGE.is_fw_zone_set_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay):
+        EDGE.set_fw_zone_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay)
+
+    # SET LAN0 interface FW Zone to ONE
+    if not EDGE.is_fw_zone_set_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface):
+        EDGE.set_fw_zone_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface)
+
+
+def create_edge(edge_id, enterprise_id):
     """
     Creates Silver Peak EDGE object
     :param edge_id: Silver Peak EDGE ID
@@ -173,6 +193,7 @@ def remove_icmp_block_outbound_app_rule():
         print(d)
 
 
+# TODO delete this function but before doing so check if test case works
 def is_icmp_block_outbound_app_rule_present():
     """
     Prints yes or no (in json format) whether the firewall rule in One to Default with priority 1500 exists
