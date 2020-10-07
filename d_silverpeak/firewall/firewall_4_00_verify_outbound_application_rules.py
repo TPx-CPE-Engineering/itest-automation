@@ -26,24 +26,24 @@ class SPEdge(SPBaseEdge):
 EDGE: SPEdge
 
 
-# TODO delete this function but before doing so check if test case works
-def set_globals(edge_id: str, enterprise_id: str):
-    """
-    Creates Silver Peak EDGE object
-    :param edge_id: Silver Peak EDGE ID
-    :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
-    :return: None
-    """
-    global EDGE
-    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=0)
-
-    # Set REAL TIME overlay FW Zone to ONE
-    if not EDGE.is_fw_zone_set_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay):
-        EDGE.set_fw_zone_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay)
-
-    # SET LAN0 interface FW Zone to ONE
-    if not EDGE.is_fw_zone_set_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface):
-        EDGE.set_fw_zone_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface)
+# # TODO delete this function but before doing so check if test case works
+# def set_globals(edge_id: str, enterprise_id: str):
+#     """
+#     Creates Silver Peak EDGE object
+#     :param edge_id: Silver Peak EDGE ID
+#     :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
+#     :return: None
+#     """
+#     global EDGE
+#     EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=0)
+#
+#     # Set REAL TIME overlay FW Zone to ONE
+#     if not EDGE.is_fw_zone_set_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay):
+#         EDGE.set_fw_zone_for_overlay(fw_zone=EDGE.ONE_fw_zone, overlay=EDGE.RealTime_overlay)
+#
+#     # SET LAN0 interface FW Zone to ONE
+#     if not EDGE.is_fw_zone_set_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface):
+#         EDGE.set_fw_zone_for_interface(fw_zone=EDGE.ONE_fw_zone, interface=EDGE.LAN0_interface)
 
 
 def create_edge(edge_id, enterprise_id):
@@ -193,28 +193,28 @@ def remove_icmp_block_outbound_app_rule():
         print(d)
 
 
-# TODO delete this function but before doing so check if test case works
-def is_icmp_block_outbound_app_rule_present():
-    """
-    Prints yes or no (in json format) whether the firewall rule in One to Default with priority 1500 exists
-    Firewall rule with priority 1500 is tied to ICMP application block rule
-    :return: None
-    """
-    # Get EDGE's Security Policy Rules data
-    security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
-
-    # Attempt to get Zone base Firewall rule with priority 1500 on One to Default zone
-    deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None)\
-        .get('1500', None)
-
-    # Checking rule...
-    if not deny_source_address_rule:
-        # If rule is None, then rule does not exists
-        print({"is_outbound_application_rule_present": 'no'})
-    else:
-        # If rule is not None, then rule exist
-        print({"is_outbound_application_rule_present": 'yes'})
+# # TODO delete this function but before doing so check if test case works
+# def is_icmp_block_outbound_app_rule_present():
+#     """
+#     Prints yes or no (in json format) whether the firewall rule in One to Default with priority 1500 exists
+#     Firewall rule with priority 1500 is tied to ICMP application block rule
+#     :return: None
+#     """
+#     # Get EDGE's Security Policy Rules data
+#     security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
+#
+#     # Attempt to get Zone base Firewall rule with priority 1500 on One to Default zone
+#     deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None)\
+#         .get('1500', None)
+#
+#     # Checking rule...
+#     if not deny_source_address_rule:
+#         # If rule is None, then rule does not exists
+#         print({"is_outbound_application_rule_present": 'no'})
+#     else:
+#         # If rule is not None, then rule exist
+#         print({"is_outbound_application_rule_present": 'yes'})
 
 
 if __name__ == '__main__':
-    set_globals(edge_id='18.NE', enterprise_id='0')
+    create_edge(edge_id='18.NE', enterprise_id='0')
