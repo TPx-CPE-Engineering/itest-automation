@@ -10,7 +10,7 @@ class VeloCloudEdge(object):
                  verify_ssl=False, username=Globals.VC_USERNAME, password=Globals.VC_PASSWORD, is_operator=True):
         self.id = int(edge_id)
         self.enterprise_id = int(enterprise_id)
-        self.cpe_ssh_port = cpe_ssh_port
+        self.cpe_ssh_port = int(cpe_ssh_port)
         self.voice_segment_name = Globals.VOICE_SEGMENT_NAME
         self.client = VcoRequestManager(hostname=hostname, verify_ssl=verify_ssl)
         self.live_mode_token = None
