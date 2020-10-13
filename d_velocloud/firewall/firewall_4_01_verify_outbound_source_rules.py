@@ -244,7 +244,7 @@ def get_cpe_lan_ip() -> str:
                 rule['match']['proto'] == tcp and \
                 rule['match']['dport_high'] == DUT_EDGE.cpe_ssh_port and \
                 rule['match']['dport_low'] == DUT_EDGE.cpe_ssh_port and \
-                rule['match']['nat']['lan_port'] == lan_port:
+                rule['action']['nat']['lan_port'] == lan_port:
             return rule['action']['nat']['lan_ip']
 
     raise ValueError("Cannot find CPE's LAN IP by looking through firewall rules.")
