@@ -25,16 +25,15 @@ class SPEdge(SPBaseEdge):
 EDGE: SPEdge
 
 
-def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
+def create_edge(edge_id: str, enterprise_id: str):
     """
     Creates Silver Peak EDGE object
     :param edge_id: Silver Peak EDGE ID
     :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
-    :param ssh_port: SSH Port for CPE sitting behind Silver Peak EDGE
     :return: None
     """
     global EDGE
-    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
+    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=None)
 
 
 def add_firewall_outbound_rule_with_destination_ip(destination_ip):
@@ -86,7 +85,7 @@ def add_firewall_outbound_rule_with_destination_ip(destination_ip):
         print({'error': result.error, 'rows': 0})
 
 
-def remove_firewall_outbound_rule_with_destination_ip(destination_ip):
+def remove_firewall_outbound_rule_with_destination_ip():
     """
     Remove firewall rule in One to Default zone with priority 1500
     :param destination_ip: Not needed for Silver Peak but kept to reuse iTest test case
@@ -118,26 +117,5 @@ def remove_firewall_outbound_rule_with_destination_ip(destination_ip):
         print({'error': result.error, 'rows': 0})
 
 
-def is_firewall_outbound_rule_with_destination_ip_present(destination_ip):
-    """
-    Prints yes or no (in json format) whether the firewall rule in One to Default with priority 1500 exists
-    :param destination_ip: Not needed for Silver Peak but kept to reuse iTest test case
-    :return: None
-    """
-    # Get EDGE's Security Policy Rules data
-    security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
-
-    # Attempt to get Zone base Firewall rule with priority 1500 on One to Default zone
-    deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None).get('1500', None)
-
-    # Checking rule...
-    if not deny_source_address_rule:
-        # If rule is None, then rule does not exists
-        print({"is_firewall_outbound_rule_with_destination_ip_present": 'no'})
-    else:
-        # If rule is not None, then rule exist
-        print({"is_firewall_outbound_rule_with_destination_ip_present": 'yes'})
-
-
 if __name__ == '__main__':
-    set_globals(edge_id='7.NE', enterprise_id='0', ssh_port="2201")
+    create_edge()
