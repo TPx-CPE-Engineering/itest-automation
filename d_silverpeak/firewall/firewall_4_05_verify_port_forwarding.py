@@ -7,43 +7,18 @@ class SPEdge(SPBaseEdge):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port, auto_operator_login=True)
         self.ssh_rule = None
 
-EDGE: SPEdge
 
+DUT_EDGE: SPEdge
+CPE_SSH_PORT_FORWARDING_RULE: dict
 
-def set_globals(edge_id, enterprise_id, ssh_port):
+def create_edge(edge_id, enterprise_id, ssh_port):
     """
     Set the globals for the test case.
     Remember to set the type in here
     """
 
-    global EDGE
-    EDGE = SPEdge(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=str(ssh_port))
-
-
-def is_ssh_rule_present() -> None:
-    """
-    Checks if SSH Inbound Port Forwarding Rule is in the Silverpeak Appliance
-    It looks for a rule that has ..
-    1. 'tcp' has its protocol
-    2. Its destination port is equal to global SSH_PORT
-    3. The string 'itest' is in the rule's comments
-    """
-
-    d = {'is_ssh_rule_present': None}
-
-    url = EDGE.api.base_url + '/portForwarding/' + EDGE.edge_id
-    res = EDGE.api._get(EDGE.api.session, url=url, headers=None, timeout=10)
-    inbound_port_forwarding_rules = res.data
-
-    for rule in inbound_port_forwarding_rules:
-        if rule['protocol'] == 'tcp' and rule['destPort'] == EDGE.ssh_port and 'itest' in rule['comment'].lower():
-            d['is_ssh_rule_present'] = 'yes'
-            print(d)
-            return
-
-    d['is_ssh_rule_present'] = 'no'
-    print(d)
-    return
+    global DUT_EDGE
+    DUT_EDGE = SPEdge(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=str(ssh_port))
 
 
 def remove_ssh_rule():
@@ -54,18 +29,19 @@ def remove_ssh_rule():
     2. Its destination port is equal to global SSH_PORT
     3. The string 'itest' is in the rule's comments
     """
+    global CPE_SSH_PORT_FORWARDING_RULE
 
-    url = EDGE.api.base_url + '/portForwarding/' + EDGE.edge_id
-    res = EDGE.api._get(EDGE.api.session, url=url, headers=None, timeout=10)
+    url = DUT_EDGE.api.base_url + '/portForwarding/' + DUT_EDGE.edge_id
+    res = DUT_EDGE.api._get(DUT_EDGE.api.session, url=url, headers=None, timeout=10)
     inbound_port_forwarding_rules = res.data
 
     for rule in inbound_port_forwarding_rules:
-        if rule['protocol'] == 'tcp' and rule['destPort'] == EDGE.ssh_port and 'itest' in rule['comment'].lower():
-            EDGE.ssh_rule = rule
+        if rule['protocol'] == 'tcp' and rule['destPort'] == DUT_EDGE.ssh_port and 'itest' in rule['comment'].lower():
+            CPE_SSH_PORT_FORWARDING_RULE = rule
             inbound_port_forwarding_rules.remove(rule)
 
-    url = EDGE.api.base_url + '/appliance/rest/' + EDGE.edge_id + '/portForwarding2'
-    res = EDGE.api._post(session=EDGE.api.session, url=url, json=inbound_port_forwarding_rules)
+    url = DUT_EDGE.api.base_url + '/appliance/rest/' + DUT_EDGE.edge_id + '/portForwarding2'
+    res = DUT_EDGE.api._post(session=DUT_EDGE.api.session, url=url, json=inbound_port_forwarding_rules)
 
     if res.error:
         d = {'error': res.error}
@@ -85,17 +61,17 @@ def add_ssh_rule():
     easily add it back.
     """
 
-    url = EDGE.api.base_url + '/portForwarding/' + EDGE.edge_id
-    res = EDGE.api._get(EDGE.api.session, url=url, headers=None, timeout=10)
+    url = DUT_EDGE.api.base_url + '/portForwarding/' + DUT_EDGE.edge_id
+    res = DUT_EDGE.api._get(DUT_EDGE.api.session, url=url, headers=None, timeout=10)
     inbound_port_forwarding_rules = res.data
 
     if not inbound_port_forwarding_rules:
         inbound_port_forwarding_rules = []
 
-    inbound_port_forwarding_rules.append(EDGE.ssh_rule)
+    inbound_port_forwarding_rules.append(CPE_SSH_PORT_FORWARDING_RULE)
 
-    url = EDGE.api.base_url + '/appliance/rest/' + EDGE.edge_id + '/portForwarding2'
-    res = EDGE.api._post(session=EDGE.api.session, url=url, json=inbound_port_forwarding_rules)
+    url = DUT_EDGE.api.base_url + '/appliance/rest/' + DUT_EDGE.edge_id + '/portForwarding2'
+    res = DUT_EDGE.api._post(session=DUT_EDGE.api.session, url=url, json=inbound_port_forwarding_rules)
 
     if res.error:
         d = {'error': res.error}
@@ -106,4 +82,4 @@ def add_ssh_rule():
 
 
 if __name__ == '__main__':
-    set_globals(edge_id="18.NE", enterprise_id=None, ssh_port="2203")
+
