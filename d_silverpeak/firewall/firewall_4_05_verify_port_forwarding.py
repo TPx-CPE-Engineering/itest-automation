@@ -82,4 +82,4 @@ def add_ssh_rule():
 
 
 if __name__ == '__main__':
-
+    add_ssh_rule()
