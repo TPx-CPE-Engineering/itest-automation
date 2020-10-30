@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from my_silverpeak.base_edge import SPBaseEdge
 
 
@@ -10,6 +9,7 @@ class SPEdge(SPBaseEdge):
 
 DUT_EDGE: SPEdge
 CPE_SSH_PORT_FORWARDING_RULE: dict
+
 
 def create_edge(edge_id, enterprise_id, ssh_port):
     """
