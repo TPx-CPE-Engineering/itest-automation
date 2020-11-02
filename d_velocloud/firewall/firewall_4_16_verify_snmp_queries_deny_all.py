@@ -18,19 +18,8 @@ and confirm you get a "No Response from [IP]" message.
 DUT_EDGE: VeloCloudEdge
 
 
-def set_snmp_access_to_deny_all() -> None:
-    """
-    Sets the Edge's Firewall SNMP Access to 'Deny All'
-
-    SNMP Access can be found within the Edge's Firewall tab
-    """
-
-    # Get Edge's Edge Specific Firewall module
-    firewall_module = DUT_EDGE.get_module_from_edge_specific_profile(module_name='firewall')
-
-    firewall_module['data']['services']['snmp']['enabled'] = False
-
-    print(DUT_EDGE.update_configuration_module(module=firewall_module))
+def set_snmp_access_to_deny_all():
+    print(DUT_EDGE.set_snmp_access_to_deny_all())
 
 
 def create_edge(edge_id, enterprise_id, ssh_port) -> None:

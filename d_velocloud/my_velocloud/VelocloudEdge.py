@@ -460,6 +460,20 @@ class VeloCloudEdge(object):
         # Push API command
         return self.update_configuration_module(module=device_settings_modules)
 
+    def set_snmp_access_to_deny_all(self):
+        """
+        Sets the Edge's Firewall SNMP Access to 'Deny All'
+
+        SNMP Access can be found within the Edge's Firewall tab
+        """
+
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        firewall_module['data']['services']['snmp']['enabled'] = False
+
+        return self.update_configuration_module(module=firewall_module)
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
