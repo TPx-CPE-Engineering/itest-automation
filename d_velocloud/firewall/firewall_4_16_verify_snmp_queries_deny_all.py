@@ -16,51 +16,6 @@ and confirm you get a "No Response from [IP]" message.
 
 
 DUT_EDGE: VeloCloudEdge
-PUBLIC_IP: str
-
-
-def set_snmp_v2c_settings():
-    """
-    Sets SNMP Settings for testing
-
-    Versions Enabled: v2c
-    Port: 161
-    SNMP v2c Config
-    Community: tpc1n0c
-    Allowed IPs: Any
-    :return:
-    """
-
-    # Get Device Settings
-    device_settings_modules = DUT_EDGE.get_module_from_edge_specific_profile(module_name='deviceSettings')
-
-    # Configure SNMP Settings
-    snmp = {
-        'port': 161,
-        'snmpv2c': {
-            'enabled': True,
-            'community': 'tpc1n0c',
-            'allowedIp': []
-        },
-        'snmpv3': {
-            'enabled': False,
-            'users': [
-                {
-                    'name': 'admin',
-                    'passphrase': 'MattKenseth1!',
-                    'authAlg': 'MD5',
-                    'privacy': False,
-                    'encrAlg': 'DES'
-                }
-            ],
-        },
-    }
-
-    # Add snmp to device settings
-    device_settings_modules['data']['snmp'] = snmp
-
-    # Push API command
-    print(DUT_EDGE.update_configuration_module(module=device_settings_modules))
 
 
 def set_snmp_access_to_deny_all() -> None:
@@ -79,10 +34,10 @@ def set_snmp_access_to_deny_all() -> None:
 
 
 def create_edge(edge_id, enterprise_id, ssh_port) -> None:
-    global DUT_EDGE, PUBLIC_IP
+    global DUT_EDGE
     DUT_EDGE = VeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id, cpe_ssh_port=ssh_port)
 
-    set_snmp_v2c_settings()
+    print(DUT_EDGE.set_snmp_v2c_settings())
 
 
 if __name__ == '__main__':

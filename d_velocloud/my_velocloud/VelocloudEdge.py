@@ -417,6 +417,49 @@ class VeloCloudEdge(object):
         # Push change
         return self.update_configuration_module(module=firewall)
 
+    def set_snmp_v2c_settings(self):
+        """
+        Sets SNMP Settings for testing Firewall 4.18 & Firewall 4.16
+
+        Versions Enabled: v2c
+        Port: 161
+        SNMP v2c Config
+        Community: tpc1n0c
+        Allowed IPs: Any
+        :return: API Response
+        """
+
+        # Get Device Settings
+        device_settings_modules = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Configure SNMP Settings
+        snmp = {
+            'port': 161,
+            'snmpv2c': {
+                'enabled': True,
+                'community': 'tpc1n0c',
+                'allowedIp': []
+            },
+            'snmpv3': {
+                'enabled': False,
+                'users': [
+                    {
+                        'name': 'admin',
+                        'passphrase': 'MattKenseth1!',
+                        'authAlg': 'MD5',
+                        'privacy': False,
+                        'encrAlg': 'DES'
+                    }
+                ],
+            },
+        }
+
+        # Add snmp to device settings
+        device_settings_modules['data']['snmp'] = snmp
+
+        # Push API command
+        return self.update_configuration_module(module=device_settings_modules)
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
