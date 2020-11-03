@@ -1,3 +1,4 @@
+import paramiko
 from my_velocloud.VelocloudEdge import VeloCloudEdge
 
 
@@ -48,6 +49,17 @@ def add_ssh_rule() -> None:
     firewall_module['data']['inbound'].append(CPE_SSH_PORT_FORWARDING_RULE)
 
     print(DUT_EDGE.update_configuration_module(module=firewall_module))
+
+
+def ssh_connect(host, port, username, password):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    try:
+        ssh.connect(host, port, username, password)
+        print('SSH Connection Successful')
+    except TimeoutError:
+        print('Timeout Error')
 
 
 if __name__ == "__main__":
