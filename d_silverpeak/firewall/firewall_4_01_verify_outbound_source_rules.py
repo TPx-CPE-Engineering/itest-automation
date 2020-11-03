@@ -22,10 +22,22 @@ class SPEdge(SPBaseEdge):
         super().__init__(edge_id=edge_id, enterprise_id=enterprise_id, ssh_port=ssh_port, auto_operator_login=True)
 
 
-EDGE: SPEdge
+DUT_EDGE: SPEdge
 
 
-def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
+# def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
+#     """
+#     Creates Silver Peak Edge object
+#     :param edge_id: Silver Peak Edge ID
+#     :param enterprise_id: Not needed for Silver Peak but kept to reuse iTest test case
+#     :param ssh_port: SSH Port for CPE sitting behind Silver Peak Edge
+#     :return: None
+#     """
+#     global DUT_EDGE
+#     DUT_EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
+
+
+def create_edge(edge_id, enterprise_id, ssh_port):
     """
     Creates Silver Peak Edge object
     :param edge_id: Silver Peak Edge ID
@@ -33,16 +45,16 @@ def set_globals(edge_id: str, enterprise_id: str, ssh_port: str):
     :param ssh_port: SSH Port for CPE sitting behind Silver Peak Edge
     :return: None
     """
-    global EDGE
-    EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
+    global DUT_EDGE
+    DUT_EDGE = SPEdge(edge_id=edge_id, enterprise_id=None, ssh_port=ssh_port)
 
 
-def add_deny_source_address_rule() -> None:
+def add_deny_source_address_rule():
     """
     Add a firewall rule to block traffic from source ip: CPE IP on zone One to Default with priority 1500
     """
     # Get LAN IP of CPE behind Silverpeak and add subnet
-    cpe_lan_ip = EDGE.get_cpe_lan_ip() + '/32'
+    cpe_lan_ip = DUT_EDGE.get_cpe_lan_ip() + '/32'
 
     # Setup Deny Source Address rule
     deny_source_address_rule = {"match": {"acl": "",
@@ -100,7 +112,7 @@ def add_deny_source_address_rule() -> None:
                                 }
 
     # Get Edge's Security Policy Rules data
-    security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
+    security_policy_rules = DUT_EDGE.api.get_sec_policy(applianceID=DUT_EDGE.edge_id).data
 
     # Add new rule to Security Policy Rules
     # Add to zones 'ONE to DEFAULT' (12_0)
@@ -114,13 +126,13 @@ def add_deny_source_address_rule() -> None:
     data = json.dumps(data)
 
     # Call API call
-    result = EDGE.api.post_sec_policy(applianceID=EDGE.edge_id, secPolData=data)
+    result = DUT_EDGE.api.post_sec_policy(applianceID=DUT_EDGE.edge_id, secPolData=data)
 
     # Check results
     if result.status_code == 204:
         print({'error': None, 'rows': 1})
         time.sleep(10)
-        EDGE.reset_port_flow(port=5060)
+        DUT_EDGE.reset_port_flow(port=5060)
     else:
         print({'error': result.error, 'rows': 0})
 
@@ -131,7 +143,7 @@ def remove_deny_source_address_rule():
     :return:
     """
     # Get Edge's Security Policy Rules data
-    security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
+    security_policy_rules = DUT_EDGE.api.get_sec_policy(applianceID=DUT_EDGE.edge_id).data
 
     # Delete rule
     try:
@@ -153,36 +165,36 @@ def remove_deny_source_address_rule():
     data = json.dumps(data)
 
     # Call API call
-    result = EDGE.api.post_sec_policy(applianceID=EDGE.edge_id, secPolData=data)
+    result = DUT_EDGE.api.post_sec_policy(applianceID=DUT_EDGE.edge_id, secPolData=data)
 
     # Check results
     if result.status_code == 204:
         print({'error': None, 'rows': 1})
         time.sleep(10)
-        EDGE.reset_port_flow(port=5060)
+        DUT_EDGE.reset_port_flow(port=5060)
     else:
         print({'error': result.error, 'rows': 0})
 
 
-def is_deny_source_address_rule_present():
-    """
-    Prints yes or no (in json format) whether firewall rule to block traffic from source ip: CPE IP on zone One to Default with priority 1500 is present
-    :return:
-    """
-    # Get Edge's Security Policy Rules data
-    security_policy_rules = EDGE.api.get_sec_policy(applianceID=EDGE.edge_id).data
-
-    # Attempt to get rule on One to Default map with priority of 1500
-    deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None).get('1500', None)
-
-    if not deny_source_address_rule:
-        print({"is_deny_source_address_rule_present": 'no'})
-    else:
-        print({"is_deny_source_address_rule_present": 'yes'})
+# def is_deny_source_address_rule_present():
+#     """
+#     Prints yes or no (in json format) whether firewall rule to block traffic from source ip: CPE IP on zone One to Default with priority 1500 is present
+#     :return:
+#     """
+#     # Get Edge's Security Policy Rules data
+#     security_policy_rules = DUT_EDGE.api.get_sec_policy(applianceID=DUT_EDGE.edge_id).data
+#
+#     # Attempt to get rule on One to Default map with priority of 1500
+#     deny_source_address_rule = security_policy_rules.get('map1', None).get('12_0', None).get('prio', None).get('1500', None)
+#
+#     if not deny_source_address_rule:
+#         print({"is_deny_source_address_rule_present": 'no'})
+#     else:
+#         print({"is_deny_source_address_rule_present": 'yes'})
 
 
 if __name__ == '__main__':
-    set_globals(edge_id='18.NE', enterprise_id='0', ssh_port="2203")
+    create_edge(edge_id='18.NE', enterprise_id='0', ssh_port="2203")
     # add_deny_source_address_rule()
     # is_deny_source_address_rule_present()
     # remove_deny_source_address_rule()

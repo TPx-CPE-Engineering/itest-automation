@@ -178,6 +178,9 @@ def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, IX_NETWORK
     DUT_EDGE = OSPFVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
 
+    # Save settings before modifying in order to reformat Edge
+    DUT_EDGE.save_module_settings_to_file(module_name='deviceSettings', filename='ospf_device_settings.txt')
+
     # Steps to configure edge for OSPF
     # Find a Interface that is in the Global Segment Interfaces, in this case it'll be 'GE2'
     interface_config = DUT_EDGE.get_ospf_interface_config()

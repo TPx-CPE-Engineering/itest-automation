@@ -10,7 +10,8 @@ class VeloCloudEdge(object):
                  verify_ssl=False, username=Globals.VC_USERNAME, password=Globals.VC_PASSWORD, is_operator=True):
         self.id = int(edge_id)
         self.enterprise_id = int(enterprise_id)
-        self.cpe_ssh_port = cpe_ssh_port
+        if cpe_ssh_port:
+            self.cpe_ssh_port = int(cpe_ssh_port)
         self.voice_segment_name = Globals.VOICE_SEGMENT_NAME
         self.client = VcoRequestManager(hostname=hostname, verify_ssl=verify_ssl)
         self.live_mode_token = None
@@ -147,10 +148,16 @@ class VeloCloudEdge(object):
         :return: API response
         """
 
-        update = {'data': module['data'],
-                  'refs': module['refs'],
-                  'description': None,
-                  'name': module['name']}
+        if module['name'] == 'firewall':
+            # Firewall Module doesn't have 'refs' key
+            update = {'data': module['data'],
+                      'description': None,
+                      'name': module['name']}
+        else:
+            update = {'data': module['data'],
+                      'refs': module['refs'],
+                      'description': None,
+                      'name': module['name']}
 
         params = {'id': module['id'],
                   '_update': update,
@@ -356,6 +363,116 @@ class VeloCloudEdge(object):
 
         with open(filename, 'w') as outfile:
             json.dump(module_settings, outfile)
+
+    def add_firewall_rule_to_segment(self, firewall_rule, segment_name):
+        """
+        Add a Firewall rule to an Edges Segment on Edge Specific Profile
+        :param firewall_rule: Firewall rule to add
+        :param segment_name: Name of segment to add the firewall rule to
+        :return: API Response
+        """
+        firewall = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Locate segment
+        segment = None
+        for seg in firewall['data']['segments']:
+            if seg['segment']['name'] == segment_name:
+                segment = seg
+
+        # Check if segment was not found
+        if segment is None:
+            raise ValueError(f"Segment: '{segment_name}' was not found.")
+
+        # Append rule to segment
+        segment['outbound'].append(firewall_rule)
+
+        # Push change
+        return self.update_configuration_module(module=firewall)
+
+    def remove_firewall_rule_from_segment(self, firewall_rule_name, segment_name):
+        """
+        Remove a Firewall rule from an Edge's Segment on Edge Specific Profile
+        :param firewall_rule_name: Name of firewall rule to remove
+        :param segment_name: Name of segment to remove the firewall rule from
+        :return: API Response
+        """
+
+        firewall = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        # Locate segment
+        segment = None
+        for seg in firewall['data']['segments']:
+            if seg['segment']['name'] == segment_name:
+                segment = seg
+
+        # Check if segment was not found
+        if segment is None:
+            raise ValueError(f"Segment: '{segment_name}' was not found.")
+
+        # Locate rule
+        for firewall_rule in segment['outbound']:
+            if firewall_rule['name'] == firewall_rule_name:
+                segment['outbound'].remove(firewall_rule)
+
+        # Push change
+        return self.update_configuration_module(module=firewall)
+
+    def set_snmp_v2c_settings(self):
+        """
+        Sets SNMP Settings for testing Firewall 4.18 & Firewall 4.16
+
+        Versions Enabled: v2c
+        Port: 161
+        SNMP v2c Config
+        Community: tpc1n0c
+        Allowed IPs: Any
+        :return: API Response
+        """
+
+        # Get Device Settings
+        device_settings_modules = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Configure SNMP Settings
+        snmp = {
+            'port': 161,
+            'snmpv2c': {
+                'enabled': True,
+                'community': 'tpc1n0c',
+                'allowedIp': []
+            },
+            'snmpv3': {
+                'enabled': False,
+                'users': [
+                    {
+                        'name': 'admin',
+                        'passphrase': 'MattKenseth1!',
+                        'authAlg': 'MD5',
+                        'privacy': False,
+                        'encrAlg': 'DES'
+                    }
+                ],
+            },
+        }
+
+        # Add snmp to device settings
+        device_settings_modules['data']['snmp'] = snmp
+
+        # Push API command
+        return self.update_configuration_module(module=device_settings_modules)
+
+    def set_snmp_access_to_deny_all(self):
+        """
+        Sets the Edge's Firewall SNMP Access to 'Deny All'
+
+        SNMP Access can be found within the Edge's Firewall tab
+        """
+
+        # Get Edge's Edge Specific Firewall module
+        firewall_module = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        firewall_module['data']['services']['snmp']['enabled'] = False
+
+        return self.update_configuration_module(module=firewall_module)
 
 
 # Class for BGP Testing
