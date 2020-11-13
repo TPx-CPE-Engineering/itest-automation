@@ -141,6 +141,16 @@ class VeloCloudEdge(object):
 
         return {}
 
+    def get_all_configure_vlans(self) -> list:
+        """
+        Get All Configure VLANS information from an Edge Device Settings
+        :return: List of Edge VLANS
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        return device_settings['data']['lan']['networks']
+
     def update_configuration_module(self, module):
         """
         Update Edge Configuration Module
@@ -801,7 +811,6 @@ class BGPVeloCloudEdge(VeloCloudEdge):
 
 
 # Class for OSPF Testing
-# Class for BGP Testing
 class OSPFVeloCloudEdge(VeloCloudEdge):
 
     def __init__(self, edge_id, enterprise_id):
@@ -1187,5 +1196,62 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
         ospf_interface['ospf']['authentication'] = True
         ospf_interface['ospf']['authId'] = key_id
         ospf_interface['ospf']['authPassphrase'] = password
+
+        return self.update_configuration_module(module=device_settings)
+
+
+# Class for LAN Sde NAT Testing
+class LANSideNatVelocloudEdge(VeloCloudEdge):
+
+    def __init__(self, edge_id, enterprise_id):
+        super().__init__(edge_id, enterprise_id)
+
+    def get_voice_segment_vlan(self):
+        """
+        Get Voice VLAN Configurable information
+        :return: Voice VLAN information
+        """
+
+        configurable_vlans = self.get_all_configure_vlans()
+
+        for vlan in configurable_vlans:
+            if vlan['name'] == 'Voice':
+                return vlan
+
+    def add_nat_rules_to_segment(self, segment_name, rules:list, dual_rules:list):
+        """
+        Add NAT rules to a Segment
+        :param segment_name: Name of segment you want to add rules to
+        :param rules: NAT Source or Destination rules, must be as a list
+        :param dual_rules: NAT Source and Destination rules, must be as a list
+        :return:
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        # Look for the segment we want to modify
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                # Add NAT Rules
+                segment['nat'] = {
+                    'rules': rules,
+                    'dualRules': dual_rules,
+                    'override': True
+                }
+
+                return self.update_configuration_module(module=device_settings)
+
+    def delete_all_nat_rules_from_segment(self, segment_name):
+        """
+        Delete All NAT rules from Segment
+        :param segment_name: Name of segment you want to delete rules from
+        :return: API Response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                segment.pop('nat', None)
 
         return self.update_configuration_module(module=device_settings)
