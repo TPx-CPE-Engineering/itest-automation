@@ -1334,12 +1334,12 @@ class LANSideNatVelocloudEdge(VeloCloudEdge):
 
         return self.update_configuration_module(module=device_settings)
 
-    def disable_advertise_on_vlan(self, vlan_name='Voice'):
+    def set_advertise_on_vlan(self, advertise_enabled:bool, vlan_name='Voice'):
 
         device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
 
         for network in device_settings['data']['lan']['networks']:
             if network['name'] == vlan_name:
-                network['advertise'] = False
+                network['advertise'] = advertise_enabled
 
         return self.update_configuration_module(module=device_settings)
