@@ -8,5 +8,6 @@ def ssh_connect(host, port, username, password):
     try:
         ssh.connect(host, port, username, password)
         print('SSH Connection Successful')
+        return ssh
     except TimeoutError:
         print('Timeout Error')
