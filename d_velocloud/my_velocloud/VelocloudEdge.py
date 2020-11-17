@@ -484,6 +484,34 @@ class VeloCloudEdge(object):
 
         return self.update_configuration_module(module=firewall_module)
 
+    def get_cpe_lan_ip(self) -> str:
+        """
+        Gets the LAN IP of the CPE behind the edge
+
+        Searches through the edge's inbound firewall rules for a rule that has the following conditions:
+        1. rule's name has the keyword 'itest' in it
+        2. rule's protocol is 'TCP'
+        3. rule's WAN Ports equals global SSH_PORT
+        4. rule's LAN Port is 22
+        Once it finds such rule, it returns the rule's LAN IP which will be the CPE's IP
+        :return: LAN IP
+        """
+
+        firewall = self.get_module_from_edge_specific_profile(module_name='firewall')
+
+        tcp = 6
+        lan_port = 22
+
+        for rule in firewall['data']['inbound']:
+            if 'itest' in rule['name'].lower() and \
+                    rule['match']['proto'] == tcp and \
+                    rule['match']['dport_high'] == self.cpe_ssh_port and \
+                    rule['match']['dport_low'] == self.cpe_ssh_port and \
+                    rule['action']['nat']['lan_port'] == lan_port:
+                return rule['action']['nat']['lan_ip']
+
+        raise ValueError("Cannot find CPE's LAN IP by looking through firewall rules.")
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
@@ -1203,8 +1231,8 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
 # Class for LAN Sde NAT Testing
 class LANSideNatVelocloudEdge(VeloCloudEdge):
 
-    def __init__(self, edge_id, enterprise_id):
-        super().__init__(edge_id, enterprise_id)
+    def __init__(self, edge_id, enterprise_id, cpe_ssh_port=None):
+        super().__init__(edge_id, enterprise_id, cpe_ssh_port=cpe_ssh_port)
 
     def get_voice_segment_vlan(self):
         """
@@ -1253,5 +1281,65 @@ class LANSideNatVelocloudEdge(VeloCloudEdge):
         for segment in device_settings['data']['segments']:
             if segment['segment']['name'] == segment_name:
                 segment.pop('nat', None)
+
+        return self.update_configuration_module(module=device_settings)
+
+    def add_static_route_rule_to_segment(self, rule, segment_name='Voice'):
+        """
+        Add Static Routes to a Segment
+        :param segment_name: Name of segment you want to add rules to
+        :param rule: Static Route rule
+
+        example of rule:
+          {
+            "destination": "172.16.223.0",
+            "netmask": "255.255.255.0",
+            "sourceIp": null,
+            "gateway": "192.168.223.1",
+            "cost": 0,
+            "preferred": true,
+            "description": "",
+            "cidrPrefix": "24",
+            "wanInterface": "",
+            "subinterfaceId": -1,
+            "icmpProbeLogicalId": null,
+            "vlanId": null,
+            "advertise": true
+          }
+        :return: API Response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                # Add route to segment
+                segment['routes']['static'].append(rule)
+
+        return self.update_configuration_module(module=device_settings)
+
+    def delete_all_static_routes_from_segment(self, segment_name='Voice'):
+        """
+        Delete all Static Routes from a Segment
+        :param segment_name: Name of segment to delete routes from
+        :return: API Response
+        """
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for segment in device_settings['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                # Add route to segment
+                segment['routes']['static'] = []
+
+        return self.update_configuration_module(module=device_settings)
+
+    def disable_advertise_on_vlan(self, vlan_name='Voice'):
+
+        device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for network in device_settings['data']['lan']['networks']:
+            if network['name'] == vlan_name:
+                network['advertise'] = False
 
         return self.update_configuration_module(module=device_settings)
