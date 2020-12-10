@@ -1,5 +1,6 @@
 from my_velocloud.VelocloudEdge import LANSideNatVelocloudEdge
 from networking_scripts.my_ssh import ssh_connect
+import ipaddress
 
 DUT_EDGE: LANSideNatVelocloudEdge
 
@@ -79,16 +80,21 @@ def add_lan_side_nat_rules():
         "destCidrIp": "",
         "destCidrPrefix": "",
         "insideNetmask": "255.255.255.255",
-        "outsideNetmask": "255.255.255.0",
+        "outsideNetmask": "255.255.255.255",
         "srcNetmask": "",
         "destNetmask": ""
     }
 
     # Second NAT RULE
+    # Get the Network of Voice VLAN
     voice_vlan = DUT_EDGE.get_voice_segment_vlan()
-    inside_address = voice_vlan['cidrIp']  # Voice VLAN Network
+    voice_vlan_ip = voice_vlan['cidrIp']  # Voice VLAN Network
+    voice_vlan_netmask = voice_vlan['netmask']  # Voice VLAN Network
+    voice_vlan_net = ipaddress.ip_network(voice_vlan_ip + '/' + voice_vlan_netmask, strict=False)
+    inside_address = str(voice_vlan_net.network_address)
+
     inside_address_mask = 24
-    outside_address = '172.16.223.20'
+    outside_address = '172.16.223.21'
     outside_address_mask = 32
 
     nat_rule_2 = {
@@ -104,8 +110,8 @@ def add_lan_side_nat_rules():
         "srcCidrPrefix": "",
         "destCidrIp": "",
         "destCidrPrefix": "",
-        "insideNetmask": "255.255.255.255",
-        "outsideNetmask": "255.255.255.0",
+        "insideNetmask": "255.255.255.0",
+        "outsideNetmask": "255.255.255.255",
         "srcNetmask": "",
         "destNetmask": ""
     }
