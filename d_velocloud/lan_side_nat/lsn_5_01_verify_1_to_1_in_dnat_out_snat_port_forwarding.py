@@ -43,9 +43,9 @@ def add_static_route():
     print(DUT_EDGE.add_static_route_rule_to_segment(segment_name='Voice', rule=static_route_rule))
 
 
-def add_lan_side_nat_rule():
+def add_lan_side_nat_rules():
     """
-    Add LAN-Side NAT Rule
+    Add LAN-Side NAT Rules
     :return: None
     """
 
