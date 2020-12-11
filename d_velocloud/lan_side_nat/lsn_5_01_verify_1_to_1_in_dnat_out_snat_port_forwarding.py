@@ -1,5 +1,4 @@
 from my_velocloud.VelocloudEdge import LANSideNatVelocloudEdge
-from networking_scripts.my_ssh import ssh_connect
 import ipaddress
 
 DUT_EDGE: LANSideNatVelocloudEdge
@@ -141,42 +140,5 @@ def restore_configuration():
     print(DUT_EDGE.delete_all_nat_rules_from_segment(segment_name='Voice'))
 
 
-def ssh_to(ssh_connection, username, host, port, password):
-    command = f'ssh {username}@{host} -p {port}'
-
-    stdin, stdout, stderr = ssh_connection.exec_command(command=command, timeout=300)
-
-    lines = stdout.readlines()
-    print(lines)
-
-    lines = stderr.readlines()
-    print(lines)
-
-
-    # while not stdout.channel.exit_status_ready():
-    #     # Print stdout data when available
-    #     if stdout.channel.recv_ready():
-    #         # Retrieve the first 1024 bytes
-    #         alldata = stdout.channel.recv(1024)
-    #         while stdout.channel.recv_ready():
-    #             # Retrieve the next 1024 bytes
-    #             alldata += stdout.channel.recv(1024)
-    #
-    #         # Print as string with utf8 encoding
-    #         print(str(alldata, "utf8"))
-
-
 if __name__ == '__main__':
-    # create_edge(edge_id=245, enterprise_id=1, cpe_ssh_port=2202)
-    host = ssh_connect(host='10.255.20.159', port=22, username='cpeeng', password='Fan-Brain-K')
-
-    ssh_to(host, username='itestautomation', host='172.16.223.20', port='2201', password='gT4YmO%!')
-
-    #
-    # command = 'ssh itestautomation@172.16.223.20 -p 2201'
-    # stdin, stdout, stderr = host.exec_command(command=command, timeout=300)
-    # lines = stdout.readlines()
-    # print(lines)
-    #
-    # lines = stderr.readlines()
-    # print(lines)
+    create_edge(edge_id=245, enterprise_id=1, cpe_ssh_port=2202)
