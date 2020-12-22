@@ -70,13 +70,13 @@ def add_lan_side_nat_rule():
 
     # NAT RULE
     nat_rule = {
-        "insideCidrIp": '1.1.1.1',
-        "insideCidrPrefix": 24,
+        "insideCidrIp": '172.16.223.21',
+        "insideCidrPrefix": 32,
         "insidePort": -1,
-        "outsideCidrIp": '1.1.1.1',
-        "outsideCidrPrefix": 24,
+        "outsideCidrIp": '192.168.100.100',
+        "outsideCidrPrefix": 32,
         "outsidePort": -1,
-        "type": "source",
+        "type": "destination",
         "description": "Added by iTest",
         "srcCidrIp": "",
         "srcCidrPrefix": "",
