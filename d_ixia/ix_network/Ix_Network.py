@@ -7,7 +7,7 @@ import time
 IX_NET_CONFIG_FILE_BASE = 'C:\\Users\\dataeng\\PycharmProjects\\iTest_Automation\\d_ixia\\ix_network\\configs\\'
 
 # IP Address where IxNetwork Program (not chassis)
-IX_NETWORK_IP = '10.255.20.7'
+IX_NETWORK_IP = '127.0.0.1'
 
 # VPorts
 PORTS = [{'Name': 'Ethernet - 001',
