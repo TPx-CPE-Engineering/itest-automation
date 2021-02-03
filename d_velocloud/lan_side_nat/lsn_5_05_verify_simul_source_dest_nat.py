@@ -67,20 +67,20 @@ def add_lan_side_nat_rule():
     Adding LAN-Side NAT Rule -> NAT Source and Destination
 
     Type    Inside Addr     Outside Addr    Type    Inside Addr     Outside Addr
-    Source  172.16.223.21   
+    Source  [CPE IP Addr]
     """
 
     # DUAL NAT RULE
     dual_nat_rule = {
-          "srcInsideCidrIp": "192.168.135.155",
-          "srcOutsideCidrIp": "172.16.135.155",
-          "destInsideCidrIp": "172.16.238.155",
-          "destOutsideCidrIp": "192.168.138.155",
+          "srcInsideCidrIp": "192.168.167.30",  # CPE IP Address TODO function that retrieves CPE IP address
+          "srcOutsideCidrIp": "172.16.223.21",
+          "destInsideCidrIp": "172.16.100.100",
+          "destOutsideCidrIp": "192.168.100.100",
           "srcInsideCidrPrefix": 32,
           "srcOutsideCidrPrefix": 32,
           "destInsideCidrPrefix": 32,
           "destOutsideCidrPrefix": 32,
-          "description": "Added by iTestverify",
+          "description": "Added by iTest",
           "srcInsideNetmask": "255.255.255.255",
           "srcOutsideNetmask": "255.255.255.255",
           "destInsideNetmask": "255.255.255.255",
