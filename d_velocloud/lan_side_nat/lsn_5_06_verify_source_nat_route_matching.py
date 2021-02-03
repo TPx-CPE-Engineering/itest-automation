@@ -75,10 +75,10 @@ def add_lan_side_nat_rule(destination_cidr_ip=None, destination_cidr_prefix=None
     nat_rule = {
         "insideCidrIp": '192.168.167.30',  # TODO function that retrieves CPE IP
         "insideCidrPrefix": 32,
-        "insidePort": "",
+        "insidePort": -1,
         "outsideCidrIp": '172.16.223.21',
         "outsideCidrPrefix": 32,
-        "outsidePort": "",
+        "outsidePort": -1,
         "type": "source",
         "description": "Added by iTest",
         "srcCidrIp": "",
@@ -88,7 +88,7 @@ def add_lan_side_nat_rule(destination_cidr_ip=None, destination_cidr_prefix=None
         "insideNetmask": "255.255.255.255",
         "outsideNetmask": "255.255.255.255",
         "srcNetmask": "",
-        "destNetmask": ""
+        "destNetmask": "255.255.255.255"
     }
 
     print("Adding LAN-Side NAT Rules on Voice Segment...")
