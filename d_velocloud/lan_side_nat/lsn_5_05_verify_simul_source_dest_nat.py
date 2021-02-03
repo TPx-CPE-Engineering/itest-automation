@@ -4,15 +4,15 @@ from my_velocloud.VelocloudEdge import LANSideNatVelocloudEdge
 Verify simultaneous source & destination NAT
 
 Usage:
-a.	Configure a Source & Destination LAN-side NAT at site 1: source mapping is 192.168.135.155/32 -> 172.16.135.155/32; 
-destination mapping is 172.16.238.155/32 -> 192.168.138.155/32.
+a.	Configure a Source & Destination LAN-side NAT at site 1: source mapping is CPE IP/32 -> 172.16.223.21/32; 
+destination mapping is 172.16.100.100/32 -> Ubuntu VM/32.
 b.	Do not advertise VLAN 1 at site 1.
-c.	Verify that host 1 can ping host 2 with the NAT IP 172.16.238.155.
-d.	Verify that host 2 can ping host 1 with the NAT IP 172.16.135.155.
+c.	Verify that host 1 (CPE) can ping host 2 (Ubuntu VM) with the NAT IP 172.16.100.100
+d.	Verify that host 2 (Ubuntu VM) can ping host 1 (CPE) with the NAT IP 172.16.223.21
 
 Expected Results:
-Host 1 able to ping host 2 with NAT IP 172.16.238.155
-Host 2 able to ping host 1 with NAT IP 172.16.135.155
+Host 1 (CPE) able to ping Host 2 (Ubuntu VM) with NAT IP 172.16.100.100
+Host 2 (Ubuntu VM) able to ping Host 1 (CPE) with NAT IP 172.16.223.21
 """
 
 DUT_EDGE: LANSideNatVelocloudEdge
@@ -59,20 +59,22 @@ def add_static_route():
 
 def add_lan_side_nat_rule():
     """
-    Add LAN-Side NAT Rule
+    Adds DUAL LAN-Side NAT Rule
     :return: None
     """
 
     """
     Adding LAN-Side NAT Rule -> NAT Source and Destination
 
-    Type    Inside Addr     Outside Addr    Type    Inside Addr     Outside Addr
-    Source  [CPE IP Addr]
+    Type    Inside Addr     Outside Addr    Type        Inside Addr     Outside Addr
+    Source  [CPE IP Addr]   172.16.223.21   Destination 172.16.100.100  192.168.100.100
     """
+
+    cpe_ip = DUT_EDGE.get_cpe_lan_ip()
 
     # DUAL NAT RULE
     dual_nat_rule = {
-          "srcInsideCidrIp": "192.168.167.30",  # CPE IP Address TODO function that retrieves CPE IP address
+          "srcInsideCidrIp": cpe_ip,
           "srcOutsideCidrIp": "172.16.223.21",
           "destInsideCidrIp": "172.16.100.100",
           "destOutsideCidrIp": "192.168.100.100",
