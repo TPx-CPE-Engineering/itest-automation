@@ -70,8 +70,8 @@ def add_lan_side_nat_rule():
     Source  172.16.223.21   
     """
 
-    # NAT RULE
-    nat_rule = {
+    # DUAL NAT RULE
+    dual_nat_rule = {
           "srcInsideCidrIp": "192.168.135.155",
           "srcOutsideCidrIp": "172.16.135.155",
           "destInsideCidrIp": "172.16.238.155",
@@ -88,18 +88,17 @@ def add_lan_side_nat_rule():
         }
 
     print("Adding LAN-Side NAT Rules on Voice Segment...")
-    print(DUT_EDGE.add_nat_rules_to_segment(segment_name='Voice', rules=[], dual_rules=[nat_rule]))
+    print(DUT_EDGE.add_nat_rules_to_segment(segment_name='Voice', rules=[], dual_rules=[dual_nat_rule]))
 
 
 def create_edge(edge_id, enterprise_id, cpe_ssh_port):
     global DUT_EDGE
     DUT_EDGE = LANSideNatVelocloudEdge(edge_id=edge_id, enterprise_id=enterprise_id, cpe_ssh_port=cpe_ssh_port)
 
-    add_lan_side_nat_rule()
-    # print("Setting Voice VLAN Advertise Enabled to False...")
-    # print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=False, vlan_name='Voice'))
+    print("Setting Voice VLAN Advertise Enabled to False...")
+    print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=False, vlan_name='Voice'))
 
-    # add_static_route()
+    add_static_route()
 
 
 def restore_configuration():
