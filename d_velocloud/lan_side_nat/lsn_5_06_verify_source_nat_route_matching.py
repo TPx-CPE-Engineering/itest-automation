@@ -73,19 +73,19 @@ def add_lan_side_nat_rule(destination_cidr_ip=None, destination_cidr_prefix=None
 
     # NAT RULE
     nat_rule = {
-        "insideCidrIp": '172.16.223.21',
+        "insideCidrIp": '192.168.167.30',  # TODO function that retrieves CPE IP
         "insideCidrPrefix": 32,
-        "insidePort": 2201,
-        "outsideCidrIp": '192.168.100.100',
+        "insidePort": "",
+        "outsideCidrIp": '172.16.223.21',
         "outsideCidrPrefix": 32,
-        "outsidePort": 22,
-        "type": "destination",
+        "outsidePort": "",
+        "type": "source",
         "description": "Added by iTest",
         "srcCidrIp": "",
         "srcCidrPrefix": "",
-        "destCidrIp": "",
-        "destCidrPrefix": "",
-        "insideNetmask": "255.255.255.0",
+        "destCidrIp": "192.168.100.100",
+        "destCidrPrefix": 32,
+        "insideNetmask": "255.255.255.255",
         "outsideNetmask": "255.255.255.255",
         "srcNetmask": "",
         "destNetmask": ""
