@@ -143,16 +143,10 @@ def create_edge(edge_id, enterprise_id, cpe_ssh_port):
     global DUT_EDGE
     DUT_EDGE = LANSideNatVelocloudEdge(edge_id=edge_id, enterprise_id=enterprise_id, cpe_ssh_port=cpe_ssh_port)
 
-    print("Setting Voice VLAN Advertise Enabled to False...")
-    print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=False, vlan_name='Voice'))
-
     add_static_route()
 
 
 def restore_configuration():
-    print("Setting Voice VLAN Advertise Enabled to True...")
-    print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=True, vlan_name='Voice'))
-
     print("Deleting all Static Routes in Voice Segment...")
     print(DUT_EDGE.delete_all_static_routes_from_segment(segment_name='Voice'))
 
