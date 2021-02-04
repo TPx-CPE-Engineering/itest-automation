@@ -58,7 +58,46 @@ def add_static_route():
     print(DUT_EDGE.add_static_route_rule_to_segment(segment_name='Voice', rule=static_route_rule))
 
 
-def add_lan_side_nat_rule(destination_cidr_ip=None, destination_cidr_prefix=None):
+def add_cpe_ip_lan_side_nat_rule():
+    """
+    Add LAN-Side NAT Rule with CPE IP as inside addr
+    :return: None
+    """
+
+    """
+    Adding LAN-Side NAT Rule -> NAT Source and Destination
+
+    Type    Inside Addr     Outside Addr    Type    Inside Addr     Outside Addr
+    Source  172.16.223.21   
+    """
+
+    cpe_ip = DUT_EDGE.get_cpe_lan_ip()
+
+    # NAT RULE
+    nat_rule = {
+        "insideCidrIp": cpe_ip,
+        "insideCidrPrefix": 32,
+        "insidePort": -1,
+        "outsideCidrIp": '172.16.223.21',
+        "outsideCidrPrefix": 32,
+        "outsidePort": -1,
+        "type": "source",
+        "description": "Added by iTest",
+        "srcCidrIp": "",
+        "srcCidrPrefix": "",
+        "destCidrIp": "192.168.100.100",
+        "destCidrPrefix": 32,
+        "insideNetmask": "255.255.255.255",
+        "outsideNetmask": "255.255.255.255",
+        "srcNetmask": "",
+        "destNetmask": "255.255.255.255"
+    }
+
+    print("Adding LAN-Side NAT Rules on Voice Segment...")
+    print(DUT_EDGE.add_nat_rules_to_segment(segment_name='Voice', rules=[nat_rule], dual_rules=[]))
+
+
+def add_random_ip_lan_side_nat_rule():
     """
     Add LAN-Side NAT Rule
     :return: None
@@ -73,7 +112,7 @@ def add_lan_side_nat_rule(destination_cidr_ip=None, destination_cidr_prefix=None
 
     # NAT RULE
     nat_rule = {
-        "insideCidrIp": '192.168.167.30',  # TODO function that retrieves CPE IP
+        "insideCidrIp": "172.31.0.11",
         "insideCidrPrefix": 32,
         "insidePort": -1,
         "outsideCidrIp": '172.16.223.21',
