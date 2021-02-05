@@ -85,8 +85,8 @@ def add_cpe_ip_lan_side_nat_rule():
         "destCidrPrefix": -1,
         "insideNetmask": "255.255.255.255",
         "outsideNetmask": "255.255.255.255",
-        "srcNetmask": "",
-        "destNetmask": "255.255.255.255"
+        "srcNetmask": "255.255.255.255",
+        "destNetmask": ""
     }
 
     print("Adding LAN-Side NAT Rules on Voice Segment...")
@@ -120,8 +120,8 @@ def add_random_ip_lan_side_nat_rule():
         "destCidrPrefix": -1,
         "insideNetmask": "255.255.255.255",
         "outsideNetmask": "255.255.255.255",
-        "srcNetmask": "",
-        "destNetmask": "255.255.255.255"
+        "srcNetmask": "255.255.255.255",
+        "destNetmask": ""
     }
 
     print("Adding LAN-Side NAT Rules on Voice Segment...")
