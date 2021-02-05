@@ -1261,6 +1261,9 @@ class LANSideNatVelocloudEdge(VeloCloudEdge):
         for segment in device_settings['data']['segments']:
             if segment['segment']['name'] == segment_name:
                 # Add NAT Rules
+                print(f"Adding the following LAN-Side NAT rules to {segment_name} segment... \n"
+                      f"NAT Source or Destination: {rules}\n"
+                      f"NAT Source and Destination: {dual_rules}\n")
                 segment['nat'] = {
                     'rules': rules,
                     'dualRules': dual_rules,
