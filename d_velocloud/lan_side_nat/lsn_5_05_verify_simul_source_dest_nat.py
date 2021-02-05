@@ -24,14 +24,12 @@ STATIC_ROUTE_SUBNET_MASK = '24'
 def add_static_route():
     """
     Adds a static route to voice segment
-    :return: None
-    """
 
-    """
-    Adding 1 Static Route Rule
-
+    Static Route Settings
     Subnet                  Source IP   Next Hop                   Interface           VLAN    Cost Preferred  Advertise
-    [STATIC ROUTE SUBNET]   n/a         [VOICE VLAN IP ADDRESS]    [not applicable]    none    0    true       true
+    [STATIC_ROUTE_SUBNET]   n/a         [VOICE VLAN IP ADDRESS]    [not applicable]    none    0    true       true
+
+    :return: None
     """
 
     voice_vlan = DUT_EDGE.get_voice_segment_vlan()
@@ -59,13 +57,14 @@ def add_static_route():
 
 def add_lan_side_nat_rule():
     """
-    Adds DUAL LAN-Side NAT Rule
+    Adds DUAL LAN-Side NAT Rule with CPE IP as Inside Address
     :return: None
     """
 
     """
-    Adding LAN-Side NAT Rule -> NAT Source and Destination
-
+    Adding LAN-Side NAT Rule 
+    
+    NAT Source and Destination
     Type    Inside Addr     Outside Addr    Type        Inside Addr     Outside Addr
     Source  [CPE IP Addr]   172.16.223.21   Destination 172.16.100.100  192.168.100.100
     """
