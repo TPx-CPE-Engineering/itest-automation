@@ -108,7 +108,7 @@ class Connection(object):
             base = base + "/"
         return urljoin(base, str(end))
 
-    def httpRequest(self, method, url="", data="", params={}, headers={}, downloadStream=False, timeout=80):
+    def httpRequest(self, method, url="", data="", params={}, query={}, headers={}, downloadStream=False, timeout=80):
         '''
             Args:
 
@@ -135,7 +135,7 @@ class Connection(object):
         result = self._getHttpSession().request(method, absUrl, data=str(data), params=params, headers=headers, verify=False, timeout=timeout, stream=downloadStream)
         return result
 
-    def httpGet(self, url="", data="", params={}, headers={}, errorCodes = []):
+    def httpGet(self, url="", data="", params={}, query={}, headers={}, errorCodes = []):
         '''
             Method for calling HTTP GET. This will return a WebObject that has the fields returned
             in JSON format by the GET operation.

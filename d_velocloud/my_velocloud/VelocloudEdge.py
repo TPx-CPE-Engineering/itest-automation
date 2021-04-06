@@ -512,6 +512,13 @@ class VeloCloudEdge(object):
 
         raise ValueError("Cannot find CPE's LAN IP by looking through firewall rules.")
 
+    def get_enterprise_gateway_handoff(self):
+
+        method = '/enterprise/getEnterpriseGatewayHandoff'
+        params = {"enterpriseId": self.enterprise_id}
+
+        return self.client.call_api(method=method, params=params)
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):

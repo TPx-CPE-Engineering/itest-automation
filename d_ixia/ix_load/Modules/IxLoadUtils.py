@@ -165,7 +165,7 @@ def performGenericPatch(connection, url, payloadDict):
     return reply
 
 
-def downloadResource(connection, downloadFolder, localPath, zipName="", timeout=300):
+def downloadResource(connection, downloadFolder, localPath, zipName="", timeout=80):
     '''
         This method is used to download an entire folder as an archive or any type of file without changing it's format
         Args:
@@ -196,6 +196,7 @@ def downloadResource(connection, downloadFolder, localPath, zipName="", timeout=
     except IOError:
         log("Could not open or create file, please check path and/or permissions")
         return 2
+
 
 def createNewSession(connection, ixLoadVersion=''):
     if not ixLoadVersion:
@@ -332,6 +333,19 @@ def loadRepository(connection, sessionUrl, rxfFilePath):
     performGenericOperation(connection, loadTestUrl, data)
 
 
+def save(connection, sessionUrl):
+    '''
+        This method saves the currently loaded configuration file.
+        Args:
+        - connection is the connection object that manages the HTTP data transfers between the client and the REST API
+        - sessionUrl is the address of the session to save the rxf for
+    '''
+    saveUrl = "%s/ixload/test/operations/save" % (sessionUrl)
+    data = {}
+
+    performGenericOperation(connection, saveUrl, data)
+
+
 def saveRxf(connection, sessionUrl, rxfFilePath, overWrite=True):
     '''
         This method saves the current rxf to the disk of the machine on which the IxLoad instance is running.
@@ -345,6 +359,65 @@ def saveRxf(connection, sessionUrl, rxfFilePath, overWrite=True):
     data = {"fullPath": rxfFilePath, "overWrite": overWrite}
 
     performGenericOperation(connection, saveRxfUrl, data)
+
+
+def importConfig(connection, sessionUrl, srcFilePath, destRxfPath):
+    '''
+        This method will perform a POST request to load a repository.
+        Args:
+        - connection is the connection object that manages the HTTP data transfers between the client and the REST API
+        - sessionUrl is the address of the session to save the rxf for
+        - srcFilePath is the location for crf file on the machine that holds the IxLoad instance
+        - destRxfPath is the location where to save the rxf on the machine that holds the IxLoad instance
+    '''
+    importConfigUrl = "%s/ixload/test/operations/importConfig" % (sessionUrl)
+    srcFilePath = srcFilePath.replace("\\", "\\\\")
+    data = {"srcFile": srcFilePath, "destRxf": destRxfPath}
+
+    performGenericOperation(connection, importConfigUrl, data)
+
+
+def exportConfig(connection, sessionUrl, destFilePath):
+    '''
+        This method saves the current configuration as crf file to the disk of the machine on which the IxLoad instance is running.
+        Args:
+        - connection is the connection object that manages the HTTP data transfers between the client and the REST API
+        - sessionUrl is the address of the session to save the rxf for
+        - destFilePath is the location where to save the crf on the machine that holds the IxLoad instance
+    '''
+    exportConfigUrl =  "%s/ixload/test/operations/exportConfig" % (sessionUrl)
+    destFile = destFilePath.replace("\\", "\\\\")
+    data = {"destFile": destFile}
+
+    performGenericOperation(connection, exportConfigUrl, data)
+
+
+def applyConfiguration(connection, sessionUrl):
+    '''
+    This method is used to apply the currently loaded test. After starting the 'Apply Config' action, wait for the action to complete.
+        Args:
+            - connection is the connection object that manages the HTTP data transfers between the client and the REST API
+            - sessionUrl is the address of the session that should run the test.
+    '''
+
+    applyConfigurationUrl = "%s/ixload/test/operations/applyConfiguration" %(sessionUrl)
+    data = {}
+
+    performGenericOperation(connection, applyConfigurationUrl, data)
+
+
+def releaseConfiguration(connection, sessionUrl):
+    '''
+    This method is used to release the currently loaded test. After starting the 'Release Config' action, wait for the action to complete.
+        Args:
+            - connection is the connection object that manages the HTTP data transfers between the client and the REST API
+            - sessionUrl is the address of the session that should run the test.
+    '''
+
+    releaseConfigUrl = "%s/ixload/test/operation/abortAndReleaseConfigWaitFinish"  %(sessionUrl)
+    data = {}
+
+    performGenericOperation(connection, releaseConfigUrl, data)
 
 
 def runTest(connection, sessionUrl):
@@ -486,19 +559,23 @@ def retrieveCaptureFileForPorts(connection, sessionUrl, communityPortIdTuple, ca
         return 1
 
     captureFile = captureFile.replace("\\\\", "\\")
-    try:
-        fileHandle = open(captureFile, 'wb')
-    except IOError:
-        log("Could not open or create file, please check path and/or permissions")
-        return 2
 
     portUrl = sessionUrl + ("/ixload/test/activeTest/communityList/%s/network/portList" % communityObjectID)
     captureUrl = portUrl + "/%s/restCaptureFile" % portObjectID
     capturePayload = connection.httpRequest('GET', captureUrl, downloadStream=True)
-    for chunk in capturePayload.iter_content(chunk_size=1024):
-        fileHandle.write(chunk)
 
-    fileHandle.close()
+    fileHandle = None
+    try:
+        with open(captureFile, 'wb') as fileHandle:
+            for chunk in capturePayload.iter_content(chunk_size=1024):
+                fileHandle.write(chunk)
+    except IOError:
+        log("Could not open or create file, please check path and/or permissions")
+        return 2
+    finally:
+        if fileHandle:
+            fileHandle.close()
+    
     return 0
 
 
@@ -509,7 +586,7 @@ def retrieveCaptureFileForAssignedPorts(connection, sessionUrl, captureFolder):
         Args:
         - connection is the connection object that manages the HTTP data transfers between the client and the REST API
         - sessionUrl is the address of the session on which the test was ran.
-        - captureFile is the save path for the capture file
+        - captureFolder is the folder where the capture file will be saved
 
     '''
     communtiyListUrl = "%s/ixload/test/activeTest/communityList" % sessionUrl
@@ -522,14 +599,14 @@ def retrieveCaptureFileForAssignedPorts(connection, sessionUrl, captureFolder):
         portList = connection.httpGet(portListUrl)
         for port in portList:
             captureUrl = portListUrl + "/%s/restCaptureFile" % port.objectID
-            capturePayload = connection.httpRequest('GET', captureUrl)
+            capturePayload = connection.httpRequest('GET', captureUrl, downloadStream=True)
             captureName = "Capture_%s_%s.cap" % (community.objectID, port.id)
             captureFile = '/'.join([captureFolder, captureName])
             fileHandle = None
             try:
-                fileHandle = open(captureFile, 'wb')
-                for chunk in capturePayload.iter_content(chunk_size=1024):
-                    fileHandle.write(chunk)
+                with open(captureFile, 'wb') as fileHandle:
+                    for chunk in capturePayload.iter_content(chunk_size=1024):
+                        fileHandle.write(chunk)
             except IOError:
                 log("Could not open or create file, please check path and/or permissions")
                 return 2
@@ -781,18 +858,25 @@ def assignPorts(connection, sessionUrl, portListPerCommunity):
     communityListUrl = "%s/ixload/test/activeTest/communityList" % sessionUrl
 
     communityList = connection.httpGet(url=communityListUrl)
+    communityNameList = [community.name for community in communityList]
+
+    for communityName in portListPerCommunity:
+        if communityName not in communityNameList:
+            errorMsg = "Error while executing assignPorts operation. Invalid NetTraffic name: %s. This NetTraffic is not defined in the loaded rxf." % communityName
+            raise Exception(errorMsg)
 
     for community in communityList:
-        portListForCommunity = portListPerCommunity.get(community.name)
-
-        portListUrl = "%s/%s/network/portList" % (communityListUrl, community.objectID)
-
-        if portListForCommunity:
+        if portListPerCommunity.get(community.name):
+            portListForCommunity = portListPerCommunity.get(community.name)
+            portListUrl = "%s/%s/network/portList" % (communityListUrl, community.objectID)
             for portTuple in portListForCommunity:
                 chassisId, cardId, portId = portTuple
                 paramDict = {"chassisId": chassisId, "cardId": cardId, "portId": portId}
 
                 performGenericPost(connection, portListUrl, paramDict)
+        else:
+            errorMsg = "Error while executing assignPorts operation. For community: %s you dont't have ports assigned." % community.name
+            raise Exception(errorMsg)
 
 
 def changeCardsInterfaceMode(connection, chassisChainUrl, chassisIp, cardIdList, mode):
@@ -1358,6 +1442,7 @@ class ImapUtils(ActivityNetworkMixinUtils):
         imapMailsUrl = '%s/%s/agent/pm/imapServerConfig/mails' % (activityListUrl, activity.objectID)
         performGenericPost(connection, imapMailsUrl, optionsDict)
 
+
 class POP3Utils(ActivityNetworkMixinUtils):
 
     @staticmethod
@@ -1443,7 +1528,6 @@ class cifsUtils(ActivityNetworkMixinUtils):
         performGenericPost(connection, cifsCommandsUrl, optionsDict)
 
 
-
 class StatelessPeerUtils(ActivityNetworkMixinUtils):
 
     @staticmethod
@@ -1499,3 +1583,11 @@ class VoipPeerUtils(ActivityNetworkMixinUtils):
         scenarioSettingsUrl = '%s/%s/agent/pm/scenarioSettings' % (activityListUrl, activity.objectID)
         performGenericPatch(connection, scenarioSettingsUrl, optionsDict)
 
+
+class IPTVUtils(ActivityNetworkMixinUtils):
+
+    @staticmethod
+    def addIPTVCommand(connection, sessionUrl, communityName, activityName, optionsDict):
+        activityListUrl, activity = IPTVUtils.getActivityByName(connection, sessionUrl, communityName, activityName)
+        iptvCommandsUrl = '%s/%s/agent/pm/commands' % (activityListUrl, activity.objectID)
+        performGenericPost(connection, iptvCommandsUrl, optionsDict)
