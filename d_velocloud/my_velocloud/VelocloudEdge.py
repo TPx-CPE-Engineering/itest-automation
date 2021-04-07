@@ -519,6 +519,21 @@ class VeloCloudEdge(object):
 
         return self.client.call_api(method=method, params=params)
 
+    def get_enterprise_edge_info(self, specific_key=None):
+        method = 'enterprise/getEnterpriseEdges'
+        params = {
+            "edgeIds": [self.id],
+            "enterpriseId": self.enterprise_id,
+        }
+
+        edge_information = self.client.call_api(method=method, params=params)
+
+        if specific_key is None:
+            return edge_information
+
+        specific_value = edge_information[0].get(specific_key)
+        return {specific_key: specific_value}
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
