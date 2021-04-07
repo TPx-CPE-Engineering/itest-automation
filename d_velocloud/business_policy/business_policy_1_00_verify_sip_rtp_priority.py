@@ -134,6 +134,6 @@ def start_ix_load():
 def get_test_results():
     print('todo')
 
+
 if __name__ == '__main__':
-    create_edge(edge_id=10, enterprise_id=1)
-    start_ix_load()
+    create_edge(edge_id=246, enterprise_id=1)
