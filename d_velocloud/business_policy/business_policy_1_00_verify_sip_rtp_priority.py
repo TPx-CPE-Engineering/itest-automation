@@ -3,15 +3,17 @@ from my_velocloud.VelocloudEdge import VeloCloudEdge
 from ix_load.Modules.IxL_RestApi import *
 import json
 from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
+import time
 
 DUT_EDGE: VeloCloudEdge
-
 IxLoad = IxLoadApi()
+EPOCH = int()
 
 
 def create_edge(edge_id, enterprise_id):
-    global DUT_EDGE
+    global DUT_EDGE, EPOCH
     DUT_EDGE = VeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
+    EPOCH = int(round(time.time() * 1000))
 
 
 def check_if_application_traffic_has_priority_set_to_multi_path_high(segment_name, application_name):
@@ -135,5 +137,13 @@ def get_test_results():
     print('todo')
 
 
+def check_edge_events():
+    events = DUT_EDGE.get_enterprise_events(start_interval=1617309528)
+    for event in events['data']:
+        if event['severity'] == 'NOTICE' and "Standby going active" in event['message']:
+            print(event)
+
+
 if __name__ == '__main__':
     create_edge(edge_id=246, enterprise_id=1)
+    check_edge_events()

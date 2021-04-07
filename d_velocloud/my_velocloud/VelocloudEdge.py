@@ -534,6 +534,18 @@ class VeloCloudEdge(object):
         specific_value = edge_information[0].get(specific_key)
         return {specific_key: specific_value}
 
+    def get_enterprise_events(self, start_interval):
+        method = 'event/getEnterpriseEvents'
+        params = {
+            "enterpriseId": self.enterprise_id,
+            "interval": {
+                "start": start_interval,
+            },
+            "edgeId": self.id
+        }
+
+        return self.client.call_api(method=method, params=params)
+
 
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
