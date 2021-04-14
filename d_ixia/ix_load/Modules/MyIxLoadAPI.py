@@ -42,11 +42,11 @@ class IxLoadApi(Main):
 
     def poll_stats_for_1_00_test2(self):
         stats_dict = {
-            'RTP(VoIPSip)': [{'caption': 'RTP Packets Sent'},
-                             {'caption': 'MOS Worst'},
-                             {'caption': 'RTP Lost Packets'},
-                             {'caption': 'Throughput Outbound (Kbps)'},
-                             {'caption': 'Throughput Inbound (Kbps)'},
+            'RTP(VoIPSip)': ['RTP Packets Sent',
+                             'MOS Worst',
+                             'RTP Lost Packets',
+                             'Throughput Outbound (Kbps)',
+                             'Throughput Inbound (Kbps)',
                              ]
         }
         stats = self.pollStats(statsDict=stats_dict, exitAfterPollingIteration=10)
