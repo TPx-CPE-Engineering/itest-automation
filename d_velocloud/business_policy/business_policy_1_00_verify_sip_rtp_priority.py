@@ -14,6 +14,7 @@ def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, EPOCH
     DUT_EDGE = VeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
     EPOCH = int(round(time.time() * 1000))
+    return DUT_EDGE, EPOCH
 
 
 def check_if_application_traffic_has_priority_set_to_multi_path_high(segment_name, application_name):
