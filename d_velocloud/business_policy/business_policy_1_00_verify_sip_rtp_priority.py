@@ -138,13 +138,14 @@ def get_test_results():
     print('todo')
 
 
-def check_edge_events():
-    events = DUT_EDGE.get_enterprise_events(start_interval=1617309528)
+def check_edge_events(start_interval):
+    events = DUT_EDGE.get_enterprise_events(start_interval=start_interval)
     for event in events['data']:
-        if event['severity'] == 'NOTICE' and "Standby going active" in event['message']:
-            print(event)
+        print(event)
+        # if event['severity'] == 'NOTICE' and "Standby going active" in event['message']:
+        #     print(event)
 
 
 if __name__ == '__main__':
-    create_edge(edge_id=246, enterprise_id=1)
-    check_edge_events()
+    edge, epoch = create_edge(edge_id=246, enterprise_id=1)
+    check_edge_events(start_interval=epoch)
