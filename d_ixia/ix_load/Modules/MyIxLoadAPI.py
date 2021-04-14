@@ -1,3 +1,5 @@
+import json
+
 from d_ixia.ix_load.Modules.IxL_RestApi import Main, IxLoadRestApiException
 
 
@@ -38,4 +40,14 @@ class IxLoadApi(Main):
         }
         self.pollStatsAndCheckStatResults(statsDict=stats_dict)
 
-
+    def poll_stats_for_1_00_test2(self):
+        stats_dict = {
+            'RTP(VoIPSip)': [{'caption': 'RTP Packets Sent'},
+                             {'caption': 'MOS Worst'},
+                             {'caption': 'RTP Lost Packets'},
+                             {'caption': 'Throughput Outbound (Kbps)'},
+                             {'caption': 'Throughput Inbound (Kbps)'},
+                             ]
+        }
+        stats = self.pollStats(statsDict=stats_dict, exitAfterPollingIteration=10)
+        print(json.dumps(stats, indent=2))
