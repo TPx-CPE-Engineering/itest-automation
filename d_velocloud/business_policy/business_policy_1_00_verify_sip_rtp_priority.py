@@ -14,8 +14,8 @@ def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, EPOCH
     DUT_EDGE = VeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
     EPOCH = int(round(time.time() * 1000))
+    print(EPOCH)
     return DUT_EDGE, EPOCH
-
 
 def check_if_application_traffic_has_priority_set_to_multi_path_high(segment_name, application_name):
     # Configure > Profiles > CPE Engineering Base Profile
@@ -80,8 +80,8 @@ def check_if_static_route_is_in_enterprise_gateway(segment_name, static_route):
 
 
 def connect_ix_load():
-    # api_server_ip = '127.0.0.1'
-    # ixload_version = '8.50.115.542'
+    api_server_ip = '127.0.0.1'
+    ixload_version = '8.50.115.542'
     config = "C:\\Users\\dataeng\\Documents\\Ixia\\IxLoad\\Repository\\Dev_Velo620HA-g711+VoiceBsoftFXSStressTest_1-50+Acme+FTP2Ixia.rxf"
 
     stats_dict = {
@@ -91,61 +91,54 @@ def connect_ix_load():
                          ]
     }
 
-    # ixload_rest_client = Main(apiServerIp=api_server_ip,
-    #                           apiServerIpPort=8443)
-    #
-    # # To delete all the sessions in Ix Load
-    # # r = ixload_rest_client.delete(restApi='https://127.0.0.1:8443/api/v0/sessions')
-    #
-    # ixload_rest_client.connect(ixLoadVersion=ixload_version)
-    # ixload_rest_client.enableDebugLogFile = False
-    #
-    # print('Loading config file...')
-    # ixload_rest_client.loadConfigFile(rxfFile=config)
-    # print('Config file loaded.')
-    #
-    # ixload_rest_client.enableForceOwnership()
-    # ixload_rest_client.enableAnalyzerOnAssignedPorts()
-    # ixload_rest_client.configTimeline(name='Timeline1', sustainTime=1)
-    #
-    # ixload_rest_client.runTraffic()
-    #
-    # ixload_rest_client.pollStatsAndCheckStatResults(statsDict=stats_dict)
-    #
-    # test_results = ixload_rest_client.getTestResults()
-    #
-    # ixload_rest_client.waitForActiveTestToUnconfigure()
-    # # ixload_rest_client.gracefulStopRun()
-    #
-    # print('Deleting Session...')
-    # ixload_rest_client.deleteSessionId()
-    # print('Session deleted.')
-    #
+    ixload_rest_client = IxLoadApi()
+
+    # To delete all the sessions in Ix Load
+    # r = ixload_rest_client.delete(restApi='https://127.0.0.1:8443/api/v0/sessions')
+
+    ixload_rest_client.connect(ixLoadVersion=ixload_version)
+    ixload_rest_client.enableDebugLogFile = False
+
+    print('Loading config file...')
+    ixload_rest_client.loadConfigFile(rxfFile=config)
+    print('Config file loaded.')
+
+    ixload_rest_client.enableForceOwnership()
+    ixload_rest_client.enableAnalyzerOnAssignedPorts()
+    ixload_rest_client.configTimeline(name='Timeline1', sustainTime=60)
+
+    ixload_rest_client.runTraffic()
+
+    ixload_rest_client.check_for_inbound_outbound_throughput_consistency()
+
+    print('Deleting Session...')
+    ixload_rest_client.deleteSessionId()
+    print('Session deleted.')
+
     # print(test_results)
 
-    global IxLoad
-    IxLoad.start_test(rxf_config_file=config, stats_dict=stats_dict)
+    # global IxLoad
+    # IxLoad.start_test(rxf_config_file=config, stats_dict=stats_dict)
 
-    print('\n\n\n')
-    print(IxLoad.testResults)
-
-
-def start_ix_load():
-    print('todo')
-
-
-def get_test_results():
-    print('todo')
+    # print('\n\n\n')
+    # print(IxLoad.testResults)
 
 
 def check_edge_events(start_interval):
+    print(f"Start Invertal: {start_interval}")
     events = DUT_EDGE.get_enterprise_events(start_interval=start_interval)
-    for event in events['data']:
-        print(event)
+
+    print(json.dumps(events['data']))
+    # for event in events['data']:
+    #     print(event)
+
         # if event['severity'] == 'NOTICE' and "Standby going active" in event['message']:
         #     print(event)
 
 
 if __name__ == '__main__':
-    edge, epoch = create_edge(edge_id=246, enterprise_id=1)
-    check_edge_events(start_interval=epoch)
+    # edge, epoch = create_edge(edge_id=246, enterprise_id=1)
+
+    print(int(time.time() * 1000))
+    print(time.time())
+    # connect_ix_load()

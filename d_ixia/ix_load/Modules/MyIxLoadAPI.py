@@ -1,5 +1,5 @@
 import json
-
+import time
 from d_ixia.ix_load.Modules.IxL_RestApi import Main, IxLoadRestApiException
 
 
@@ -29,25 +29,60 @@ class IxLoadApi(Main):
         self.waitForActiveTestToUnconfigure()
         self.deleteSessionId()
 
-    def poll_stats_for_1_00_test(self):
-        stats_dict = {
-            'RTP(VoIPSip)': [{'caption': 'RTP Packets Sent', 'operator': '>', 'expect': 15},
-                             {'caption': 'MOS Worst', 'operator': '>', 'expect': 10},
-                             {'caption': 'RTP Lost Packets', 'operator': '>', 'expect': 10},
-                             {'caption': 'Throughput Outbound (Kbps)', 'operator': '>', 'expect':10},
-                             {'caption': 'Throughput Inbound (Kbps)', 'operator': '>', 'expect':10},
-                             ]
-        }
-        self.pollStatsAndCheckStatResults(statsDict=stats_dict)
+    def check_for_inbound_outbound_throughput_consistency(self, max_difference=1):
+        stats = ['Throughput Inbound (Kbps)', 'Throughput Outbound (Kbps)']
+        inbound_values = []
+        outbound_values = []
 
-    def poll_stats_for_1_00_test2(self):
-        stats_dict = {
-            'RTP(VoIPSip)': ['RTP Packets Sent',
-                             'MOS Worst',
-                             'RTP Lost Packets',
-                             'Throughput Outbound (Kbps)',
-                             'Throughput Inbound (Kbps)',
-                             ]
-        }
-        stats = self.pollStats(statsDict=stats_dict, exitAfterPollingIteration=10)
-        print(json.dumps(stats, indent=2))
+        current_state = 'Running'
+        while current_state == 'Running':
+            if current_state == 'Running':
+
+                stats_url = self.sessionIdUrl + '/ixLoad/stats/restStatViews/18/values'
+                rest_stat_views_stats = self.getStats(stats_url)
+
+                highestTimestamp = 0
+                # Each timestamp & statnames: values
+                for eachTimestamp, valueList in rest_stat_views_stats.json().items():
+                    if eachTimestamp == 'error':
+                        raise IxLoadRestApiException(
+                            'pollStats error: Probable cause: Mis-configured stat names to retrieve.')
+
+                    if int(eachTimestamp) > highestTimestamp:
+                        highestTimestamp = int(eachTimestamp)
+
+                if highestTimestamp == 0:
+                    time.sleep(3)
+                    continue
+
+                for stat in stats:
+                    if stat in rest_stat_views_stats.json()[str(highestTimestamp)]:
+                        statValue = rest_stat_views_stats.json()[str(highestTimestamp)][stat]
+                        if stat == "Throughput Outbound (Kbps)":
+                            # outbound_values.append(statValue)
+                            outbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat, 'stat_value': statValue})
+                        if stat == "Throughput Inbound (Kbps)":
+                            # inbound_values.append(statValue)
+                            inbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat, 'stat_value': statValue})
+            time.sleep(2)
+            current_state = self.getActiveTestCurrentState(silentMode=True)
+
+        test_pass = True
+        for inbound_value, outbound_value in zip(inbound_values, outbound_values):
+            if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
+                test_pass = False
+                break
+
+        if test_pass:
+            print(f'Test Passed.')
+            print(f'There was not a time when Throughput Inbound (Kbps) and Throughput Outbound (Kbps) had values '
+                  f'differ more than {max_difference} Kbps.')
+        else:
+            print(f'Test Failed.')
+            for inbound_value, outbound_value in zip(inbound_values, outbound_values):
+                if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
+                    print(f"Error: There was a value difference greater than {max_difference} between "
+                          f"{inbound_value['stat_name']} and {outbound_value['stat_name']} at time {inbound_value['stat_time']}.")
+
+        print(json.dumps(inbound_values))
+        print(json.dumps(outbound_values))
