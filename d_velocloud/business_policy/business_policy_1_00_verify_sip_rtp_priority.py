@@ -13,9 +13,10 @@ EPOCH = int()
 def create_edge(edge_id, enterprise_id):
     global DUT_EDGE, EPOCH
     DUT_EDGE = VeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
+    device_family = DUT_EDGE.get_edge()['deviceFamily']
     EPOCH = int(round(time.time() * 1000))
-    print(EPOCH)
-    return DUT_EDGE, EPOCH
+    return DUT_EDGE, EPOCH, device_family
+
 
 def check_if_application_traffic_has_priority_set_to_multi_path_high(segment_name, application_name):
     # Configure > Profiles > CPE Engineering Base Profile
@@ -137,8 +138,5 @@ def check_edge_events(start_interval):
 
 
 if __name__ == '__main__':
-    # edge, epoch = create_edge(edge_id=246, enterprise_id=1)
-
-    print(int(time.time() * 1000))
-    print(time.time())
+    edge, epoch, df = create_edge(edge_id=246, enterprise_id=1)
     # connect_ix_load()

@@ -19,6 +19,14 @@ class VeloCloudEdge(object):
         if authenticate:
             self.client.authenticate(username=username, password=password, is_operator=is_operator)
 
+    def get_edge(self):
+        method = '/edge/getEdge/'
+        params = {"id": self.id,
+                  "enterpriseId": self.enterprise_id}
+
+        response = self.client.call_api(method=method, params=params)
+        return response
+
     def set_live_mode_token(self):
         """
         Set Live Mode Token
