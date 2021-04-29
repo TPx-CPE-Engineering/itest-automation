@@ -19,6 +19,28 @@ class VeloCloudEdge(object):
         if authenticate:
             self.client.authenticate(username=username, password=password, is_operator=is_operator)
 
+    def get_active_device_serial_number(self):
+        edge_info = self.get_edge()
+
+        # Depending on the device family, we either collect the first or last 3 characters
+        models_to_get_last_three_serial_numbers = ['EDGE5X0', 'EDGE8X0']
+
+        if edge_info['deviceFamily'] in models_to_get_last_three_serial_numbers:
+            return edge_info['serialNumber'][-3:]
+        else:
+            return edge_info['serialNumber'][:3]
+
+    def get_ha_device_serial_number(self):
+        edge_info = self.get_edge()
+
+        # Depending on the device family, we either collect the first or last 3 characters
+        models_to_get_last_three_serial_numbers = ['EDGE5X0', 'EDGE8X0']
+
+        if edge_info['deviceFamily'] in models_to_get_last_three_serial_numbers:
+            return edge_info['haSerialNumber'][-3:]
+        else:
+            return edge_info['haSerialNumber'][:3]
+
     def get_edge(self):
         method = '/edge/getEdge/'
         params = {"id": self.id,
