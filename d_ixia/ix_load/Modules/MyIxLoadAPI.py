@@ -84,5 +84,9 @@ class IxLoadApi(Main):
                     print(f"Error: There was a value difference greater than {max_difference} between "
                           f"{inbound_value['stat_name']} and {outbound_value['stat_name']} at time {inbound_value['stat_time']}.")
 
-        print(json.dumps(inbound_values, indent=2))
-        print(json.dumps(outbound_values, indent=2))
+        print('\nTime\t\tThroughput Inbound (Kbps)\t\tThroughput Outbound')
+        for in_value, out_value in zip(inbound_values, outbound_values):
+            if in_value['stat_time'] != out_value['stat_time']:
+                continue
+            else:
+                print(in_value['stat_time'] + '\t\t' + in_value['stat_value'] + '\t\t' + out_value['stat_value'])
