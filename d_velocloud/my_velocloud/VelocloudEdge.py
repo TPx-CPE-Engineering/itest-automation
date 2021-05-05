@@ -25,10 +25,17 @@ class VeloCloudEdge(object):
         # Depending on the device family, we either collect the first or last 3 characters
         models_to_get_last_three_serial_numbers = ['EDGE5X0', 'EDGE8X0']
 
+        response = {"serial number": None,
+                    "switch serial number": None}
+
         if edge_info['deviceFamily'] in models_to_get_last_three_serial_numbers:
-            return edge_info['serialNumber'][-3:]
+            response["serial number"] = edge_info["serialNumber"]
+            response["switch serial number"] = edge_info["serialNumber"][-3:]
+            return response
         else:
-            return edge_info['serialNumber'][:3]
+            response["serial number"] = edge_info["serialNumber"]
+            response["switch serial number"] = edge_info["serialNumber"][:3]
+            return response
 
     def get_ha_device_serial_number(self):
         edge_info = self.get_edge()
@@ -36,10 +43,17 @@ class VeloCloudEdge(object):
         # Depending on the device family, we either collect the first or last 3 characters
         models_to_get_last_three_serial_numbers = ['EDGE5X0', 'EDGE8X0']
 
+        response = {"ha serial number": None,
+                    "switch serial number": None}
+
         if edge_info['deviceFamily'] in models_to_get_last_three_serial_numbers:
-            return edge_info['haSerialNumber'][-3:]
+            response["ha serial number"] = edge_info["haSerialNumber"]
+            response["switch serial number"] = edge_info["haSerialNumber"][-3:]
+            return response
         else:
-            return edge_info['haSerialNumber'][:3]
+            response["ha serial number"] = edge_info["haSerialNumber"]
+            response["switch serial number"] = edge_info["haSerialNumber"][:3]
+            return response
 
     def get_edge(self):
         method = '/edge/getEdge/'
