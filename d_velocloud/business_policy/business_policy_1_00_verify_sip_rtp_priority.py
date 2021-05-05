@@ -133,10 +133,11 @@ def check_for_ha_going_active_in_edge_events(start_interval):
         if event['event'] == 'HA_GOING_ACTIVE':
             response['HA_GOING_ACTIVE Present'] = True
 
-    return response, events['data']
+    print(response)
+    print(json.dumps(events['data'], indent=2))
 
 
 if __name__ == '__main__':
     edge, epoch = create_edge(edge_id=246, enterprise_id=1)
     # 1620238407887
-    print(check_for_ha_going_active_in_edge_events(start_interval=1620239780887))
+    check_for_ha_going_active_in_edge_events(start_interval=1620239780887)
