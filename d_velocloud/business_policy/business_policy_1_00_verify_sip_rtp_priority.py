@@ -133,7 +133,7 @@ def check_for_ha_going_active_in_edge_events(start_interval):
         if event['event'] == 'HA_GOING_ACTIVE':
             response['HA_GOING_ACTIVE Present'] = True
 
-    return response
+    return response, events['data']
 
 
 if __name__ == '__main__':
