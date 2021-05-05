@@ -60,10 +60,12 @@ class IxLoadApi(Main):
                         statValue = rest_stat_views_stats.json()[str(highestTimestamp)][stat]
                         if stat == "Throughput Outbound (Kbps)":
                             # outbound_values.append(statValue)
-                            outbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat, 'stat_value': statValue})
+                            outbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat,
+                                                    'stat_value': statValue})
                         if stat == "Throughput Inbound (Kbps)":
                             # inbound_values.append(statValue)
-                            inbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat, 'stat_value': statValue})
+                            inbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat,
+                                                   'stat_value': statValue})
             time.sleep(2)
             current_state = self.getActiveTestCurrentState(silentMode=True)
 
@@ -82,11 +84,13 @@ class IxLoadApi(Main):
             for inbound_value, outbound_value in zip(inbound_values, outbound_values):
                 if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
                     print(f"Error: There was a value difference greater than {max_difference} between "
-                          f"{inbound_value['stat_name']} and {outbound_value['stat_name']} at time {inbound_value['stat_time']}.")
+                          f"{inbound_value['stat_name']} and {outbound_value['stat_name']} at time "
+                          f"{inbound_value['stat_time']}.")
 
         print('\nTime\t\tThroughput Inbound (Kbps)\t\tThroughput Outbound')
         for in_value, out_value in zip(inbound_values, outbound_values):
             if in_value['stat_time'] != out_value['stat_time']:
                 continue
             else:
-                print(in_value['stat_time'] + '\t\t' + in_value['stat_value'] + '\t\t' + out_value['stat_value'])
+                print(str(in_value['stat_time']) + '\t\t' + str(in_value['stat_value']) + '\t\t' +
+                      str(out_value['stat_value']))
