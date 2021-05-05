@@ -124,18 +124,19 @@ def connect_ix_load():
     # print(IxLoad.testResults)
 
 
-def check_edge_events(start_interval):
-    print(f"Start Invertal: {start_interval}")
+def check_for_ha_going_active_in_edge_events(start_interval):
+    # print(f"Start Interval: {start_interval}")
     events = DUT_EDGE.get_enterprise_events(start_interval=start_interval)
 
-    print(json.dumps(events['data']))
-    # for event in events['data']:
-    #     print(event)
+    response = {'HA_GOING_ACTIVE Present': False}
+    for event in events['data']:
+        if event['event'] == 'HA_GOING_ACTIVE':
+            response['HA_GOING_ACTIVE Present'] = True
 
-        # if event['severity'] == 'NOTICE' and "Standby going active" in event['message']:
-        #     print(event)
+    return response
 
 
 if __name__ == '__main__':
     edge, epoch = create_edge(edge_id=246, enterprise_id=1)
-    # connect_ix_load()
+    # 1620238407887
+    print(check_for_ha_going_active_in_edge_events(start_interval=1620239780887))
