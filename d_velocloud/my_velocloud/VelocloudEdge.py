@@ -583,7 +583,7 @@ class VeloCloudEdge(object):
         params = {
             "enterpriseId": self.enterprise_id,
             "interval": {
-                "start": start_interval,
+                "start": int(start_interval),
             },
             "edgeId": self.id
         }
