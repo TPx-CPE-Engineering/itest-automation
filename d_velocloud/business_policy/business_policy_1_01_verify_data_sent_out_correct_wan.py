@@ -32,14 +32,36 @@ import time
 
 DUT_EDGE: VeloCloudEdge
 IxLoad = IxLoadApi()
-EPOCH = int()
+
 
 def create_edge(edge_id, enterprise_id):
-    global DUT_EDGE, EPOCH
+    global DUT_EDGE
     DUT_EDGE = VeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
-    EPOCH = int(round(time.time() * 1000))
-    return DUT_EDGE, EPOCH
+    return DUT_EDGE
+
+
+# def get_active_wan_interfaces():
+#     wan_data = edge.get_module_from_edge_specific_profile(module_name='WAN')
+#     # print(json.dumps(wan_data, indent=2))
+#
+#     active_wan_interfaces = []
+#     for network in wan_data['data']['networks']:
+#         interface = network['interface']
+#         ip_address = network['ipAddress']
+#         wan_interface = {'interface': interface, 'ip address': ip_address}
+#         active_wan_interfaces.append(wan_interface)
+#         # active_wan_interfaces.append({'interface': network['interface'], 'ip address': network['ipAddress']})
+#     return active_wan_interfaces
+def push_business_policy_rule_to_segment(segment='Global Segment'):
+    qos_data = edge.get_module_from_edge_specific_profile(module_name='QOS')
+    print(json.dumps(qos_data, indent=2))
+    # Look for the desired segment
+    # Add rule to segment
+    # Push rule (execute api call)
+    edge.update_configuration_module(module=qos_data)
+
 
 if __name__ == '__main__':
-    edge, epoch = create_edge(edge_id=246, enterprise_id=1)
-    print(edge)
+    edge = create_edge(edge_id=240, enterprise_id=1)
+    # activate_interfaces = edge.get_active_wan_interfaces()
+    push_business_policy_rule_to_segment()
