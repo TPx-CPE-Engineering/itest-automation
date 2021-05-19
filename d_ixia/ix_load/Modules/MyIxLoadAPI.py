@@ -13,6 +13,7 @@ class IxLoadApi(Main):
                          robotFrameworkStdout=robot_framework_stdout)
         self.ixLoadVersion = ixload_version
         self.enableDebugLogFile = False
+        self.my_stats = []
 
     def start_test(self, rxf_config_file, stats_dict, enable_force_ownership=True):
 
@@ -30,67 +31,146 @@ class IxLoadApi(Main):
         self.deleteSessionId()
 
     def check_for_inbound_outbound_throughput_consistency(self, max_difference=1):
-        stats = ['Throughput Inbound (Kbps)', 'Throughput Outbound (Kbps)']
-        inbound_values = []
-        outbound_values = []
+        # test_pass = True
+        # for inbound_value, outbound_value in zip(inbound_values, outbound_values):
+        #     if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
+        #         test_pass = False
+        #         break
+        #
+        # if test_pass:
+        #     print({'Throughput Test': 'Passed'})
+        #     # print(f'Test Passed.')
+        #     print({'Message': f'There was not a time when Throughput Inbound (Kbps) and Throughput Outbound (Kbps) had values '
+        #           f'differ more than {max_difference} Kbps.'})
+        # else:
+        #     print({'Throughput Test': 'Failed'})
+        #     # print(f'Test Failed.')
+        #     for inbound_value, outbound_value in zip(inbound_values, outbound_values):
+        #         if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
+        #             print(f"Error: There was a value difference greater than {max_difference} between "
+        #                   f"{inbound_value['stat_name']} and {outbound_value['stat_name']} at time "
+        #                   f"{inbound_value['stat_time']}.")
+        #
+        # for data in delay_values:
+        #     print(f"{data['stat_time']} - {data['stat_value']}")
+        #
+        # print('\nTime' + '-'*12 + 'Throughput Inbound (Kbps)' + '-'*12 + 'Throughput Outbound')
+        #
+        # for in_value, out_value in zip(inbound_values, outbound_values):
+        #     if in_value['stat_time'] != out_value['stat_time']:
+        #         continue
+        #     else:
+        #         print(str(in_value['stat_time']) + '-'*12 + str(in_value['stat_value']) + '-'*12 +
+        #               str(out_value['stat_value']))
+        stats = self.my_stats
+        headers = ['Time', 'Throughput Inbound (Kbps)', 'Throughput Outbound (Kbps)', 'RTP One Way Delay (Avg) [us]']
+        data = []
+        for stat in stats:
+            time = stat['time']
+            next_stat = False
+            for d in data:
+                if time in d:
+                    next_stat = True
+            if next_stat:
+                continue
 
-        current_state = 'Running'
-        while current_state == 'Running':
-            if current_state == 'Running':
+            values = [time]
+            for stat2 in stats:
+                if stat2['time'] == time:
+                    values.append(stat2['stat value'])
 
-                stats_url = self.sessionIdUrl + '/ixLoad/stats/restStatViews/18/values'
-                rest_stat_views_stats = self.getStats(stats_url)
+            data.append(values)
 
-                highestTimestamp = 0
-                # Each timestamp & statnames: values
-                for eachTimestamp, valueList in rest_stat_views_stats.json().items():
-                    if eachTimestamp == 'error':
-                        raise IxLoadRestApiException(
-                            'pollStats error: Probable cause: Mis-configured stat names to retrieve.')
+        col_width = 0
+        for d in data:
+            for value in d:
+                if len(str(value)) > col_width:
+                    col_width = len(str(value))
 
-                    if int(eachTimestamp) > highestTimestamp:
-                        highestTimestamp = int(eachTimestamp)
+        for header in headers:
+            if len(header) > col_width:
+                col_width = len(header)
+        col_width += 2
 
-                if highestTimestamp == 0:
-                    time.sleep(3)
+        print("".join(header.ljust(col_width) for header in headers))
+        for d in data:
+            print("".join(str(value).ljust(col_width) for value in d))
+
+    def poll_inbound_outbound_throughput_stats(self):
+        statsDict = {
+            'restStatViews/18': ['Throughput Inbound (Kbps)',
+                                 'Throughput Outbound (Kbps)',
+                                 'RTP One Way Delay (Avg) [us]'
+                                 ]
+        }
+
+        pollStatInterval = 2
+        exitAfterPollingIteration = None
+        waitForRunningStatusCounter = 0
+        waitForRunningStatusCounterExit = 120
+        pollStatCounter = 0
+
+        while True:
+            currentState = self.getActiveTestCurrentState(silentMode=True)
+            self.logInfo('ActiveTest current status: %s. ' % currentState)
+            if currentState == 'Running':
+                if statsDict == None:
+                    time.sleep(1)
                     continue
 
-                for stat in stats:
-                    if stat in rest_stat_views_stats.json()[str(highestTimestamp)]:
-                        statValue = rest_stat_views_stats.json()[str(highestTimestamp)][stat]
-                        if stat == "Throughput Outbound (Kbps)":
-                            # outbound_values.append(statValue)
-                            outbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat,
-                                                    'stat_value': statValue})
-                        if stat == "Throughput Inbound (Kbps)":
-                            # inbound_values.append(statValue)
-                            inbound_values.append({'stat_time': highestTimestamp, 'stat_name': stat,
-                                                   'stat_value': statValue})
-            time.sleep(2)
-            current_state = self.getActiveTestCurrentState(silentMode=True)
+                # statType:  HTTPClient or HTTPServer (Just a example using HTTP.)
+                # statNameList: transaction success, transaction failures, ...
+                for statType, statNameList in statsDict.items():
+                    self.logInfo('\n%s:' % statType, timestamp=False)
+                    statUrl = self.sessionIdUrl + '/ixLoad/stats/' + statType + '/values'
+                    response = self.getStats(statUrl)
+                    highestTimestamp = 0
+                    # Each timestamp & stat-names: values
+                    for eachTimestamp, valueList in response.json().items():
+                        if eachTimestamp == 'error':
+                            raise IxLoadRestApiException(
+                                'pollStats error: Probable cause: Mis-configured stat names to retrieve.')
 
-        test_pass = True
-        for inbound_value, outbound_value in zip(inbound_values, outbound_values):
-            if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
-                test_pass = False
+                        if int(eachTimestamp) > highestTimestamp:
+                            highestTimestamp = int(eachTimestamp)
+
+                    if highestTimestamp == 0:
+                        time.sleep(3)
+                        continue
+
+                    # Get the interested stat names only
+                    for statName in statNameList:
+                        if statName in response.json()[str(highestTimestamp)]:
+                            statValue = response.json()[str(highestTimestamp)][statName]
+                            self.my_stats.append({'time': self.getTime().split('.')[0],
+                                                  'stat name': statName,
+                                                  'stat value': statValue})
+                            # self.my_stats.append([self.getTime().split('.')[0], statName, statValue])
+                            self.logInfo('\t%s: %s' % (statName, statValue), timestamp=False)
+                        else:
+                            self.logError('\tStat name not found. Check spelling and case sensitivity: %s' % statName)
+
+                time.sleep(pollStatInterval)
+
+                if exitAfterPollingIteration and pollStatCounter >= exitAfterPollingIteration:
+                    self.logInfo(
+                        'pollStats exitAfterPollingIteration is set to {} iterations. Current runtime iteration is {}. Exiting PollStats'.format(
+                            exitAfterPollingIteration, pollStatCounter))
+                    return
+
+                pollStatCounter += 1
+
+            elif currentState == "Unconfigured":
                 break
 
-        if test_pass:
-            print(f'Test Passed.')
-            print(f'There was not a time when Throughput Inbound (Kbps) and Throughput Outbound (Kbps) had values '
-                  f'differ more than {max_difference} Kbps.')
-        else:
-            print(f'Test Failed.')
-            for inbound_value, outbound_value in zip(inbound_values, outbound_values):
-                if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
-                    print(f"Error: There was a value difference greater than {max_difference} between "
-                          f"{inbound_value['stat_name']} and {outbound_value['stat_name']} at time "
-                          f"{inbound_value['stat_time']}.")
-
-        print('\nTime\t\tThroughput Inbound (Kbps)\t\tThroughput Outbound')
-        for in_value, out_value in zip(inbound_values, outbound_values):
-            if in_value['stat_time'] != out_value['stat_time']:
-                continue
             else:
-                print(str(in_value['stat_time']) + '\t\t' + str(in_value['stat_value']) + '\t\t' +
-                      str(out_value['stat_value']))
+                # If currentState is "Stopping Run" or Cleaning
+                if waitForRunningStatusCounter < waitForRunningStatusCounterExit:
+                    waitForRunningStatusCounter += 1
+                    self.logInfo('\tWaiting {0}/{1} seconds'.format(waitForRunningStatusCounter,
+                                                                    waitForRunningStatusCounterExit), timestamp=False)
+                    time.sleep(1)
+                    continue
+
+                if waitForRunningStatusCounter == waitForRunningStatusCounterExit:
+                    return 1
