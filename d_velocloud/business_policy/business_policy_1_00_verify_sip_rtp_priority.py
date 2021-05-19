@@ -4,6 +4,7 @@ from ix_load.Modules.IxL_RestApi import *
 import json
 from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
 import time
+import pandas
 
 DUT_EDGE: VeloCloudEdge
 IxLoad = IxLoadApi()
@@ -103,3 +104,5 @@ if __name__ == '__main__':
     ix_load.enableAnalyzerOnAssignedPorts()
     ix_load.runTraffic()
     ix_load.poll_inbound_outbound_throughput_stats()
+
+
