@@ -681,7 +681,6 @@ class Main():
                     self.abortActiveTest()
                 raise IxLoadRestApiException('Failed to add ports to chassisIp %s: %s:' % (chassisIp, failedToAddList))
 
-
     def enableForceOwnership(self):
         url = self.sessionIdUrl+'/ixLoad/test/activeTest'
         response = self.patch(url, data={'enableForceOwnership': True})
@@ -1568,7 +1567,6 @@ class Main():
         if searchNameExists == False:
             self.logError('configIp: No name found: {}'.format(searchName))
 
-
     def sshSetCredentials(self, username='ixload', password='ixia123', sshPasswordFile=None, port=22, pkeyFile=None):
         """
         For scpFiles and deleteFolder.
@@ -1591,8 +1589,9 @@ class Main():
             #     self.sshPassword = pwdFile.read().strip()
             self.sshPassword = self.readFile(sshPasswordFile)
         
-    def readFile(self, theFile):
-        with open (theFile, 'r') as fileObj:
+    @staticmethod
+    def readFile(theFile):
+        with open(theFile, 'r') as fileObj:
             fileContents = fileObj.read().strip()
 
         return fileContents
@@ -1649,6 +1648,7 @@ class Main():
                                                                       self.sshUsername, self.apiServerIp, destFilePath)
 
         self.logInfo('SCP Files: {} -> {}'.format(sourceFilePath, destFilePath))
+        cmd = ""
         output = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 
         while True:
