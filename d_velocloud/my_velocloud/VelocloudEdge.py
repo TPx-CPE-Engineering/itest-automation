@@ -591,234 +591,251 @@ class VeloCloudEdge(object):
 
         return self.client.call_api(method=method, params=params)
 
-    def add_business_policy_rule_to_segment(self, rule, segment_name='Global Segment'):
-        # Set Business Policy to prefer WAN_1
-        qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
+    def get_active_wan_interfaces(self):
+        # Get WAN Module from Edge Specific Profile
+        wan_data = self.get_module_from_edge_specific_profile(module_name='WAN')
 
-        # Lets check if the segment we want to add the rule to already exists
-        # else we will have to add segment's data
-        global_segment = None
-        for segment in qos_module['data']['segments']:
-            if segment['segment']['name'] == segment_name:
-                global_segment = segment
+        # Get active WAN interfaces
+        active_wan_interfaces = []
 
-        if global_segment is None:
-            # then we add segment's data
-            global_segment = {
-                "segment": {
-                    "segmentId": 0,
-                    "name": "Global Segment",
-                    "type": "REGULAR",
-                    "segmentLogicalId": "5dcc72f7-ed23-4bb1-9b7a-c5269d651a05"
-                },
-                "rules": [
-                    {
-                        "name": "[AUTOMATION] Prefer GE3",
-                        "match": {
-                            "appid": -1,
-                            "classid": -1,
-                            "dscp": -1,
-                            "sip": "any",
-                            "sport_high": -1,
-                            "sport_low": -1,
-                            "ssm": "255.255.255.255",
-                            "svlan": -1,
-                            "os_version": -1,
-                            "hostname": "",
-                            "dip": "any",
-                            "dport_low": -1,
-                            "dport_high": -1,
-                            "dsm": "255.255.255.255",
-                            "dvlan": -1,
-                            "proto": -1,
-                            "s_rule_type": "prefix",
-                            "d_rule_type": "prefix"
-                        },
-                        "action": {
-                            "routeType": "edge2Any",
-                            "allowConditionalBh": False,
-                            "userDisableConditionalBh": False,
-                            "edge2EdgeRouteAction": {
-                                "interface": "GE3",
-                                "subinterfaceId": -1,
-                                "linkInternalLogicalId": "auto",
-                                "linkPolicy": "fixed",
-                                "routeCfg": {},
-                                "routePolicy": "gateway",
-                                "serviceGroup": "ALL",
-                                "vlanId": -1,
-                                "wanlink": "GE3",
-                                "linkCosLogicalId": "",
-                                "linkOuterDscpTag": "CS0",
-                                "linkInnerDscpTag": ""
-                            },
-                            "edge2DataCenterRouteAction": {
-                                "interface": "GE3",
-                                "subinterfaceId": -1,
-                                "linkInternalLogicalId": "auto",
-                                "linkPolicy": "fixed",
-                                "routeCfg": {},
-                                "routePolicy": "auto",
-                                "serviceGroup": "ALL",
-                                "vlanId": -1,
-                                "wanlink": "GE3",
-                                "linkCosLogicalId": "",
-                                "linkOuterDscpTag": "CS0",
-                                "linkInnerDscpTag": ""
-                            },
-                            "edge2CloudRouteAction": {
-                                "interface": "GE3",
-                                "subinterfaceId": -1,
-                                "linkInternalLogicalId": "auto",
-                                "linkPolicy": "fixed",
-                                "routeCfg": {},
-                                "routePolicy": "gateway",
-                                "serviceGroup": "ALL",
-                                "vlanId": -1,
-                                "wanlink": "GE3",
-                                "linkCosLogicalId": None,
-                                "linkOuterDscpTag": "CS0",
-                                "linkInnerDscpTag": None
-                            },
-                            "QoS": {
-                                "type": "transactional",
-                                "rxScheduler": {
-                                    "bandwidth": -1,
-                                    "bandwidthCapPct": -1,
-                                    "queueLen": -1,
-                                    "burst": -1,
-                                    "latency": -1,
-                                    "priority": "normal"
-                                },
-                                "txScheduler": {
-                                    "bandwidth": -1,
-                                    "bandwidthCapPct": -1,
-                                    "queueLen": -1,
-                                    "burst": -1,
-                                    "latency": -1,
-                                    "priority": "normal"
-                                }
-                            },
-                            "sla": {
-                                "latencyMs": "0",
-                                "lossPct": "0.0",
-                                "jitterMs": "0"
-                            },
-                            "nat": {
-                                "sourceIp": "no",
-                                "destIp": "no"
-                            }
-                        }
-                    }
-                ],
-                "webProxy": {
-                    "providers": []
-                }
-            }
-            qos_module['data']['segments'].append(global_segment)
-        else:
-            # we append the rule to the already existing data
-            rule = {
-                "name": "[AUTOMATION] Prefer GE3",
-                "match": {
-                    "appid": -1,
-                    "classid": -1,
-                    "dscp": -1,
-                    "sip": "any",
-                    "sport_high": -1,
-                    "sport_low": -1,
-                    "ssm": "255.255.255.255",
-                    "svlan": -1,
-                    "os_version": -1,
-                    "hostname": "",
-                    "dip": "any",
-                    "dport_low": -1,
-                    "dport_high": -1,
-                    "dsm": "255.255.255.255",
-                    "dvlan": -1,
-                    "proto": -1,
-                    "s_rule_type": "prefix",
-                    "d_rule_type": "prefix"
-                },
-                "action": {
-                    "routeType": "edge2Any",
-                    "allowConditionalBh": False,
-                    "userDisableConditionalBh": False,
-                    "edge2EdgeRouteAction": {
-                        "interface": "GE3",
-                        "subinterfaceId": -1,
-                        "linkInternalLogicalId": "auto",
-                        "linkPolicy": "fixed",
-                        "routeCfg": {},
-                        "routePolicy": "gateway",
-                        "serviceGroup": "ALL",
-                        "vlanId": -1,
-                        "wanlink": "GE3",
-                        "linkCosLogicalId": None,
-                        "linkOuterDscpTag": "CS0",
-                        "linkInnerDscpTag": None
-                    },
-                    "edge2DataCenterRouteAction": {
-                        "interface": "GE3",
-                        "subinterfaceId": -1,
-                        "linkInternalLogicalId": "auto",
-                        "linkPolicy": "fixed",
-                        "routeCfg": {},
-                        "routePolicy": "auto",
-                        "serviceGroup": "ALL",
-                        "vlanId": -1,
-                        "wanlink": "GE3",
-                        "linkCosLogicalId": None,
-                        "linkOuterDscpTag": "CS0",
-                        "linkInnerDscpTag": None
-                    },
-                    "edge2CloudRouteAction": {
-                        "interface": "GE3",
-                        "subinterfaceId": -1,
-                        "linkInternalLogicalId": "auto",
-                        "linkPolicy": "fixed",
-                        "routeCfg": {},
-                        "routePolicy": "gateway",
-                        "serviceGroup": "ALL",
-                        "vlanId": -1,
-                        "wanlink": "GE3",
-                        "linkCosLogicalId": None,
-                        "linkOuterDscpTag": "CS0",
-                        "linkInnerDscpTag": None
-                    },
-                    "QoS": {
-                        "type": "transactional",
-                        "rxScheduler": {
-                            "bandwidth": -1,
-                            "bandwidthCapPct": -1,
-                            "queueLen": -1,
-                            "burst": -1,
-                            "latency": -1,
-                            "priority": "normal"
-                        },
-                        "txScheduler": {
-                            "bandwidth": -1,
-                            "bandwidthCapPct": -1,
-                            "queueLen": -1,
-                            "burst": -1,
-                            "latency": -1,
-                            "priority": "normal"
-                        }
-                    },
-                    "sla": {
-                        "latencyMs": "0",
-                        "lossPct": "0.0",
-                        "jitterMs": "0"
-                    },
-                    "nat": {
-                        "sourceIp": "no",
-                        "destIp": "no"
-                    }
-                }
-            }
-            global_segment['rules'].append(rule)
+        # Iterate over each network to get interface associations
+        for network in wan_data['data']['networks']:
+            interface = network['interface']
+            ip_address = network['ipAddress']
+            wan_interface = {'interface': interface, 'ip address': ip_address}
+            active_wan_interfaces.append(wan_interface)
 
-        qos_module['metadata']['override'] = True
+        return active_wan_interfaces
+
+
+    # def add_business_policy_rule_to_segment(self, rule, segment_name='Global Segment'):
+    #     # Set Business Policy to prefer WAN_1
+    #     qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
+    #
+    #     # Lets check if the segment we want to add the rule to already exists
+    #     # else we will have to add segment's data
+    #     global_segment = None
+    #     for segment in qos_module['data']['segments']:
+    #         if segment['segment']['name'] == segment_name:
+    #             global_segment = segment
+    #
+    #     if global_segment is None:
+    #         # then we add segment's data
+    #         global_segment = {
+    #             "segment": {
+    #                 "segmentId": 0,
+    #                 "name": "Global Segment",
+    #                 "type": "REGULAR",
+    #                 "segmentLogicalId": "5dcc72f7-ed23-4bb1-9b7a-c5269d651a05"
+    #             },
+    #             "rules": [
+    #                 {
+    #                     "name": "[AUTOMATION] Prefer GE3",
+    #                     "match": {
+    #                         "appid": -1,
+    #                         "classid": -1,
+    #                         "dscp": -1,
+    #                         "sip": "any",
+    #                         "sport_high": -1,
+    #                         "sport_low": -1,
+    #                         "ssm": "255.255.255.255",
+    #                         "svlan": -1,
+    #                         "os_version": -1,
+    #                         "hostname": "",
+    #                         "dip": "any",
+    #                         "dport_low": -1,
+    #                         "dport_high": -1,
+    #                         "dsm": "255.255.255.255",
+    #                         "dvlan": -1,
+    #                         "proto": -1,
+    #                         "s_rule_type": "prefix",
+    #                         "d_rule_type": "prefix"
+    #                     },
+    #                     "action": {
+    #                         "routeType": "edge2Any",
+    #                         "allowConditionalBh": False,
+    #                         "userDisableConditionalBh": False,
+    #                         "edge2EdgeRouteAction": {
+    #                             "interface": "GE3",
+    #                             "subinterfaceId": -1,
+    #                             "linkInternalLogicalId": "auto",
+    #                             "linkPolicy": "fixed",
+    #                             "routeCfg": {},
+    #                             "routePolicy": "gateway",
+    #                             "serviceGroup": "ALL",
+    #                             "vlanId": -1,
+    #                             "wanlink": "GE3",
+    #                             "linkCosLogicalId": "",
+    #                             "linkOuterDscpTag": "CS0",
+    #                             "linkInnerDscpTag": ""
+    #                         },
+    #                         "edge2DataCenterRouteAction": {
+    #                             "interface": "GE3",
+    #                             "subinterfaceId": -1,
+    #                             "linkInternalLogicalId": "auto",
+    #                             "linkPolicy": "fixed",
+    #                             "routeCfg": {},
+    #                             "routePolicy": "auto",
+    #                             "serviceGroup": "ALL",
+    #                             "vlanId": -1,
+    #                             "wanlink": "GE3",
+    #                             "linkCosLogicalId": "",
+    #                             "linkOuterDscpTag": "CS0",
+    #                             "linkInnerDscpTag": ""
+    #                         },
+    #                         "edge2CloudRouteAction": {
+    #                             "interface": "GE3",
+    #                             "subinterfaceId": -1,
+    #                             "linkInternalLogicalId": "auto",
+    #                             "linkPolicy": "fixed",
+    #                             "routeCfg": {},
+    #                             "routePolicy": "gateway",
+    #                             "serviceGroup": "ALL",
+    #                             "vlanId": -1,
+    #                             "wanlink": "GE3",
+    #                             "linkCosLogicalId": None,
+    #                             "linkOuterDscpTag": "CS0",
+    #                             "linkInnerDscpTag": None
+    #                         },
+    #                         "QoS": {
+    #                             "type": "transactional",
+    #                             "rxScheduler": {
+    #                                 "bandwidth": -1,
+    #                                 "bandwidthCapPct": -1,
+    #                                 "queueLen": -1,
+    #                                 "burst": -1,
+    #                                 "latency": -1,
+    #                                 "priority": "normal"
+    #                             },
+    #                             "txScheduler": {
+    #                                 "bandwidth": -1,
+    #                                 "bandwidthCapPct": -1,
+    #                                 "queueLen": -1,
+    #                                 "burst": -1,
+    #                                 "latency": -1,
+    #                                 "priority": "normal"
+    #                             }
+    #                         },
+    #                         "sla": {
+    #                             "latencyMs": "0",
+    #                             "lossPct": "0.0",
+    #                             "jitterMs": "0"
+    #                         },
+    #                         "nat": {
+    #                             "sourceIp": "no",
+    #                             "destIp": "no"
+    #                         }
+    #                     }
+    #                 }
+    #             ],
+    #             "webProxy": {
+    #                 "providers": []
+    #             }
+    #         }
+    #         qos_module['data']['segments'].append(global_segment)
+    #     else:
+    #         # we append the rule to the already existing data
+    #         rule = {
+    #             "name": "[AUTOMATION] Prefer GE3",
+    #             "match": {
+    #                 "appid": -1,
+    #                 "classid": -1,
+    #                 "dscp": -1,
+    #                 "sip": "any",
+    #                 "sport_high": -1,
+    #                 "sport_low": -1,
+    #                 "ssm": "255.255.255.255",
+    #                 "svlan": -1,
+    #                 "os_version": -1,
+    #                 "hostname": "",
+    #                 "dip": "any",
+    #                 "dport_low": -1,
+    #                 "dport_high": -1,
+    #                 "dsm": "255.255.255.255",
+    #                 "dvlan": -1,
+    #                 "proto": -1,
+    #                 "s_rule_type": "prefix",
+    #                 "d_rule_type": "prefix"
+    #             },
+    #             "action": {
+    #                 "routeType": "edge2Any",
+    #                 "allowConditionalBh": False,
+    #                 "userDisableConditionalBh": False,
+    #                 "edge2EdgeRouteAction": {
+    #                     "interface": "GE3",
+    #                     "subinterfaceId": -1,
+    #                     "linkInternalLogicalId": "auto",
+    #                     "linkPolicy": "fixed",
+    #                     "routeCfg": {},
+    #                     "routePolicy": "gateway",
+    #                     "serviceGroup": "ALL",
+    #                     "vlanId": -1,
+    #                     "wanlink": "GE3",
+    #                     "linkCosLogicalId": None,
+    #                     "linkOuterDscpTag": "CS0",
+    #                     "linkInnerDscpTag": None
+    #                 },
+    #                 "edge2DataCenterRouteAction": {
+    #                     "interface": "GE3",
+    #                     "subinterfaceId": -1,
+    #                     "linkInternalLogicalId": "auto",
+    #                     "linkPolicy": "fixed",
+    #                     "routeCfg": {},
+    #                     "routePolicy": "auto",
+    #                     "serviceGroup": "ALL",
+    #                     "vlanId": -1,
+    #                     "wanlink": "GE3",
+    #                     "linkCosLogicalId": None,
+    #                     "linkOuterDscpTag": "CS0",
+    #                     "linkInnerDscpTag": None
+    #                 },
+    #                 "edge2CloudRouteAction": {
+    #                     "interface": "GE3",
+    #                     "subinterfaceId": -1,
+    #                     "linkInternalLogicalId": "auto",
+    #                     "linkPolicy": "fixed",
+    #                     "routeCfg": {},
+    #                     "routePolicy": "gateway",
+    #                     "serviceGroup": "ALL",
+    #                     "vlanId": -1,
+    #                     "wanlink": "GE3",
+    #                     "linkCosLogicalId": None,
+    #                     "linkOuterDscpTag": "CS0",
+    #                     "linkInnerDscpTag": None
+    #                 },
+    #                 "QoS": {
+    #                     "type": "transactional",
+    #                     "rxScheduler": {
+    #                         "bandwidth": -1,
+    #                         "bandwidthCapPct": -1,
+    #                         "queueLen": -1,
+    #                         "burst": -1,
+    #                         "latency": -1,
+    #                         "priority": "normal"
+    #                     },
+    #                     "txScheduler": {
+    #                         "bandwidth": -1,
+    #                         "bandwidthCapPct": -1,
+    #                         "queueLen": -1,
+    #                         "burst": -1,
+    #                         "latency": -1,
+    #                         "priority": "normal"
+    #                     }
+    #                 },
+    #                 "sla": {
+    #                     "latencyMs": "0",
+    #                     "lossPct": "0.0",
+    #                     "jitterMs": "0"
+    #                 },
+    #                 "nat": {
+    #                     "sourceIp": "no",
+    #                     "destIp": "no"
+    #                 }
+    #             }
+    #         }
+    #         global_segment['rules'].append(rule)
+    #
+    #     qos_module['metadata']['override'] = True
 
 
 # Class for BGP Testing
