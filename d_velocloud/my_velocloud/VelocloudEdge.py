@@ -590,23 +590,6 @@ class VeloCloudEdge(object):
 
         return self.client.call_api(method=method, params=params)
 
-    def get_active_wan_interfaces(self):
-        """
-        Returns the interface and ip address of edges active wan interfaces
-        :return: list of active wan interfaces
-        """
-        wan_data = self.get_module_from_edge_specific_profile(module_name='WAN')
-
-        active_wan_interfaces = []
-        for network in wan_data['data']['networks']:
-            interface = network['interface']
-            ip_address = network['ipAddress']
-            wan_interface = {'interface': interface, 'ip address': ip_address}
-            active_wan_interfaces.append(wan_interface)
-
-        return active_wan_interfaces
-
-
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
     
