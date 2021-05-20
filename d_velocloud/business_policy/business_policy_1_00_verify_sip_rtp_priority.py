@@ -1,10 +1,7 @@
-import time
 from my_velocloud.VelocloudEdge import VeloCloudEdge
-from ix_load.Modules.IxL_RestApi import *
 import json
 from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
 import time
-import pandas
 
 DUT_EDGE: VeloCloudEdge
 IxLoad = IxLoadApi()
