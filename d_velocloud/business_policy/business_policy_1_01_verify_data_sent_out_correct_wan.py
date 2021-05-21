@@ -313,6 +313,7 @@ def main():
     # Update the VeloCloud Edge config module to remove the rule from the segment
     update_business_policy = edge.update_configuration_module(module=qos_module)
 
+
 if __name__ == '__main__':
     edge = create_edge(edge_id=240, enterprise_id=1)
 
