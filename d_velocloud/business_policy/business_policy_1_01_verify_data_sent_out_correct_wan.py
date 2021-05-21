@@ -284,20 +284,36 @@ def main():
 
     # Do other things here....
 
-    # Get qos module again to remove business policy
-    qos_module = edge.get_module_from_edge_specific_profile(module_name='QOS')
+    # Get qos module again to remove business policy --- shouldnt need to
+    # qos_module = edge.get_module_from_edge_specific_profile(module_name='QOS')
 
-    # Get global segment again --- Not necessary to clear out ALL segments...
+    # # Get Global Segment again --- shouldnt need to
     # global_segment = None
     # for segment in qos_module['data']['segments']:
     #     if segment['segment']['name'] == 'Global Segment':
     #         global_segment = segment
 
-    # Clear out segments - WANT TO CLEAR OUT SPECIFIC RULE...Hmmm i think I broke the 3400
-    # qos_module['data']['segments'][0] = []
+    # Get Global Segment rules
+    global_segment_rules = global_segment['rules']
+    # print(json.dumps(global_segment_rules))
 
-    # Update the VeloCloud Edge config module to remove the segment
-    # update_business_policy = edge.update_configuration_module(module=qos_module)
+    for segment_rule in global_segment_rules:
+        if segment_rule['name'] == "[AUTOMATION] Prefer " + wan_1_interface:
+            print('rule exists...attempting deletion')
+            segment_rule = None
+
+            # print(json.dumps(segment_rule))
+
+            # How to append to global segment rule???
+            # global_segment['rules'].append(segment_rule)
+        else:
+            print('Rule doesnt exist')
+
+    # Clear out ALL segments
+    # qos_module['data']['segments'] = []
+
+    # Update the VeloCloud Edge config module to remove the rule from the segment
+    update_business_policy = edge.update_configuration_module(module=qos_module)
 
     # print('Business policy segments removed.')
 
