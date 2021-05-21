@@ -6,7 +6,8 @@
 # Verify data traffic is sent out correct WAN interface when configured in Business Policy
 #
 # Usage: 
-# Can be tested using ICMP ping. Otherwise, use Ixia to send FTP traffic, then steer it to a specific connection in Business Policy. 
+# Can be tested using ICMP ping. Otherwise, use Ixia to send FTP traffic, then steer it to
+# a specific connection in Business Policy.
 # (Configure > Edges > Business Policy > New Rule)
 #
 # Steps: 
@@ -172,7 +173,7 @@ def main():
         # Append to the global segment
         qos_module['data']['segments'].append(global_segment)
 
-    # If the segment already exists, add the rule to the existing segment
+    # Else the segment already exists, add the rule to the existing segment
     else:
         # we append the rule to the already existing data
         rule = {
@@ -316,6 +317,7 @@ def main():
     update_business_policy = edge.update_configuration_module(module=qos_module)
 
     # print('Business policy segments removed.')
+
 
 if __name__ == '__main__':
     edge = create_edge(edge_id=240, enterprise_id=1)
