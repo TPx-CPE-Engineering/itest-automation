@@ -617,6 +617,7 @@ class VeloCloudEdge(object):
 
         segment_to_update = None
 
+        # Testing purposes only
         wan_1_interface = "GE4"
 
         for segment in qos_module['data']['segments']:
