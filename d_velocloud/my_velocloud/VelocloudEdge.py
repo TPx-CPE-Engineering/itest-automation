@@ -850,10 +850,9 @@ class VeloCloudEdge(object):
             # Update the business policy
             update_business_policy = self.update_configuration_module(module=qos_module)
 
-
 # Class for BGP Testing
 class BGPVeloCloudEdge(VeloCloudEdge):
-    
+
     def __init__(self, edge_id, enterprise_id):
         super().__init__(edge_id, enterprise_id)
 
@@ -1685,5 +1684,6 @@ class LANSideNatVelocloudEdge(VeloCloudEdge):
 
         return self.update_configuration_module(module=device_settings)
 
+
 # if __name__ == "main":
-#     VeloCloudEdge.add_business_policy_rule_to_segment('Global Segment')
+#     VeloCloudEdge.add_business_policy_rule_to_segment()
