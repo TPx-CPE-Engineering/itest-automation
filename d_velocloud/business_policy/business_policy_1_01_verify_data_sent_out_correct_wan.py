@@ -10,7 +10,7 @@
 # a specific connection in Business Policy.
 # (Configure > Edges > Business Policy > New Rule)
 #
-# Steps: 
+# Steps:
 # 1.)  Get VeloCloud Edge
 # 2.)  Get active Edge WAN interfaces
 # 3.)  Configure Business Policy to prefer one interface over the other
@@ -296,17 +296,14 @@ def main():
 
     # Get Global Segment rules
     global_segment_rules = global_segment['rules']
-    # print(json.dumps(global_segment_rules))
 
     for segment_rule in global_segment_rules:
         if segment_rule['name'] == "[AUTOMATION] Prefer " + wan_1_interface:
-            print('rule exists...attempting deletion')
-            segment_rule = None
+            print('Found the following rule. Attempting deletion of: ')
+            print(segment_rule)
+            print()
 
-            # print(json.dumps(segment_rule))
-
-            # How to append to global segment rule???
-            # global_segment['rules'].append(segment_rule)
+            global_segment_rules = global_segment_rules.remove(segment_rule)
         else:
             print('Rule doesnt exist')
 
@@ -315,9 +312,6 @@ def main():
 
     # Update the VeloCloud Edge config module to remove the rule from the segment
     update_business_policy = edge.update_configuration_module(module=qos_module)
-
-    # print('Business policy segments removed.')
-
 
 if __name__ == '__main__':
     edge = create_edge(edge_id=240, enterprise_id=1)
