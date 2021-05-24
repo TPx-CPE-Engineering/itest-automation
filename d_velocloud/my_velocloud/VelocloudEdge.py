@@ -240,7 +240,7 @@ class VeloCloudEdge(object):
         # Continue to get live data until you obtain the data from the action key
         while not dump_complete:
             time.sleep(1)
-            print('get data...')
+            print('Getting live data...')
             # We're looking for a status value greater than 1 as a cue that the remote procedure has
             # completed.
             #
@@ -867,8 +867,7 @@ class VeloCloudEdge(object):
 
         print('Business Policy Added')
 
-
-    def live_request_flush_flows(self, src_ip:str = None, dst_ip:str = None):
+    def remote_diagnostics_flush_flows(self, src_ip:str = None, dst_ip:str = None):
         """
         Execute a live action to flush the flows for the edge
 
@@ -881,7 +880,6 @@ class VeloCloudEdge(object):
 
         if self.live_mode_token is None:
             self.set_live_mode_token()
-            time.sleep(5)
 
         # parameter = {
         #     'src_ip': src_ip,
@@ -917,7 +915,10 @@ class VeloCloudEdge(object):
         action_key = action_result['actionsRequested'][0]['actionId']
 
         # Look up the live action's results based on the action key
-        return self.get_html_results_from_action_key(action_key=action_key)
+        print(self.get_html_results_from_action_key(action_key=action_key))
+
+        # Exit live mode gracefully
+        self.exit_live_mode()
 
 
 # Class for BGP Testing
