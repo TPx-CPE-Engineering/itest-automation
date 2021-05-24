@@ -24,7 +24,7 @@
 # 11.) Clean up
 
 from my_velocloud.VelocloudEdge import VeloCloudEdge
-import json
+import json, time
 
 # from ix_load.Modules.IxL_RestApi import *
 # from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
@@ -51,38 +51,21 @@ def main():
 
     # Check to see if the segment exists.
     global_segment = None
-    segment_id = None
-    segment_type = None
-    segment_logical_id = None
 
     for segment in qos_module['data']['segments']:
         if segment['segment']['name'] == 'Global Segment':
             global_segment = segment
-
-            if segment['segment']['segmentId']:
-                segment_id = int(segment['segment']['segmentId'])
-            else:
-                segment_id = 0
-
-            if segment['segment']['type']:
-                segment_type = segment['segment']['type']
-            else:
-                segment_type = "REGULAR"
-
-            if segment['segment']['segmentLogicalId']:
-                segment_logical_id = segment['segment']['segmentLogicalId']
-            else:
-                segment_logical_id = "TEMP_AUTOMATION_LOGICAL_ID"
 
     # If the segment does not exist, add the segment itself, as well as the rule
     if global_segment is None:
         # Construct the segment data
         global_segment = {
                         "segment": {
-                            "segmentId": segment_id,
+                            "segmentId": 0,
                             "name": "Global Segment",
-                            "type": segment_type,
-                            "segmentLogicalId": segment_logical_id
+                            "type": "REGULAR",
+                            # segmentLogicalId remains the same between edges
+                            "segmentLogicalId": '5dcc72f7-ed23-4bb1-967a-c5269d651a05'
                         },
                         "rules": [
                             {
@@ -300,21 +283,28 @@ def main():
     # Update the VeloCloud Edge config module to prefer WAN 1
     update_business_policy = edge.update_configuration_module(module=qos_module)
 
-    print('Business policy added.')
+    print('Business policy added. Sleeping 30 seconds.')
+    time.sleep(30)
+    print()
 
     # Do other things here....
+    print('Flushing flows')
+    edge.live_request_flush_flows()
 
     # Get Global Segment rules
     global_segment_rules = global_segment['rules']
 
     for segment_rule in global_segment_rules:
         if segment_rule['name'] == "[AUTOMATION] Prefer " + wan_1_interface:
+            print()
             print('Found the following rule. Attempting deletion of: ')
             print(segment_rule)
+            print()
 
             global_segment_rules = global_segment_rules.remove(segment_rule)
         else:
             print('Rule doesnt exist')
+            print()
 
     # # Clear out ALL segments
     # # qos_module['data']['segments'] = []
