@@ -240,7 +240,7 @@ class VeloCloudEdge(object):
         # Continue to get live data until you obtain the data from the action key
         while not dump_complete:
             time.sleep(1)
-
+            print('get data...')
             # We're looking for a status value greater than 1 as a cue that the remote procedure has
             # completed.
             #
@@ -866,6 +866,58 @@ class VeloCloudEdge(object):
         update_business_policy = self.update_configuration_module(module=qos_module)
 
         print('Business Policy Added')
+
+
+    def live_request_flush_flows(self, src_ip:str = None, dst_ip:str = None):
+        """
+        Execute a live action to flush the flows for the edge
+
+        Flush the flow table, causing user traffic to be re-classified. Use source and destination IP address filters
+        to flush specific flows.
+        :param src_ip: Str source ip to flush specific flow
+        :param dst_ip: Str destination ip to flush specific flow
+        :return: Str of flush flow action result
+        """
+
+        if self.live_mode_token is None:
+            self.set_live_mode_token()
+            time.sleep(5)
+
+        # parameter = {
+        #     'src_ip': src_ip,
+        #     'dst_ip': dst_ip
+        # }
+
+        parameter = "{\"src_ip\":\"\",\"dst_ip\":\"\"}"
+
+        method = 'liveMode/requestLiveActions'
+        params = {
+            "actions": [
+                {
+                    "action": "runDiagnostics",
+                    "parameters": {
+                        "tests": [
+                            {
+                                "name": "FLUSH_FLOWS",
+                                "parameters": [
+                                    parameter
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "token": self.live_mode_token
+        }
+
+        # Execute API call
+        action_result = self.client.call_api(method=method, params=params)
+
+        # Obtain live action's key
+        action_key = action_result['actionsRequested'][0]['actionId']
+
+        # Look up the live action's results based on the action key
+        return self.get_html_results_from_action_key(action_key=action_key)
 
 
 # Class for BGP Testing
