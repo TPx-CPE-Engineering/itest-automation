@@ -51,19 +51,38 @@ def main():
 
     # Check to see if the segment exists.
     global_segment = None
+    segment_id = None
+    segment_type = None
+    segment_logical_id = None
+
     for segment in qos_module['data']['segments']:
         if segment['segment']['name'] == 'Global Segment':
             global_segment = segment
+
+            if segment['segment']['segmentId']:
+                segment_id = int(segment['segment']['segmentId'])
+            else:
+                segment_id = 0
+
+            if segment['segment']['type']:
+                segment_type = segment['segment']['type']
+            else:
+                segment_type = "REGULAR"
+
+            if segment['segment']['segmentLogicalId']:
+                segment_logical_id = segment['segment']['segmentLogicalId']
+            else:
+                segment_logical_id = "TEMP_AUTOMATION_LOGICAL_ID"
 
     # If the segment does not exist, add the segment itself, as well as the rule
     if global_segment is None:
         # Construct the segment data
         global_segment = {
                         "segment": {
-                            "segmentId": 0,
+                            "segmentId": segment_id,
                             "name": "Global Segment",
-                            "type": "REGULAR",
-                            "segmentLogicalId": "5dcc72f7-ed23-4bb1-9b7a-c5269d651a05"
+                            "type": segment_type,
+                            "segmentLogicalId": segment_logical_id
                         },
                         "rules": [
                             {
@@ -285,15 +304,6 @@ def main():
 
     # Do other things here....
 
-    # Get qos module again to remove business policy --- shouldnt need to
-    # qos_module = edge.get_module_from_edge_specific_profile(module_name='QOS')
-
-    # # Get Global Segment again --- shouldnt need to
-    # global_segment = None
-    # for segment in qos_module['data']['segments']:
-    #     if segment['segment']['name'] == 'Global Segment':
-    #         global_segment = segment
-
     # Get Global Segment rules
     global_segment_rules = global_segment['rules']
 
@@ -301,22 +311,25 @@ def main():
         if segment_rule['name'] == "[AUTOMATION] Prefer " + wan_1_interface:
             print('Found the following rule. Attempting deletion of: ')
             print(segment_rule)
-            print()
 
             global_segment_rules = global_segment_rules.remove(segment_rule)
         else:
             print('Rule doesnt exist')
 
-    # Clear out ALL segments
-    # qos_module['data']['segments'] = []
+    # # Clear out ALL segments
+    # # qos_module['data']['segments'] = []
 
     # Update the VeloCloud Edge config module to remove the rule from the segment
     update_business_policy = edge.update_configuration_module(module=qos_module)
 
+    if update_business_policy:
+        print('Business Policy removed')
+    else:
+        print('Unable to remove Business Policy')
+
+
 if __name__ == '__main__':
     edge = create_edge(edge_id=240, enterprise_id=1)
-
-    # Get active WAN Interfaces
 
     # edge.add_business_policy_rule_to_segment(segment_name='Global Segment')
     main()
