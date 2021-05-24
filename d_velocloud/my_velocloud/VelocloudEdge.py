@@ -615,37 +615,28 @@ class VeloCloudEdge(object):
         qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
 
         # Check to see if the segment exists.
-        global_segment = None
-        segment_id = None
-        segment_type = None
-        segment_logical_id = None
+        segment_to_update = None
+
+        if segment_name == "Global Segment":
+            segment_id = 0
+            segment_type = "REGULAR"
+            # segmentLogicalId remains the same between edges
+            segment_logical_id = "5dcc72f7-ed23-4bb1-967a-c5269d651a05"
+        else:
+            return 'Segment [%s] does not exist' % segment_name
+            # TODO: Other segments
 
         for segment in qos_module['data']['segments']:
-            if segment['segment']['name'] == 'Global Segment':
-                global_segment = segment
-
-                if segment['segment']['segmentId']:
-                    segment_id = int(segment['segment']['segmentId'])
-                else:
-                    segment_id = 0
-
-                if segment['segment']['type']:
-                    segment_type = segment['segment']['type']
-                else:
-                    segment_type = "REGULAR"
-
-                if segment['segment']['segmentLogicalId']:
-                    segment_logical_id = segment['segment']['segmentLogicalId']
-                else:
-                    segment_logical_id = "TEMP_AUTOMATION_LOGICAL_ID"
+            if segment['segment']['name'] == segment_name:
+                segment_to_update = segment
 
         # If the segment does not exist, add the segment itself, as well as the rule
-        if global_segment is None:
+        if segment_to_update is None:
             # Construct the segment data
-            global_segment = {
+            segment_to_update = {
                 "segment": {
                     "segmentId": segment_id,
-                    "name": "Global Segment",
+                    "name": segment_name,
                     "type": segment_type,
                     "segmentLogicalId": segment_logical_id
                 },
@@ -755,7 +746,7 @@ class VeloCloudEdge(object):
             }
 
             # Append to the global segment
-            qos_module['data']['segments'].append(global_segment)
+            qos_module['data']['segments'].append(segment_to_update)
 
         # Else the segment already exists, add the rule to the existing segment
         else:
@@ -858,14 +849,42 @@ class VeloCloudEdge(object):
                     }
                 }
             }
-            global_segment['rules'].append(rule)
+            segment_to_update['rules'].append(rule)
 
         qos_module['metadata']['override'] = True
 
         # Update the VeloCloud Edge config module to prefer WAN 1
         update_business_policy = self.update_configuration_module(module=qos_module)
 
-        print('Business Policy Added')
+    def remove_business_policy_rule_from_segment(self, segment_name='Global Segment'):
+        # Testing only
+        wan_1_interface = "GE4"
+
+        # Get the current QoS Module
+        qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
+
+        # Check to see if the segment exists.
+        segment_to_update = None
+
+        for segment in qos_module['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                segment_to_update = segment
+
+        # Get Global Segment rules
+        segment_rules = segment_to_update['rules']
+
+        for segment_rule in segment_rules:
+            if segment_rule['name'] == "[AUTOMATION] Prefer " + wan_1_interface:
+                segment_rules = segment_rules.remove(segment_rule)
+            else:
+                pass
+
+        # TODO: create function to clear out ALL segments
+        # # Clear out ALL segments
+        # # qos_module['data']['segments'] = []
+
+        # Update the VeloCloud Edge config module to remove the rule from the segment
+        update_business_policy = self.update_configuration_module(module=qos_module)
 
     def remote_diagnostics_flush_flows(self, src_ip:str = None, dst_ip:str = None):
         """
