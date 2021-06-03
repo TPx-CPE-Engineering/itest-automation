@@ -40,6 +40,6 @@ if __name__ == '__main__':
     ix_load.runTraffic()
     ix_load.poll_inbound_outbound_throughput_stats()
     # ix_load.check_for_inbound_outbound_throughput_delay_consistency()
-    ix_load.print_inbound_outbound_throughput_consistency()
+    ix_load.print_inbound_outbound_throughput_delay_consistency()
 
 

@@ -76,9 +76,10 @@ class IxLoadApi(Main):
                     for statName in statNameList:
                         if statName in response.json()[str(highestTimestamp)]:
                             statValue = response.json()[str(highestTimestamp)][statName]
-                            self.my_stats.append({'time': self.getTime().split('.')[0],
-                                                  'stat name': statName,
-                                                  'stat value': statValue})
+                            if not statValue == 0:
+                                self.my_stats.append({'time': self.getTime().split('.')[0],
+                                                      'stat name': statName,
+                                                      'stat value': statValue})
                             # self.my_stats.append([self.getTime().split('.')[0], statName, statValue])
                             self.logInfo('\t%s: %s' % (statName, statValue), timestamp=False)
                         else:
@@ -109,7 +110,7 @@ class IxLoadApi(Main):
                 if waitForRunningStatusCounter == waitForRunningStatusCounterExit:
                     return 1
 
-    def print_inbound_outbound_throughput_consistency(self):
+    def print_inbound_outbound_throughput_delay_consistency(self):
         # test_pass = True
         # for inbound_value, outbound_value in zip(inbound_values, outbound_values):
         #     if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
