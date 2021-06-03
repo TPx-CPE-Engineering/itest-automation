@@ -209,7 +209,7 @@ class IxLoadApi(Main):
                 print({"warning": f"Throughput Inbound (Kbps) was not between passing threshold 149-145 at time "
                                   f"{time_stat}. Stat value: {inbound_stat}"})
                 test_passed = False
-            if outbound_stat > 149 or inbound_stat < 145:
+            if outbound_stat > 149 or outbound_stat < 145:
                 print({"warning": f"Throughput Outbound (Kbps) was not between passing threshold 149-145 at time "
                                   f"{time_stat}. Stat value: {outbound_stat}"})
                 test_passed = False
