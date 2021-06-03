@@ -109,7 +109,7 @@ class IxLoadApi(Main):
                 if waitForRunningStatusCounter == waitForRunningStatusCounterExit:
                     return 1
 
-    def check_for_inbound_outbound_throughput_consistency(self, max_difference=1):
+    def print_inbound_outbound_throughput_consistency(self):
         # test_pass = True
         # for inbound_value, outbound_value in zip(inbound_values, outbound_values):
         #     if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
@@ -175,7 +175,7 @@ class IxLoadApi(Main):
         for d in data:
             print("".join(str(value).ljust(col_width) for value in d))
 
-    def print_inbound_outbound_throughput_consistency(self):
+    def check_for_inbound_outbound_throughput_delay_consistency(self):
         stats = self.my_stats
         data = []
         for stat in stats:
@@ -194,10 +194,27 @@ class IxLoadApi(Main):
 
             data.append(values)
 
-        print('data')
-        print(data)
-        print('\n')
-        print('mystats')
-        print(self.my_stats)
+        test_passed = True
+        for data_point in data:
+            if not len(data_point) == 4:
+                continue
 
+            time_stat = data_point[0]
+            inbound_stat = data_point[1]
+            outbound_stat = data_point[2]
+            delay_stat = data_point[3]
 
+            if inbound_stat > 149 or inbound_stat < 145:
+                print({"warning": f"Throughput Inbound (Kbps) was not between 149-145 at time {time_stat}."})
+                test_passed = False
+            if outbound_stat > 149 or inbound_stat < 145:
+                print({"warning": f"Throughput Outbound (Kbps) was not between 149-145 at time {time_stat}."})
+                test_passed = False
+            if delay_stat > 1500:
+                print({"warning": f"Delay was greater than 1500 at time {time_stat}."})
+                test_passed = False
+
+        if test_passed:
+            print({'test result': 'Passed'})
+        else:
+            print({'test result': 'Failed'})

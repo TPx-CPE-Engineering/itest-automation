@@ -1,6 +1,6 @@
 from my_velocloud.VelocloudEdge import VeloCloudEdge
 import json
-from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
+from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi, IxLoadRestApiException
 import time
 
 DUT_EDGE: VeloCloudEdge
@@ -39,5 +39,7 @@ if __name__ == '__main__':
     ix_load.enableAnalyzerOnAssignedPorts()
     ix_load.runTraffic()
     ix_load.poll_inbound_outbound_throughput_stats()
+    # ix_load.check_for_inbound_outbound_throughput_delay_consistency()
+    ix_load.print_inbound_outbound_throughput_consistency()
 
 
