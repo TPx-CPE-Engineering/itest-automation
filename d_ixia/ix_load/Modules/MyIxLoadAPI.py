@@ -206,13 +206,16 @@ class IxLoadApi(Main):
             delay_stat = data_point[3]
 
             if inbound_stat > 149 or inbound_stat < 145:
-                print({"warning": f"Throughput Inbound (Kbps) was not between 149-145 at time {time_stat}."})
+                print({"warning": f"Throughput Inbound (Kbps) was not between passing threshold 149-145 at time "
+                                  f"{time_stat}. Stat value: {inbound_stat}"})
                 test_passed = False
             if outbound_stat > 149 or inbound_stat < 145:
-                print({"warning": f"Throughput Outbound (Kbps) was not between 149-145 at time {time_stat}."})
+                print({"warning": f"Throughput Outbound (Kbps) was not between passing threshold 149-145 at time "
+                                  f"{time_stat}. Stat value: {outbound_stat}"})
                 test_passed = False
             if delay_stat > 1500:
-                print({"warning": f"Delay was greater than 1500 at time {time_stat}."})
+                print({"warning": f"Delay was not is passing threshold greater than 1500 at time {time_stat}. "
+                                  f"Stat value: {delay_stat}"})
                 test_passed = False
 
         if test_passed:
