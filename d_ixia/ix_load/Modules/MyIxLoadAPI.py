@@ -195,7 +195,7 @@ class IxLoadApi(Main):
 
             data.append(values)
 
-        test_passed = True
+        warnings_count = 0
         for data_point in data:
             if not len(data_point) == 4:
                 continue
@@ -208,17 +208,17 @@ class IxLoadApi(Main):
             if inbound_stat > 149 or inbound_stat < 145:
                 print({"warning": f"Throughput Inbound (Kbps) was not between passing threshold 149-145 at time "
                                   f"{time_stat}. Stat value: {inbound_stat}"})
-                test_passed = False
+                warnings_count += 1
             if outbound_stat > 149 or outbound_stat < 145:
                 print({"warning": f"Throughput Outbound (Kbps) was not between passing threshold 149-145 at time "
                                   f"{time_stat}. Stat value: {outbound_stat}"})
-                test_passed = False
+                warnings_count += 1
             if delay_stat > 1500:
                 print({"warning": f"Delay was not is passing threshold greater than 1500 at time {time_stat}. "
                                   f"Stat value: {delay_stat}"})
-                test_passed = False
+                warnings_count += 1
 
-        if test_passed:
+        if warnings_count <= 10:
             print({'test result': 'Passed'})
         else:
             print({'test result': 'Failed'})
