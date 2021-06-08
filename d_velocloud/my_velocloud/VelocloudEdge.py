@@ -607,9 +607,7 @@ class VeloCloudEdge(object):
 
         return active_wan_interfaces
 
-    def add_business_policy_rule_to_segment(self, segment_name='Global Segment'):
-        # Testing only
-        wan_1_interface = "GE4"
+    def add_business_policy_rule_to_prefer_interface(self, affected_interface, segment_name='Global Segment'):
 
         # Get the current QoS Module
         qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
@@ -642,7 +640,7 @@ class VeloCloudEdge(object):
                 },
                 "rules": [
                     {
-                        "name": "[AUTOMATION] Prefer " + wan_1_interface,
+                        "name": "[AUTOMATION] Prefer " + affected_interface,
                         "match": {
                             "appid": -1,
                             "classid": -1,
@@ -668,7 +666,7 @@ class VeloCloudEdge(object):
                             "allowConditionalBh": False,
                             "userDisableConditionalBh": False,
                             "edge2EdgeRouteAction": {
-                                "interface": wan_1_interface,
+                                "interface": affected_interface,
                                 "subinterfaceId": -1,
                                 "linkInternalLogicalId": "auto",
                                 "linkPolicy": "fixed",
@@ -676,13 +674,13 @@ class VeloCloudEdge(object):
                                 "routePolicy": "gateway",
                                 "serviceGroup": "ALL",
                                 "vlanId": -1,
-                                "wanlink": wan_1_interface,
+                                "wanlink": affected_interface,
                                 "linkCosLogicalId": "",
                                 "linkOuterDscpTag": "CS0",
                                 "linkInnerDscpTag": ""
                             },
                             "edge2DataCenterRouteAction": {
-                                "interface": wan_1_interface,
+                                "interface": affected_interface,
                                 "subinterfaceId": -1,
                                 "linkInternalLogicalId": "auto",
                                 "linkPolicy": "fixed",
@@ -690,13 +688,13 @@ class VeloCloudEdge(object):
                                 "routePolicy": "auto",
                                 "serviceGroup": "ALL",
                                 "vlanId": -1,
-                                "wanlink": wan_1_interface,
+                                "wanlink": affected_interface,
                                 "linkCosLogicalId": "",
                                 "linkOuterDscpTag": "CS0",
                                 "linkInnerDscpTag": ""
                             },
                             "edge2CloudRouteAction": {
-                                "interface": wan_1_interface,
+                                "interface": affected_interface,
                                 "subinterfaceId": -1,
                                 "linkInternalLogicalId": "auto",
                                 "linkPolicy": "fixed",
@@ -704,7 +702,7 @@ class VeloCloudEdge(object):
                                 "routePolicy": "gateway",
                                 "serviceGroup": "ALL",
                                 "vlanId": -1,
-                                "wanlink": wan_1_interface,
+                                "wanlink": affected_interface,
                                 "linkCosLogicalId": None,
                                 "linkOuterDscpTag": "CS0",
                                 "linkInnerDscpTag": None
@@ -752,7 +750,7 @@ class VeloCloudEdge(object):
         else:
             # we append the rule to the already existing data
             rule = {
-                "name": "[AUTOMATION] Prefer " + wan_1_interface,
+                "name": "[AUTOMATION] Prefer " + affected_interface,
                 "match": {
                     "appid": -1,
                     "classid": -1,
@@ -778,7 +776,7 @@ class VeloCloudEdge(object):
                     "allowConditionalBh": False,
                     "userDisableConditionalBh": False,
                     "edge2EdgeRouteAction": {
-                        "interface": wan_1_interface,
+                        "interface": affected_interface,
                         "subinterfaceId": -1,
                         "linkInternalLogicalId": "auto",
                         "linkPolicy": "fixed",
@@ -786,13 +784,13 @@ class VeloCloudEdge(object):
                         "routePolicy": "gateway",
                         "serviceGroup": "ALL",
                         "vlanId": -1,
-                        "wanlink": wan_1_interface,
+                        "wanlink": affected_interface,
                         "linkCosLogicalId": None,
                         "linkOuterDscpTag": "CS0",
                         "linkInnerDscpTag": None
                     },
                     "edge2DataCenterRouteAction": {
-                        "interface": wan_1_interface,
+                        "interface": affected_interface,
                         "subinterfaceId": -1,
                         "linkInternalLogicalId": "auto",
                         "linkPolicy": "fixed",
@@ -800,13 +798,13 @@ class VeloCloudEdge(object):
                         "routePolicy": "auto",
                         "serviceGroup": "ALL",
                         "vlanId": -1,
-                        "wanlink": wan_1_interface,
+                        "wanlink": affected_interface,
                         "linkCosLogicalId": None,
                         "linkOuterDscpTag": "CS0",
                         "linkInnerDscpTag": None
                     },
                     "edge2CloudRouteAction": {
-                        "interface": wan_1_interface,
+                        "interface": affected_interface,
                         "subinterfaceId": -1,
                         "linkInternalLogicalId": "auto",
                         "linkPolicy": "fixed",
@@ -814,7 +812,7 @@ class VeloCloudEdge(object):
                         "routePolicy": "gateway",
                         "serviceGroup": "ALL",
                         "vlanId": -1,
-                        "wanlink": wan_1_interface,
+                        "wanlink": affected_interface,
                         "linkCosLogicalId": None,
                         "linkOuterDscpTag": "CS0",
                         "linkInnerDscpTag": None
@@ -856,10 +854,7 @@ class VeloCloudEdge(object):
         # Update the VeloCloud Edge config module to prefer WAN 1
         update_business_policy = self.update_configuration_module(module=qos_module)
 
-    def remove_business_policy_rule_from_segment(self, segment_name='Global Segment'):
-        # Testing only
-        wan_1_interface = "GE4"
-
+    def remove_business_policy_rule_from_preferred_interface(self, affected_interface, segment_name='Global Segment'):
         # Get the current QoS Module
         qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
 
@@ -874,7 +869,7 @@ class VeloCloudEdge(object):
         segment_rules = segment_to_update['rules']
 
         for segment_rule in segment_rules:
-            if segment_rule['name'] == "[AUTOMATION] Prefer " + wan_1_interface:
+            if segment_rule['name'] == "[AUTOMATION] Prefer " + affected_interface:
                 segment_rules = segment_rules.remove(segment_rule)
             else:
                 pass
