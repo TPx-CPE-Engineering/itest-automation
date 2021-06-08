@@ -20,8 +20,7 @@
 # 7.)  Re-configure Business Policy to prefer the other WAN interface
 # 8.)  Flush all active flows
 # 9.)  List active flows from source IP and confirm that data traffic is flowing through matching Business Policy
-# 10.) Stop FTP file transfer
-# 11.) Clean up
+# 10.) Clean up
 
 from my_velocloud.VelocloudEdge import VeloCloudEdge
 import json, time
@@ -61,14 +60,30 @@ def main():
         print('Flushing flows.')
         edge.remote_diagnostics_flush_flows()
 
+        print()
+        print('Connecting to IxLoad')
         # Enable IxLoad for FTP throughput testing
-        # ix_load = IxLoadApi(api_server_ip='10.255.20.196')
-        # ix_load.connect(ixLoadVersion=ix_load.ixLoadVersion)
-        # ix_load.loadConfigFile(rxfFile="C:\\Users\\dataeng\\Documents\\Ixia\\IxLoad\\Repository\\Dev_VeloSingle3400+FTP2Ixia.rxf")
+        ix_load = IxLoadApi(api_server_ip='10.255.20.196')
+        ix_load.connect(ixLoadVersion=ix_load.ixLoadVersion)
+        print()
+        print('Loading IxLoad config file')
+        ix_load.loadConfigFile(rxfFile="C:\\Users\\dataeng\\Documents\\Ixia\\IxLoad\\Repository\\Dev_VeloSingle3400+FTP2Ixia.rxf")
+        print()
+        print('Forcing ownership')
+        ix_load.enableForceOwnership()
+        print()
+        print('Enabling IxLoad analyzer')
+        ix_load.enableAnalyzerOnAssignedPorts()
+        print()
+        print('Running traffic')
+        ix_load.runTraffic()
 
-        # TODO: Dump flows to verify traffic is being sent over correct interface
+        print()
+        print('Sleeping for 2 minutes.')
 
-        # TODO: Disable IxLoad
+        time.sleep(120)
+
+        # TODO: List flows to verify traffic is being sent over correct interface
 
         # Remove Business Policy rule that prefers interface
         edge.remove_business_policy_rule_from_preferred_interface(
