@@ -23,8 +23,6 @@
 # 10.) Clean up
 
 from my_velocloud.VelocloudEdge import VeloCloudEdge
-import json, time
-
 from ix_load.Modules.IxL_RestApi import *
 from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
 
@@ -60,38 +58,29 @@ def main():
         print('Flushing flows.')
         edge.remote_diagnostics_flush_flows()
 
-        print()
-        print('Connecting to IxLoad')
+        print('\nConnecting to IxLoad')
         # Enable IxLoad for FTP throughput testing
-        ix_load = IxLoadApi(api_server_ip='10.255.20.196')
+        ix_load = IxLoadApi()
         ix_load.connect(ixLoadVersion=ix_load.ixLoadVersion)
-        print()
-        print('Loading IxLoad config file')
+        print('\nLoading IxLoad config file')
         ix_load.loadConfigFile(rxfFile="C:\\Users\\dataeng\\Documents\\Ixia\\IxLoad\\Repository\\Dev_VeloSingle3400+FTP2Ixia.rxf")
-        print()
-        print('Forcing ownership')
+        print('\nForcing ownership')
         ix_load.enableForceOwnership()
-        print()
-        print('Enabling IxLoad analyzer')
+        print('\nEnabling IxLoad analyzer')
         ix_load.enableAnalyzerOnAssignedPorts()
-        print()
-        print('Running traffic')
+        print('\nRunning traffic')
         ix_load.runTraffic()
 
-        print()
-        print('Sleeping for 2 minutes.')
-
-        time.sleep(120)
-
         # TODO: List flows to verify traffic is being sent over correct interface
+        print('\nSleeping for 2 minutes.')
+        time.sleep(120)
 
         # Remove Business Policy rule that prefers interface
         edge.remove_business_policy_rule_from_preferred_interface(
             segment_name='Voice Segment', affected_interface=interface_name
         )
 
-        print()
-        print(f'Business Policy removed from interface {interface_name}.')
+        print(f'\nBusiness Policy removed from interface {interface_name}.')
 
 
 if __name__ == '__main__':
