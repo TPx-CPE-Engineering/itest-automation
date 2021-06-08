@@ -41,25 +41,40 @@ def create_edge(edge_id, enterprise_id):
 
 def main():
     # Get active WAN Interfaces
+    active_wan_interfaces = []
     active_wan_interfaces = edge.get_active_wan_interfaces()
 
-    wan_1_interface = active_wan_interfaces[0]['interface']
-    wan_2_interface = active_wan_interfaces[1]['interface']
+    # For each interface - add the Business Policy, flush the flows, run traffic, and remove the Business Policy
+    for interface in active_wan_interfaces:
+        interface_name = interface['interface']
+        interface_ip = interface['ip address']
 
-    # Add Business Policy rule to prefer WAN 1
-    edge.add_business_policy_rule_to_segment(segment_name='Global Segment')
-    print('Business policy added. Sleeping for 10 seconds.')
-    time.sleep(10)
-    print()
+        # Add Business Policy rule to prefer interface
+        edge.add_business_policy_rule_to_prefer_interface(
+            segment_name='Global Segment', affected_interface=interface_name
+        )
 
-    # Flush flows
-    print('Flushing flows.')
-    edge.remote_diagnostics_flush_flows()
+        print(f'Business Policy added for interface {interface_name}. Sleeping for 10 seconds.')
+        time.sleep(10)
+        print()
 
-    # Remove Business Policy rule that prefers WAN 1
-    edge.remove_business_policy_rule_from_segment(segment_name='Global Segment')
-    print()
-    print('Business Policy removed.')
+        # Flush flows
+        print('Flushing flows.')
+        edge.remote_diagnostics_flush_flows()
+
+        # TODO: Enable IxLoad for FTP throughput testing
+
+        # TODO: Dump flows to verify traffic is being sent over correct interface
+
+        # TODO: Disable IxLoad
+
+        # Remove Business Policy rule that prefers interface
+        edge.remove_business_policy_rule_from_preferred_interface(
+            segment_name='Global Segment', affected_interface=interface_name
+        )
+
+        print()
+        print(f'Business Policy removed from interface {interface_name}.')
 
 
 if __name__ == '__main__':
