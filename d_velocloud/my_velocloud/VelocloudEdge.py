@@ -239,7 +239,7 @@ class VeloCloudEdge(object):
 
         # Continue to get live data until you obtain the data from the action key
         while not dump_complete:
-            time.sleep(1)
+            time.sleep(0.5)
             print('Getting live data...')
             # We're looking for a status value greater than 1 as a cue that the remote procedure has
             # completed.
@@ -260,7 +260,7 @@ class VeloCloudEdge(object):
                 if not is_live_mode_active:
                     # print('Live Mode is Not Active')
                     self.set_live_mode_token()
-                    time.sleep(15)
+                    time.sleep(10)
                     continue
             except AttributeError:
                 continue
@@ -620,7 +620,12 @@ class VeloCloudEdge(object):
             segment_type = "REGULAR"
             # segmentLogicalId remains the same between edges
             segment_logical_id = "5dcc72f7-ed23-4bb1-967a-c5269d651a05"
-        else:
+        elif segment_name == "Voice Segment":
+            segment_id = 3
+            segment_type = "REGULAR"
+            # segmentLogicalId remains the same between edges
+            segment_logical_id = "06c6e557-6d8c-4836-8015-dfc2ffe7de8b"
+        else :
             return 'Segment [%s] does not exist' % segment_name
             # TODO: Other segments
 
