@@ -1211,6 +1211,10 @@ class Main():
 
     def deleteSessionId(self):
         response = self.delete(self.sessionIdUrl)
+
+    def deleteAllSessions(self):
+        url = '{}/api/{}/sessions/'.format(self.httpHeader, self.apiVersion)
+        response = self.delete(url)
         
     def getMaximumInstances(self):
         response = self.get(self.sessionIdUrl+'/ixLoad/preferences')

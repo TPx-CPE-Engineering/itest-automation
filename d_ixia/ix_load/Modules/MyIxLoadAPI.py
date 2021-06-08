@@ -30,7 +30,87 @@ class IxLoadApi(Main):
         self.waitForActiveTestToUnconfigure()
         self.deleteSessionId()
 
-    def check_for_inbound_outbound_throughput_consistency(self, max_difference=1):
+    def poll_inbound_outbound_throughput_stats(self):
+        statsDict = {
+            'restStatViews/18': ['Throughput Inbound (Kbps)',
+                                 'Throughput Outbound (Kbps)',
+                                 'RTP One Way Delay (Avg) [us]'
+                                 ]
+        }
+
+        pollStatInterval = 2
+        exitAfterPollingIteration = None
+        waitForRunningStatusCounter = 0
+        waitForRunningStatusCounterExit = 120
+        pollStatCounter = 0
+
+        while True:
+            currentState = self.getActiveTestCurrentState(silentMode=True)
+            self.logInfo('ActiveTest current status: %s. ' % currentState)
+            if currentState == 'Running':
+                if statsDict is None:
+                    time.sleep(1)
+                    continue
+
+                # statType:  HTTPClient or HTTPServer (Just a example using HTTP.)
+                # statNameList: transaction success, transaction failures, ...
+                for statType, statNameList in statsDict.items():
+                    self.logInfo('\n%s:' % statType, timestamp=False)
+                    statUrl = self.sessionIdUrl + '/ixLoad/stats/' + statType + '/values'
+                    response = self.getStats(statUrl)
+                    highestTimestamp = 0
+                    # Each timestamp & stat-names: values
+                    for eachTimestamp, valueList in response.json().items():
+                        if eachTimestamp == 'error':
+                            raise IxLoadRestApiException(
+                                'pollStats error: Probable cause: Mis-configured stat names to retrieve.')
+
+                        if int(eachTimestamp) > highestTimestamp:
+                            highestTimestamp = int(eachTimestamp)
+
+                    if highestTimestamp == 0:
+                        time.sleep(3)
+                        continue
+
+                    # Get the interested stat names only
+                    for statName in statNameList:
+                        if statName in response.json()[str(highestTimestamp)]:
+                            statValue = response.json()[str(highestTimestamp)][statName]
+                            if not statValue == 0:
+                                self.my_stats.append({'time': self.getTime().split('.')[0],
+                                                      'stat name': statName,
+                                                      'stat value': statValue})
+                            # self.my_stats.append([self.getTime().split('.')[0], statName, statValue])
+                            self.logInfo('\t%s: %s' % (statName, statValue), timestamp=False)
+                        else:
+                            self.logError('\tStat name not found. Check spelling and case sensitivity: %s' % statName)
+
+                time.sleep(pollStatInterval)
+
+                if exitAfterPollingIteration and pollStatCounter >= exitAfterPollingIteration:
+                    self.logInfo(
+                        'pollStats exitAfterPollingIteration is set to {} iterations. Current runtime iteration is {}. Exiting PollStats'.format(
+                            exitAfterPollingIteration, pollStatCounter))
+                    return
+
+                pollStatCounter += 1
+
+            elif currentState == "Unconfigured":
+                break
+
+            else:
+                # If currentState is "Stopping Run" or Cleaning
+                if waitForRunningStatusCounter < waitForRunningStatusCounterExit:
+                    waitForRunningStatusCounter += 1
+                    self.logInfo('\tWaiting {0}/{1} seconds'.format(waitForRunningStatusCounter,
+                                                                    waitForRunningStatusCounterExit), timestamp=False)
+                    time.sleep(1)
+                    continue
+
+                if waitForRunningStatusCounter == waitForRunningStatusCounterExit:
+                    return 1
+
+    def print_inbound_outbound_throughput_delay_consistency(self):
         # test_pass = True
         # for inbound_value, outbound_value in zip(inbound_values, outbound_values):
         #     if abs(inbound_value['stat_value'] - outbound_value['stat_value']) > max_difference:
@@ -96,81 +176,49 @@ class IxLoadApi(Main):
         for d in data:
             print("".join(str(value).ljust(col_width) for value in d))
 
-    def poll_inbound_outbound_throughput_stats(self):
-        statsDict = {
-            'restStatViews/18': ['Throughput Inbound (Kbps)',
-                                 'Throughput Outbound (Kbps)',
-                                 'RTP One Way Delay (Avg) [us]'
-                                 ]
-        }
+    def check_for_inbound_outbound_throughput_delay_consistency(self):
+        stats = self.my_stats
+        data = []
+        for stat in stats:
+            time = stat['time']
+            next_stat = False
+            for d in data:
+                if time in d:
+                    next_stat = True
+            if next_stat:
+                continue
 
-        pollStatInterval = 2
-        exitAfterPollingIteration = None
-        waitForRunningStatusCounter = 0
-        waitForRunningStatusCounterExit = 120
-        pollStatCounter = 0
+            values = [time]
+            for stat2 in stats:
+                if stat2['time'] == time:
+                    values.append(stat2['stat value'])
 
-        while True:
-            currentState = self.getActiveTestCurrentState(silentMode=True)
-            self.logInfo('ActiveTest current status: %s. ' % currentState)
-            if currentState == 'Running':
-                if statsDict == None:
-                    time.sleep(1)
-                    continue
+            data.append(values)
 
-                # statType:  HTTPClient or HTTPServer (Just a example using HTTP.)
-                # statNameList: transaction success, transaction failures, ...
-                for statType, statNameList in statsDict.items():
-                    self.logInfo('\n%s:' % statType, timestamp=False)
-                    statUrl = self.sessionIdUrl + '/ixLoad/stats/' + statType + '/values'
-                    response = self.getStats(statUrl)
-                    highestTimestamp = 0
-                    # Each timestamp & stat-names: values
-                    for eachTimestamp, valueList in response.json().items():
-                        if eachTimestamp == 'error':
-                            raise IxLoadRestApiException(
-                                'pollStats error: Probable cause: Mis-configured stat names to retrieve.')
+        warnings_count = 0
+        for data_point in data:
+            if not len(data_point) == 4:
+                continue
 
-                        if int(eachTimestamp) > highestTimestamp:
-                            highestTimestamp = int(eachTimestamp)
+            time_stat = data_point[0]
+            inbound_stat = data_point[1]
+            outbound_stat = data_point[2]
+            delay_stat = data_point[3]
 
-                    if highestTimestamp == 0:
-                        time.sleep(3)
-                        continue
+            if inbound_stat > 149 or inbound_stat < 145:
+                print({"warning": f"Throughput Inbound (Kbps) was not between passing threshold 149-145 at time "
+                                  f"{time_stat}. Stat value: {inbound_stat}"})
+                warnings_count += 1
+            if outbound_stat > 149 or outbound_stat < 145:
+                print({"warning": f"Throughput Outbound (Kbps) was not between passing threshold 149-145 at time "
+                                  f"{time_stat}. Stat value: {outbound_stat}"})
+                warnings_count += 1
+            if delay_stat > 1500:
+                print({"warning": f"Delay was not is passing threshold greater than 1500 at time {time_stat}. "
+                                  f"Stat value: {delay_stat}"})
+                warnings_count += 1
 
-                    # Get the interested stat names only
-                    for statName in statNameList:
-                        if statName in response.json()[str(highestTimestamp)]:
-                            statValue = response.json()[str(highestTimestamp)][statName]
-                            self.my_stats.append({'time': self.getTime().split('.')[0],
-                                                  'stat name': statName,
-                                                  'stat value': statValue})
-                            # self.my_stats.append([self.getTime().split('.')[0], statName, statValue])
-                            self.logInfo('\t%s: %s' % (statName, statValue), timestamp=False)
-                        else:
-                            self.logError('\tStat name not found. Check spelling and case sensitivity: %s' % statName)
-
-                time.sleep(pollStatInterval)
-
-                if exitAfterPollingIteration and pollStatCounter >= exitAfterPollingIteration:
-                    self.logInfo(
-                        'pollStats exitAfterPollingIteration is set to {} iterations. Current runtime iteration is {}. Exiting PollStats'.format(
-                            exitAfterPollingIteration, pollStatCounter))
-                    return
-
-                pollStatCounter += 1
-
-            elif currentState == "Unconfigured":
-                break
-
-            else:
-                # If currentState is "Stopping Run" or Cleaning
-                if waitForRunningStatusCounter < waitForRunningStatusCounterExit:
-                    waitForRunningStatusCounter += 1
-                    self.logInfo('\tWaiting {0}/{1} seconds'.format(waitForRunningStatusCounter,
-                                                                    waitForRunningStatusCounterExit), timestamp=False)
-                    time.sleep(1)
-                    continue
-
-                if waitForRunningStatusCounter == waitForRunningStatusCounterExit:
-                    return 1
+        if warnings_count <= 10:
+            print({'test result': 'Passed'})
+        else:
+            print({'test result': 'Failed'})
