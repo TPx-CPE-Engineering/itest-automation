@@ -874,11 +874,17 @@ class VeloCloudEdge(object):
             else:
                 pass
 
-        # TODO: create function to clear out ALL segments
-        # # Clear out ALL segments
-        # # qos_module['data']['segments'] = []
-
         # Update the VeloCloud Edge config module to remove the rule from the segment
+        update_business_policy = self.update_configuration_module(module=qos_module)
+
+    def remove_all_business_policy_rules(self):
+        # Get the current QoS Module
+        qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
+
+        # Clear out ALL segments
+        qos_module['data']['segments'] = []
+
+        # Update the VeloCloud Edge config module to removes the rule from the segments
         update_business_policy = self.update_configuration_module(module=qos_module)
 
     def remote_diagnostics_flush_flows(self, src_ip:str = None, dst_ip:str = None):
