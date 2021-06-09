@@ -20,17 +20,13 @@
 # 7.)  Re-configure Business Policy to prefer the other WAN interface
 # 8.)  Flush all active flows
 # 9.)  List active flows from source IP and confirm that data traffic is flowing through matching Business Policy
-# 10.) Stop FTP file transfer
-# 11.) Clean up
+# 10.) Clean up
 
 from my_velocloud.VelocloudEdge import VeloCloudEdge
-import json, time
-
-# from ix_load.Modules.IxL_RestApi import *
-# from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
+from ix_load.Modules.IxL_RestApi import *
+from d_ixia.ix_load.Modules.MyIxLoadAPI import IxLoadApi
 
 DUT_EDGE: VeloCloudEdge
-# IxLoad = IxLoadApi()
 
 
 def create_edge(edge_id, enterprise_id):
@@ -41,25 +37,50 @@ def create_edge(edge_id, enterprise_id):
 
 def main():
     # Get active WAN Interfaces
+    active_wan_interfaces = []
     active_wan_interfaces = edge.get_active_wan_interfaces()
 
-    wan_1_interface = active_wan_interfaces[0]['interface']
-    wan_2_interface = active_wan_interfaces[1]['interface']
+    # For each interface - add the Business Policy, flush the flows, run traffic, and remove the Business Policy
+    for interface in active_wan_interfaces:
+        interface_name = interface['interface']
+        interface_ip = interface['ip address']
 
-    # Add Business Policy rule to prefer WAN 1
-    edge.add_business_policy_rule_to_segment(segment_name='Global Segment')
-    print('Business policy added. Sleeping for 10 seconds.')
-    time.sleep(10)
-    print()
+        # Add Business Policy rule to prefer interface
+        edge.add_business_policy_rule_to_prefer_interface(
+            segment_name='Voice Segment', affected_interface=interface_name
+        )
 
-    # Flush flows
-    print('Flushing flows.')
-    edge.remote_diagnostics_flush_flows()
+        print(f'Business Policy added for interface {interface_name}. Sleeping for 5 seconds.')
+        time.sleep(5)
+        print()
 
-    # Remove Business Policy rule that prefers WAN 1
-    edge.remove_business_policy_rule_from_segment(segment_name='Global Segment')
-    print()
-    print('Business Policy removed.')
+        # Flush flows
+        print('Flushing flows.')
+        edge.remote_diagnostics_flush_flows()
+
+        print('\nConnecting to IxLoad')
+        # Enable IxLoad for FTP throughput testing
+        ix_load = IxLoadApi()
+        ix_load.connect(ixLoadVersion=ix_load.ixLoadVersion)
+        print('\nLoading IxLoad config file')
+        ix_load.loadConfigFile(rxfFile="C:\\Users\\dataeng\\Documents\\Ixia\\IxLoad\\Repository\\Dev_VeloSingle3400+FTP2Ixia.rxf")
+        print('\nForcing ownership')
+        ix_load.enableForceOwnership()
+        print('\nEnabling IxLoad analyzer')
+        ix_load.enableAnalyzerOnAssignedPorts()
+        print('\nRunning traffic')
+        ix_load.runTraffic()
+
+        # TODO: List flows to verify traffic is being sent over correct interface
+        print('\nSleeping for 2 minutes.')
+        time.sleep(120)
+
+        # Remove Business Policy rule that prefers interface
+        edge.remove_business_policy_rule_from_preferred_interface(
+            segment_name='Voice Segment', affected_interface=interface_name
+        )
+
+        print(f'\nBusiness Policy removed from interface {interface_name}.')
 
 
 if __name__ == '__main__':
