@@ -71,6 +71,17 @@ def main():
         print('\nRunning traffic')
         ix_load.runTraffic()
 
+        statsDict = {
+            'FTPClient': [{'caption': 'FTP Simulated Users', 'operator': '>', 'expect': 60}]
+        }
+
+        ix_load.pollStatsAndCheckStatResults(statsDict=statsDict)
+
+        statsDict = {
+            'FTPClient': ['FTP Simulated Users']
+        }
+        ix_load.pollStats(statsDict=statsDict)
+
         # TODO: List flows to verify traffic is being sent over correct interface
         print('\nSleeping for 2 minutes.')
         time.sleep(120)
