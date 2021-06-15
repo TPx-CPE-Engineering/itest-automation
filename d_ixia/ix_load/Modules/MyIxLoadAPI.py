@@ -196,6 +196,11 @@ class IxLoadApi(Main):
             data.append(values)
 
         warnings_count = 0
+
+        if len(data) == 0:
+            print({'test result': 'Failed'})
+            return
+
         for data_point in data:
             if not len(data_point) == 4:
                 continue
