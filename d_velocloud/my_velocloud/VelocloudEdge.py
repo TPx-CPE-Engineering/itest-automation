@@ -19,6 +19,14 @@ class VeloCloudEdge(object):
         if authenticate:
             self.client.authenticate(username=username, password=password, is_operator=is_operator)
 
+    def get_vlan_id_from_vlan_name(self, vlan_name:str):
+        device_settings_module = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
+
+        for network in device_settings_module['data']['lan']['networks']:
+            if network['name'].lower() == vlan_name.lower():
+                return {"vlan name": network['name'],
+                        "vlan id": network['vlanId']}
+
     def get_active_device_serial_number(self):
         edge_info = self.get_edge()
 
