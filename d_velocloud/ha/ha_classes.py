@@ -88,6 +88,33 @@ class HAVeloCloudEdge(VeloCloudEdge):
             "current ha serial number": ha_serial_number
         })
 
+    def remote_action_force_HA_failover(self):
+        # Enter Live Mode
+        self.set_live_mode_token()
+
+        # Execute API call to force HA failover
+        method = 'liveMode/requestLiveActions'
+        params = {
+                  "token": self.live_mode_token,
+                  "actions": [
+                    {
+                      "action": "forceHaFailover",
+                      "parameters": {}
+                    }
+                  ]
+                }
+
+        self.client.call_api(method=method, params=params)
+
+        time.sleep(3)
+
+        # Exit Live Mode
+        method = 'liveMode/clientExitLiveMode'
+        params = {
+            "token": self.live_mode_token
+        }
+        self.client.call_api(method=method, params=params)
+
 
 class HAIxLoadApi(IxLoadApi):
     def __init__(self, api_server_ip='127.0.0.1', api_server_ip_port=8443, ixload_version='8.50.115.542',
