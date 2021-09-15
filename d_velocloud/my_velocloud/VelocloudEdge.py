@@ -210,8 +210,9 @@ class VeloCloudEdge(object):
         :return: API response
         """
 
-        if module['name'] == 'firewall' or module['name'] == 'QOS':
+        if module['name'] == 'firewall' or module['name'] == 'QOS' or module['name'] == 'WAN':
             # Firewall Module doesn't have 'refs' key
+            # WAN Module doesn't have 'refs' key
             # QOS Module doesn't have 'refs' key either
             update = {'data': module['data'],
                       'description': None,
