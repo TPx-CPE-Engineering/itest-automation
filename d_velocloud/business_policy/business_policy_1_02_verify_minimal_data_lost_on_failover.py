@@ -19,16 +19,14 @@ class BPVeloCloudEdge(BPVeloCloudEdge_):
         # Check if the wan interface is set as backup
         return json.dumps(wan_link['backupOnly'])
 
-    def set_wan_interface_backup(self, is_enabled:bool,interface_name='TPx Communications'):
+    def set_wan_link_backup(self, is_enabled:bool, interface_name='TPx Communications'):
         wan_module = self.get_module_from_edge_specific_profile(module_name='WAN')
         # Look for the wan interface that matches parameter interface_name
-        print(wan_module)
-        exit()
         for link in wan_module['data']['links']:
             if link['name'].lower() == interface_name.lower():
                 link['backupOnly'] = is_enabled
 
-        r = self.update_configuration_module(module=wan_module)
+        return self.update_configuration_module(module=wan_module)
 
     def get_edge_model_number(self):
         method = 'edge/getEdge'
@@ -42,4 +40,4 @@ class BPVeloCloudEdge(BPVeloCloudEdge_):
 if __name__ == '__main__':
     # Using edge: Single VCE610 has TEST EDGE
     edge = BPVeloCloudEdge(edge_id=221, enterprise_id=1)
-    edge.set_wan_interface_backup(is_enabled=False)
+    edge.set_wan_link_backup(is_enabled=False)
