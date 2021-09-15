@@ -1,4 +1,4 @@
-from business_policy_class import BPVeloCloudEdge as BPVeloCloudEdge_
+from .business_policy_class import BPVeloCloudEdge as BPVeloCloudEdge_
 import json
 
 
