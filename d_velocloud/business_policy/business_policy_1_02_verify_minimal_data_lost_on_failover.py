@@ -36,8 +36,39 @@ class BPVeloCloudEdge(BPVeloCloudEdge_):
         edge_data = self.client.call_api(method=method, params=params)
         return edge_data['modelNumber'].strip('edge')
 
+    def get_wan_link_backup_state(self, wan_link_name):
+        method = 'edge/getEdge'
+        params = {'id': self.id,
+                  'enterpriseId': self.enterprise_id,
+                  'with': ['links', 'recentLinks']}
+
+        edge_data = self.client.call_api(method=method, params=params)
+
+        for link in edge_data['recentLinks']:
+            if link['displayName'] == wan_link_name:
+                return link['backupState']
+
+        wan_link_error = f'No WAN link named: "{wan_link_name}" found within the Edge. Please check the Edge.'
+        return wan_link_error
+
+    def check_for_link_dead_link_alive_events(self, start_interval):
+        events = self.get_enterprise_events(start_interval=start_interval)
+
+        response = {'LINK DEAD Present': False,
+                    'LINK ALIVE Present': False}
+        for event in events['data']:
+            if event['event'] == 'LINK DEAD':
+                response['LINK DEAD Present'] = True
+            elif event['event'] == 'LINK ALIVE':
+                response['LINK ALIVE Present'] = True
+
+        return response
+
+    def get_events(self, start_interval):
+        events = self.get_enterprise_events(start_interval=start_interval)
+        return json.dumps(events['data'], indent=2)
+
 
 if __name__ == '__main__':
-    # Using edge: Single VCE610 has TEST EDGE
-    edge = BPVeloCloudEdge(edge_id=221, enterprise_id=1)
-    edge.set_wan_link_backup(is_enabled=False)
+    # Using edge: Single VCE640 (edge id: 247) has TEST EDGE
+    edge = BPVeloCloudEdge(edge_id=247, enterprise_id=1)
