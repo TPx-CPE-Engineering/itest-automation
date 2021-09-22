@@ -57,9 +57,9 @@ class BPVeloCloudEdge(BPVeloCloudEdge_):
         response = {'LINK DEAD Present': False,
                     'LINK ALIVE Present': False}
         for event in events['data']:
-            if event['event'] == 'LINK DEAD':
+            if event['event'] == 'LINK_DEAD':
                 response['LINK DEAD Present'] = True
-            elif event['event'] == 'LINK ALIVE':
+            elif event['event'] == 'LINK_ALIVE':
                 response['LINK ALIVE Present'] = True
 
         return response
