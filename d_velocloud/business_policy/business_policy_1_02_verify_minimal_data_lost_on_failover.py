@@ -64,9 +64,9 @@ class BPVeloCloudEdge(BPVeloCloudEdge_):
 
         return response
 
-    def get_events(self, start_interval):
+    def print_events(self, start_interval):
         events = self.get_enterprise_events(start_interval=start_interval)
-        return json.dumps(events['data'], indent=2)
+        print(json.dumps(events['data'], indent=2))
 
 
 if __name__ == '__main__':
