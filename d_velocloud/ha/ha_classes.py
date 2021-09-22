@@ -315,7 +315,7 @@ class HAIxLoadApi(IxLoadApi):
             print({'test result': 'Failed'})
             return
 
-        for data_point in data:
+        for data_point in data[:-3]:
             if not len(data_point) == 4:
                 continue
 
