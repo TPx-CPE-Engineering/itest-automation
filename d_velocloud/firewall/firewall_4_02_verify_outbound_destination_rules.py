@@ -1,6 +1,6 @@
 # from velocloud.models import *
 # from my_velocloud.BaseEdge import BaseEdge
-from my_velocloud.VelocloudEdge import VeloCloudEdge
+from my_velocloud.VelocloudEdge import VeloCloudEdge, Globals
 
 
 # class Edge(BaseEdge):
@@ -215,12 +215,12 @@ def add_firewall_outbound_rule_with_destination_ip(destination_ip: str):
                                 }
 
     print(DUT_EDGE.add_firewall_rule_to_segment(firewall_rule=block_destination_ip_rule,
-                                                segment_name='Voice'))
+                                                segment_name=Globals.VOICE_SEGMENT_NAME))
 
 
 def remove_firewall_outbound_rule_with_destination_ip():
     print(DUT_EDGE.remove_firewall_rule_from_segment(firewall_rule_name='iTest Destination IP Block',
-                                                     segment_name='Voice'))
+                                                     segment_name=Globals.VOICE_SEGMENT_NAME))
 
 
 def create_edge(edge_id, enterprise_id):

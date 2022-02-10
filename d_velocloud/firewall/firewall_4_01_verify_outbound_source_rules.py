@@ -1,6 +1,6 @@
 # from velocloud.models import *
 # from my_velocloud.BaseEdge import BaseEdge
-from my_velocloud.VelocloudEdge import VeloCloudEdge
+from my_velocloud.VelocloudEdge import VeloCloudEdge, Globals
 
 """
 Test case: Verify Outbound source rules
@@ -281,12 +281,12 @@ def add_deny_source_address_rule():
     }
 
     print(DUT_EDGE.add_firewall_rule_to_segment(firewall_rule=outbound_source_rule,
-                                                segment_name='Voice'))
+                                                segment_name=Globals.VOICE_SEGMENT_NAME))
 
 
 def remove_deny_source_address_rule():
     print(DUT_EDGE.remove_firewall_rule_from_segment(firewall_rule_name='iTest Block CPE Traffic',
-                                                     segment_name='Voice'))
+                                                     segment_name=Globals.VOICE_SEGMENT_NAME))
 
 
 if __name__ == '__main__':
