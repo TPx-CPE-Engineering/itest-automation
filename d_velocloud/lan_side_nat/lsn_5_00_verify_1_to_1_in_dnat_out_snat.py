@@ -1,4 +1,4 @@
-from my_velocloud.VelocloudEdge import LANSideNatVelocloudEdge
+from my_velocloud.VelocloudEdge import LANSideNatVelocloudEdge, Globals
 # from networking_scripts.my_ssh import ssh_connect
 
 DUT_EDGE: LANSideNatVelocloudEdge
@@ -31,7 +31,7 @@ def add_static_route():
         "advertise": True
     }
 
-    print(DUT_EDGE.add_static_route_rule_to_segment(segment_name='Voice', rule=static_route_rule))
+    print(DUT_EDGE.add_static_route_rule_to_segment(segment_name=Globals.VOICE_SEGMENT_NAME, rule=static_route_rule))
 
 
 def add_lan_side_nat_rule():
@@ -65,22 +65,22 @@ def add_lan_side_nat_rule():
         "destNetmask": ""
     }
 
-    print(DUT_EDGE.add_nat_rules_to_segment(segment_name='Voice', rules=[nat_rule], dual_rules=[]))
+    print(DUT_EDGE.add_nat_rules_to_segment(segment_name=Globals.VOICE_SEGMENT_NAME, rules=[nat_rule], dual_rules=[]))
 
 
 def create_edge(edge_id, enterprise_id, cpe_ssh_port):
     global DUT_EDGE
     DUT_EDGE = LANSideNatVelocloudEdge(edge_id=edge_id, enterprise_id=enterprise_id, cpe_ssh_port=cpe_ssh_port)
 
-    print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=False, vlan_name='Voice'))
+    print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=False, vlan_name=Globals.VOICE_SEGMENT_NAME))
     add_static_route()
 
 
 def restore_configuration():
-    print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=True, vlan_name='Voice'))
-    print(DUT_EDGE.delete_all_static_routes_from_segment(segment_name='Voice'))
+    print(DUT_EDGE.set_advertise_on_vlan(advertise_enabled=True, vlan_name=Globals.VOICE_SEGMENT_NAME))
+    print(DUT_EDGE.delete_all_static_routes_from_segment(segment_name=Globals.VOICE_SEGMENT_NAME))
 
-    print(DUT_EDGE.delete_all_nat_rules_from_segment(segment_name='Voice'))
+    print(DUT_EDGE.delete_all_nat_rules_from_segment(segment_name=Globals.VOICE_SEGMENT_NAME))
 
 
 if __name__ == '__main__':
