@@ -1,6 +1,6 @@
 # from velocloud.models import *
 # from my_velocloud.BaseEdge import BaseEdge
-from my_velocloud.VelocloudEdge import VeloCloudEdge
+from my_velocloud.VelocloudEdge import VeloCloudEdge, Globals
 # from velocloud import ConfigurationModule
 
 # Globals
@@ -177,12 +177,12 @@ def add_icmp_block_outbound_app_rule():
                       }
 
     print(DUT_EDGE.add_firewall_rule_to_segment(firewall_rule=icmp_block_rule,
-                                                segment_name='Voice'))
+                                                segment_name=Globals.VOICE_SEGMENT_NAME))
 
 
 def remove_icmp_block_outbound_app_rule():
     print(DUT_EDGE.remove_firewall_rule_from_segment(firewall_rule_name='iTest ICMP Block',
-                                                     segment_name='Voice'))
+                                                     segment_name=Globals.VOICE_SEGMENT_NAME))
 
 
 if __name__ == '__main__':
