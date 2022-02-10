@@ -1676,7 +1676,7 @@ class LANSideNatVelocloudEdge(VeloCloudEdge):
     def __init__(self, edge_id, enterprise_id, cpe_ssh_port=None):
         super().__init__(edge_id, enterprise_id, cpe_ssh_port=cpe_ssh_port)
 
-    def get_voice_segment_vlan(self):
+    def get_voice_segment_vlan(self, voice_segment_name=Globals.VOICE_SEGMENT_NAME):
         """
         Get Voice VLAN Configurable information
         :return: Voice VLAN information
@@ -1685,7 +1685,7 @@ class LANSideNatVelocloudEdge(VeloCloudEdge):
         configurable_vlans = self.get_all_configure_vlans()
 
         for vlan in configurable_vlans:
-            if vlan['name'] == 'Voice':
+            if vlan['name'] == voice_segment_name:
                 return vlan
 
     def add_nat_rules_to_segment(self, segment_name, rules:list, dual_rules:list):
