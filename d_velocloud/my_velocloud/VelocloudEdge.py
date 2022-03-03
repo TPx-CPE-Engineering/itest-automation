@@ -1298,8 +1298,7 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
         vlan_interfaces = []
         for network in device_settings['data']['lan']['networks']:
             if vlan_id == network['vlanId']:
-                for interface in network['interfaces']:
-                    vlan_interfaces.append(interface)
+                vlan_interfaces.append(network)
 
         return vlan_interfaces
 
@@ -1423,8 +1422,7 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
         # Get IP Address of VLAN 1 - Corporate
         vlan_1_ip_address = self.get_vlan_ip_address(vlan_id=vlan_id)
 
-        print(vlan_1_ip_address, vlan_1_interfaces[0])
-        exit()
+
         # We'll pick the first one in the list
         return self.make_ospf_interface_config(interface=vlan_1_interfaces[0], ip_address=vlan_1_ip_address)
 
