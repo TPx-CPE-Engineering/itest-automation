@@ -226,7 +226,8 @@ class VeloCloudEdge(object):
         params = {'id': module['id'],
                   '_update': update,
                   'returnData': False,
-                  'enterpriseId': self.enterprise_id}
+                  'enterpriseId': self.enterprise_id,
+                  'isAsync': True}
 
         method = 'configuration/updateConfigurationModule'
 
@@ -1288,19 +1289,18 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
 
     def get_vlan_interfaces(self, vlan_id=1):
         """
-        Get Interfaces that are on a VLAN ID
+        Get List of Interfaces that are on a VLAN ID
         :param vlan_id: ID of VLAN you want to retrieve the interfaces from, default VLAN 1
         :return: list of interfaces
         """
 
         device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
 
-        vlan_interfaces = []
         for network in device_settings['data']['lan']['networks']:
             if vlan_id == network['vlanId']:
-                vlan_interfaces.append(network)
+                return network['interfaces']
 
-        return vlan_interfaces
+        return []
 
     def get_vlan_ip_address(self, vlan_id=1):
         """
@@ -1315,100 +1315,197 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
                 return network['cidrIp']
 
     @staticmethod
-    def make_ospf_interface_config(interface, ip_address):
+    def make_ospf_interface_config(interface_name, ip_address):
         """
         Make JSON Config needed to add OSPF Interface
-        :param interface: Interface you want to change into OSPF Interface
+        :param interface_name: Interface you want to change into OSPF Interface, usually 'GE1' or 'GE2'
         :param ip_address: IP Address
         :return: JSON config to add OSPF Interface
         """
 
-        interface_name = interface['name']
-        interface_ip = ip_address
+        # Old config, no longer the same since update 4.3.1
+        # ospf_routed_interface = {
+        #                           "name": interface_name,
+        #                           "disabled": False,
+        #                           "addressing": {
+        #                             "type": "STATIC",
+        #                             "cidrPrefix": 24,
+        #                             "cidrIp": ip_address,
+        #                             "netmask": "255.255.255.0",
+        #                             "gateway": None,
+        #                             "username": None,
+        #                             "password": None
+        #                           },
+        #                           "wanOverlay": "AUTO_DISCOVERED",
+        #                           "encryptOverlay": True,
+        #                           "radiusAuthentication": {
+        #                             "enabled": False,
+        #                             "macBypass": []
+        #                           },
+        #                           "advertise": False,
+        #                           "pingResponse": True,
+        #                           "natDirect": True,
+        #                           "trusted": False,
+        #                           "rpf": "SPECIFIC",
+        #                           "ospf": {
+        #                             "enabled": True,
+        #                             "area": [
+        #                               0
+        #                             ],
+        #                             "authentication": False,
+        #                             "authId": 0,
+        #                             "authPassphrase": "",
+        #                             "helloTimer": 10,
+        #                             "mode": "BCAST",
+        #                             "deadTimer": 40,
+        #                             "md5Authentication": False,
+        #                             "cost": 1,
+        #                             "MTU": 1380,
+        #                             "passive": False,
+        #                             "inboundRouteLearning": {
+        #                               "defaultAction": "LEARN",
+        #                               "filters": []
+        #                             },
+        #                             "outboundRouteAdvertisement": {
+        #                               "defaultAction": "ADVERTISE",
+        #                               "filters": []
+        #                             }
+        #                           },
+        #                           "multicast": {
+        #                             "igmp": {
+        #                               "enabled": False,
+        #                               "type": "IGMP_V2"
+        #                             },
+        #                             "pim": {
+        #                               "enabled": False,
+        #                               "type": "PIM_SM"
+        #                             },
+        #                             "pimHelloTimerSeconds": None,
+        #                             "pimKeepAliveTimerSeconds": None,
+        #                             "pimPruneIntervalSeconds": None,
+        #                             "igmpHostQueryIntervalSeconds": None,
+        #                             "igmpMaxQueryResponse": None
+        #                           },
+        #                           "vlanId": None,
+        #                           "underlayAccounting": True,
+        #                           "segmentId": -1,
+        #                           "l2": {
+        #                             "autonegotiation": True,
+        #                             "speed": "100M",
+        #                             "duplex": "FULL",
+        #                             "MTU": 1500
+        #                           },
+        #                           "override": True,
+        #                           "dhcpServer": {
+        #                             "enabled": False,
+        #                             "leaseTimeSeconds": 3600,
+        #                             "options": [],
+        #                             "baseDhcpAddr": "",
+        #                             "numDhcpAddr": 0,
+        #                             "staticReserved": 10
+        #                           }
+        #                         }
 
-        ospf_interface_config = {
-                                  "name": interface_name,
-                                  "disabled": False,
-                                  "addressing": {
-                                    "type": "STATIC",
-                                    "cidrPrefix": 24,
-                                    "cidrIp": interface_ip,
-                                    "netmask": "255.255.255.0",
-                                    "gateway": None,
-                                    "username": None,
-                                    "password": None
-                                  },
-                                  "wanOverlay": "AUTO_DISCOVERED",
-                                  "encryptOverlay": True,
-                                  "radiusAuthentication": {
-                                    "enabled": False,
-                                    "macBypass": []
-                                  },
-                                  "advertise": False,
-                                  "pingResponse": True,
-                                  "natDirect": True,
-                                  "trusted": False,
-                                  "rpf": "SPECIFIC",
-                                  "ospf": {
-                                    "enabled": True,
-                                    "area": [
-                                      0
-                                    ],
-                                    "authentication": False,
-                                    "authId": 0,
-                                    "authPassphrase": "",
-                                    "helloTimer": 10,
-                                    "mode": "BCAST",
-                                    "deadTimer": 40,
-                                    "md5Authentication": False,
-                                    "cost": 1,
-                                    "MTU": 1380,
-                                    "passive": False,
-                                    "inboundRouteLearning": {
-                                      "defaultAction": "LEARN",
-                                      "filters": []
-                                    },
-                                    "outboundRouteAdvertisement": {
-                                      "defaultAction": "ADVERTISE",
-                                      "filters": []
-                                    }
-                                  },
-                                  "multicast": {
-                                    "igmp": {
-                                      "enabled": False,
-                                      "type": "IGMP_V2"
-                                    },
-                                    "pim": {
-                                      "enabled": False,
-                                      "type": "PIM_SM"
-                                    },
-                                    "pimHelloTimerSeconds": None,
-                                    "pimKeepAliveTimerSeconds": None,
-                                    "pimPruneIntervalSeconds": None,
-                                    "igmpHostQueryIntervalSeconds": None,
-                                    "igmpMaxQueryResponse": None
-                                  },
-                                  "vlanId": None,
-                                  "underlayAccounting": True,
-                                  "segmentId": -1,
-                                  "l2": {
-                                    "autonegotiation": True,
-                                    "speed": "100M",
-                                    "duplex": "FULL",
-                                    "MTU": 1500
-                                  },
-                                  "override": True,
-                                  "dhcpServer": {
-                                    "enabled": False,
-                                    "leaseTimeSeconds": 3600,
-                                    "options": [],
-                                    "baseDhcpAddr": "",
-                                    "numDhcpAddr": 0,
-                                    "staticReserved": 10
-                                  }
+        ospf_routed_interface = {
+                              "name": interface_name,
+                              "disableV4": False,
+                              "disableV6": True,
+                              "overlayPreference": "IPv4",
+                              "disabled": False,
+                              "addressing": {
+                                "type": "STATIC",
+                                "cidrPrefix": 24,
+                                "cidrIp": ip_address,
+                                "netmask": "255.255.255.0",
+                                "gateway": None,
+                                "username": None,
+                                "password": None
+                              },
+                              "wanOverlay": "DISABLED",
+                              "encryptOverlay": True,
+                              "radiusAuthentication": {
+                                "enabled": False,
+                                "macBypass": []
+                              },
+                              "v6Detail": {
+                                "addressing": {
+                                  "cidrPrefix": None,
+                                  "netmask": None,
+                                  "type": "DHCP_STATELESS",
+                                  "gateway": None,
+                                  "cidrIp": None
+                                },
+                                "wanOverlay": "DISABLED",
+                                "vlanId": None
+                              },
+                              "advertise": True,
+                              "pingResponse": True,
+                              "natDirect": True,
+                              "trusted": False,
+                              "rpf": "SPECIFIC",
+                              "ospf": {
+                                "enabled": True,
+                                "area": [
+                                  0
+                                ],
+                                "authentication": False,
+                                "authId": 0,
+                                "authPassphrase": "",
+                                "helloTimer": 10,
+                                "mode": "BCAST",
+                                "deadTimer": 40,
+                                "enableBfd": False,
+                                "md5Authentication": False,
+                                "cost": 1,
+                                "MTU": 1380,
+                                "passive": False,
+                                "inboundRouteLearning": {
+                                  "defaultAction": "LEARN",
+                                  "filters": []
+                                },
+                                "outboundRouteAdvertisement": {
+                                  "defaultAction": "ADVERTISE",
+                                  "filters": []
                                 }
+                              },
+                              "multicast": {
+                                "igmp": {
+                                  "enabled": False,
+                                  "type": "IGMP_V2"
+                                },
+                                "pim": {
+                                  "enabled": False,
+                                  "type": "PIM_SM"
+                                },
+                                "pimHelloTimerSeconds": None,
+                                "pimKeepAliveTimerSeconds": None,
+                                "pimPruneIntervalSeconds": None,
+                                "igmpHostQueryIntervalSeconds": None,
+                                "igmpMaxQueryResponse": None
+                              },
+                              "vlanId": None,
+                              "underlayAccounting": True,
+                              "segmentId": 0,
+                              "l2": {
+                                "autonegotiation": True,
+                                "speed": "100M",
+                                "duplex": "FULL",
+                                "MTU": 1500,
+                                "losDetection": False,
+                                "probeInterval": "3"
+                              },
+                              "override": True,
+                              "dhcpServer": {
+                                "enabled": False,
+                                "leaseTimeSeconds": 3600,
+                                "options": [],
+                                "baseDhcpAddr": "",
+                                "numDhcpAddr": 0,
+                                "staticReserved": 10
+                              }
+                            }
 
-        return ospf_interface_config
+        return ospf_routed_interface
 
     def get_ospf_interface_config(self, vlan_id=1):
         """
@@ -1416,17 +1513,23 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
         :return: OSPF Interface as JSON config
         """
 
-        # Find list of interfaces on VLAN 1- Corporate, Segment: Global Segment
-        vlan_1_interfaces = self.get_vlan_interfaces(vlan_id=vlan_id)
+        # Find list of interfaces on given VLAN
+        vlan_interfaces = self.get_vlan_interfaces(vlan_id=vlan_id)
+        if len(vlan_interfaces) == 0:
+            print({'error': f'No interfaces found on VLAN {vlan_id}'})
+            exit()
 
-        # Get IP Address of VLAN 1 - Corporate
-        vlan_1_ip_address = self.get_vlan_ip_address(vlan_id=vlan_id)
-
+        # Get IP Address of given VLAN
+        vlan_ip_address = self.get_vlan_ip_address(vlan_id=vlan_id)
+        if vlan_ip_address is None:
+            print({'error': f'No IP Address found for VLAN {vlan_id}'})
+            exit()
 
         # We'll pick the first one in the list
-        return self.make_ospf_interface_config(interface=vlan_1_interfaces[0], ip_address=vlan_1_ip_address)
+        return self.make_ospf_interface_config(interface_name=vlan_interfaces[0],
+                                               ip_address=vlan_ip_address)
 
-    def add_routed_interface(self, interface):
+    def add_routed_interface(self, interface, vlan_id):
         """
         Add Interface to Edge interfaces
         :param interface: Interface to add
@@ -1435,35 +1538,36 @@ class OSPFVeloCloudEdge(VeloCloudEdge):
 
         device_settings = self.get_module_from_edge_specific_profile(module_name='deviceSettings')
 
-        for existing_interface in device_settings['data']['routedInterfaces']:
-            if existing_interface['name'] == interface['name']:
-                print('Interface \'{}\' already exists in Edges interfaces'.format(interface['name']))
-                return
+        for lan_interface in device_settings['data']['routedInterfaces']:
+            if lan_interface['name'] == interface['name']:
+                print({'error': f"Interface {interface['name']} already active/exists in Edge's interface. "
+                                f"Cannot overwrite"})
+                exit()
 
-        # Delete Interface from Edges LAN Interfaces
-        lan_interfaces_without_interface = []
-        for existing_interface in device_settings['data']['lan']['interfaces']:
-            if existing_interface['name'] == interface['name']:
+        # Step1. Remove Interface from Edges LAN Interfaces list
+        new_lan_interfaces = []
+        for lan_interface in device_settings['data']['lan']['interfaces']:
+            if lan_interface['name'] == interface['name']:
                 continue
             else:
-                lan_interfaces_without_interface.append(existing_interface)
+                new_lan_interfaces.append(lan_interface)
 
-        # Update LAN Interfaces without the interface
-        device_settings['data']['lan']['interfaces'] = lan_interfaces_without_interface
+        # Set LAN Interfaces to the new LAN Interfaces list (without the interface)
+        device_settings['data']['lan']['interfaces'] = new_lan_interfaces
 
-        # Delete Interface from Edges LAN Networks interfaces
+        # Step2. Remove Interface from Edges LAN Networks Interfaces
         lan_networks_without_interface = []
         for network in device_settings['data']['lan']['networks']:
-            if network['vlanId'] == 1:
-                for existing_interface in network['interfaces']:
-                    if existing_interface == interface['name']:
+            if network['vlanId'] == vlan_id:
+                for inter_ in network['interfaces']:
+                    if inter_ == interface['name']:
                         continue
                     else:
-                        lan_networks_without_interface.append(existing_interface)
+                        lan_networks_without_interface.append(inter_)
 
-        # Update LAN Networks without the interface
+        # Set LAN Networks without the interface
         for network in device_settings['data']['lan']['networks']:
-            if network['vlanId'] == 1:
+            if network['vlanId'] == vlan_id:
                 network['interfaces'] = lan_networks_without_interface
 
         # Append interface to Edges interfaces
