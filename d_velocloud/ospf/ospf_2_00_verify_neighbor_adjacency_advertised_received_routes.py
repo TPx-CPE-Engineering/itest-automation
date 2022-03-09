@@ -1,8 +1,8 @@
 from my_velocloud.VelocloudEdge import OSPFVeloCloudEdge
-from ix_network.Ix_Network import IxNetwork
+from d_ixia.ix_network.Ix_Network import IxNetwork
+from ipaddress import ip_address
 import time
 import json
-from ipaddress import ip_address
 
 DUT_EDGE: OSPFVeloCloudEdge
 IX_NETWORK: IxNetwork
@@ -36,7 +36,7 @@ def stop_ix_network():
 
 
 def restore_settings():
-    file = 'ospf_device_settings.txt'
+    file = 'ospf_device_settings.json'
     print(DUT_EDGE.restore_config_from_filename(filename=file))
     DUT_EDGE.delete_filename(filename=file)
 
