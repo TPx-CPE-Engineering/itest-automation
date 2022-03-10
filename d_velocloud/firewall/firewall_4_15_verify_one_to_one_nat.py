@@ -96,7 +96,7 @@ def add_one_to_one_nat_rule():
             "nat": {
                 "lan_ip": one_to_one_properties['lan ip'],
                 "lan_port": -1,
-                "outbound": False
+                "outbound": True
             },
             "interface": one_to_one_properties['interface'],
             "subinterfaceId": -1
