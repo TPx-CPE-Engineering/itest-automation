@@ -24,6 +24,7 @@ from urllib3.exceptions import InsecureRequestWarning
 # Disable urllib3 InsecureRequestWarnings
 urllib3.disable_warnings(category=InsecureRequestWarning)
 
+
 def validate_ip_address(ip_address: str):
     """Validates an IP address string
 
@@ -98,7 +99,6 @@ class Poly:
             5500: 'Internal Server Error'
         }
 
-
     def get_error_code_definition(self, error_code: int):
         """Provides the definition of the given API error code.
 
@@ -111,7 +111,6 @@ class Poly:
 
         return self.API_ERROR_CODES[error_code]
 
-
     def get_line_one_phone_number(self):
         """Gets the phone number registered on line one of the Poly.
 
@@ -121,7 +120,6 @@ class Poly:
 
         line_one_phone_number = self.line_info_v2()['data'][0]['Username']
         return line_one_phone_number
-
 
     def get_device_info(self):
         """Gets the Poly's device information.
@@ -147,7 +145,6 @@ class Poly:
 
         return True, result
 
-
     def api_post(self, path: str):
         """Sends an empty HTTP POST request to the Poly.
 
@@ -161,7 +158,6 @@ class Poly:
         request = requests.post(f'https://Polycom:3724@{self.ip_address}{path}', headers=self.HTTP_HEADER, verify=False)
         response = json.loads(request.text)
         return response
-
 
     def api_post_data(self, path: str, data: dict):
         """Sends an HTTP POST request to the Poly containing data.
@@ -178,7 +174,6 @@ class Poly:
         response = json.loads(request.text)
         return response
 
-
     def api_get(self, path: str):
         """Sends an HTTP GET request to the Poly.
 
@@ -193,7 +188,6 @@ class Poly:
         response = json.loads(request.text)
         return response
 
-
     def restart(self):
         """This API executes a safeRestart on phone. safeRestart ensures that all calls
         on the phone are ended before initiating phone restart.
@@ -204,7 +198,6 @@ class Poly:
 
         response = self.api_post('/api/v1/mgmt/safeRestart')
         return response
-
 
     def reboot(self):
         """This API executes a safeReboot on the phone. safeReboot ensures that all calls
@@ -217,7 +210,6 @@ class Poly:
         response = self.api_post('/api/v1/mgmt/safeReboot')
         return response
 
-
     def factory_reset(self):
         """This API factory-resets the phone.
 
@@ -227,7 +219,6 @@ class Poly:
 
         response = self.api_post('/api/v1/mgmt/factoryReset')
         return response
-
 
     def network_info(self):
         """This API provides details about the phone’s network information.
@@ -240,7 +231,6 @@ class Poly:
         print(type(response))
         return response
 
-
     def device_info(self):
         """This API provides details about the phone's information.
 
@@ -250,7 +240,6 @@ class Poly:
 
         response = self.api_get('/api/v1/mgmt/device/info')
         return response
-
 
     def device_info_v2(self):
         """This API provides general device information.
@@ -262,7 +251,6 @@ class Poly:
         response = self.api_get('/api/v2/mgmt/device/info')
         return response
 
-
     def network_stats(self):
         """This API provides the phone’s network statistics information.
 
@@ -272,7 +260,6 @@ class Poly:
 
         response = self.api_get('/api/v1/mgmt/network/stats')
         return response
-
 
     def dial(self, dest: str, line: str = '1', _type: str = 'TEL'):
         """This API enables a user to initiate a call to a given number. Moreover, this API
@@ -292,7 +279,6 @@ class Poly:
 
         return False, response
 
-
     def end_call(self, call_reference: str):
         """This API ends an active call.
 
@@ -309,7 +295,6 @@ class Poly:
 
         return True, response
 
-
     def mute_call(self):
         """This API enables a user to mute the phone, if applicable.
 
@@ -322,7 +307,6 @@ class Poly:
         response = self.api_post_data('/api/v1/callctrl/mute', data)
         return response
 
-
     def unmute_call(self):
         """This API enables a user to un-mute the phone, if applicable.
 
@@ -334,7 +318,6 @@ class Poly:
 
         response = self.api_post_data('/api/v1/callctrl/mute', data)
         return response
-
 
     def transfer_call(self, call_reference: str, transfer_dest: str):
         """This API enables a user to transfer a call. In addition, this API always executes a
@@ -349,7 +332,6 @@ class Poly:
         response = self.api_post_data('/api/v1/callctrl/transferCall', data)
         return response
 
-
     def send_dtmf(self, digits: str):
         """This API enables a user to send DTMF tones during an active call.
 
@@ -361,7 +343,6 @@ class Poly:
 
         response = self.api_post_data('/api/v1/callctrl/sendDTMF', data)
         return response
-
 
     def call_logs(self, call_log_type: str = 'all'):
         """This API provides the phone’s call logs.
@@ -392,7 +373,6 @@ class Poly:
 
         return response
 
-
     def sip_status(self):
         """This API provides the phone’s SIP level details for the user.
 
@@ -402,7 +382,6 @@ class Poly:
 
         response = self.api_get('/api/v1/webCallControl/sipStatus')
         return response
-
 
     def hold_call(self, call_reference: str):
         """This API allows the user to hold an active call.
@@ -419,7 +398,6 @@ class Poly:
         response = self.api_post_data('/api/v1/callctrl/holdCall', data)
         return response
 
-
     def resume_call(self, call_reference: str):
         """This API resumes the call which was previously on hold.
 
@@ -434,7 +412,6 @@ class Poly:
 
         response = self.api_post_data('/api/v1/callctrl/resumeCall', data)
         return response
-
 
     def answer_call(self, call_reference: str):
         """This API answers an incoming call.
@@ -455,7 +432,6 @@ class Poly:
 
         return True, response
 
-
     def ignore_call(self, call_reference: str):
         """This API allows the user to ignore an incoming call.
 
@@ -470,7 +446,6 @@ class Poly:
 
         response = self.api_post_data('/api/v1/callctrl/ignoreCall', data)
         return response
-
 
     def reject_call(self, call_reference: str):
         """This API allows the user to reject an incoming call.
@@ -487,7 +462,6 @@ class Poly:
         response = self.api_post_data('/api/v1/callctrl/rejectCall', data)
         return response
 
-
     def poll_for_status(self):
         """This API polls the current state of the Poly.
 
@@ -498,7 +472,6 @@ class Poly:
         response = self.api_get('/api/v1/mgmt/pollForStatus')
         return response
 
-
     def running_config(self):
         """This API provides information about running configuration on phone.
 
@@ -508,7 +481,6 @@ class Poly:
 
         response = self.api_get('/api/v1/mgmt/device/runningConfig')
         return response
-
 
     def session_stats(self):
         """This API provides statistics of active media sessions on phone.
@@ -530,7 +502,6 @@ class Poly:
         response = self.api_get('/api/v1/webCallControl/callStatus')
         return response
 
-
     def call_status_v2(self):
         """This API provides information about all the calls present on phone.
 
@@ -540,7 +511,6 @@ class Poly:
 
         response = self.api_get('/api/v2/webCallControl/callStatus')
         return response
-
 
     def line_info(self):
         """This API provides details about the phones's line information.
@@ -552,7 +522,6 @@ class Poly:
         response = self.api_get('/api/v1/mgmt/lineInfo')
         return response
 
-
     def line_info_v2(self):
         """This API provides details about the phones's line information.
 
@@ -562,7 +531,6 @@ class Poly:
 
         response = self.api_get('/api/v2/mgmt/lineInfo')
         return response
-
 
     def get_current_call_reference(self, line: int = 0):
         """Retrieves the CallHandle of the current active call.
@@ -583,7 +551,6 @@ class Poly:
 
         call_reference = call_status['data'][line]['CallHandle']
         return True, call_reference
-
 
     def is_ringing(self, line: int = 0):
         """Checks if the Poly's call status is currently 'Ringing'.
@@ -609,7 +576,6 @@ class Poly:
         if ringing_status == '1':
             return True
 
-
     def call_state(self, line: int = 0):
         """Gets the call state of the given line number.
 
@@ -630,7 +596,6 @@ class Poly:
 
         return True, call_state
 
-
     def media_direction(self, line: int = 0):
         """Gets the media direction of the given line number.
 
@@ -650,7 +615,6 @@ class Poly:
         media_direction = call_status['data'][line]['Media Direction']
 
         return True, media_direction
-
 
     def get_device_uptime(self):
         """Retrieves the current device uptime.

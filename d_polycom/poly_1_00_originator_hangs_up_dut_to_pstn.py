@@ -14,7 +14,7 @@ Scenario:
 """
 
 import time
-from cpe_engineering.poly.poly_test_plan.iTest.poly import Poly
+from d_polycom.poly import Poly
 
 dut_poly = Poly('192.168.0.85')
 pstn_poly = Poly('192.168.0.212')
