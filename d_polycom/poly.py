@@ -6,13 +6,13 @@ Author:
 
 Description:
     - Python file containing the class, functions and methods used by iTest
-    for testing Poly VVX and CCX devices utilizing the Poly UC API.
+        for testing Poly VVX and CCX devices utilizing the Poly UC API.
 
     - Code was developed to be used with Poly UC Software 6.4.0 and above.
-    Testing with any previous code versions is possible, but not supported
+        Testing with any previous code versions is possible, but not supported.
 
-    - Poly UC Software 6.4.0 found at:
-    https://www.poly.com/content/dam/www/products/support/voice/vvx-business-ip-phones/other/ucsoftware-restapi-6-4-0-en.pdf
+    - Poly UC Software 6.4.0 API documentation:
+        https://www.poly.com/content/dam/www/products/support/voice/vvx-business-ip-phones/other/ucsoftware-restapi-6-4-0-en.pdf
 """
 
 import ipaddress
@@ -108,6 +108,7 @@ class Poly:
         Returns:
             self.API_ERROR_CODES[error_code] (str): Definition of the given API error code.
         """
+
         return self.API_ERROR_CODES[error_code]
 
 
