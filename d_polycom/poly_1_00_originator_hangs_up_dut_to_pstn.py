@@ -14,7 +14,6 @@ Scenario:
 """
 
 import time
-from cpe_engineering.poly.poly_test_plan.iTest.poly import Poly
 
 
 def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly: object):
@@ -30,7 +29,7 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly: object):
     """
 
     if not dut_poly.dial(pstn_poly.phone_number):
-        return False
+        return False, 'Unable to dial PSTN Poly from DUT Poly'
 
     time.sleep(5)
     return True
@@ -48,7 +47,7 @@ def verify_called_party_receives_ringing(pstn_poly: object):
     """
 
     if not pstn_poly.is_ringing():
-        return False
+        return False, 'PSTN Poly did not ring'
 
     return True
 
@@ -64,18 +63,13 @@ def verify_originating_party_receives_ringback(dut_poly: object):
         False (bool): If the PSTN Poly's Call State is not 'RingBack'
     """
      
-    dut_call_state = dut_poly.call_state()
-
-    if not dut_call_state:
-        return False
-
-    if dut_call_state[1] != 'RingBack':
-        return False
+    if not dut_poly.check_for_ringback():
+        return False, 'DUT Poly did not receive RingBack'
 
     return True
 
 
-def called_party_answers_call(pstn_poly):
+def called_party_answers_call(pstn_poly: object):
     """Answers call from the PSTN Poly
 
     Args:
@@ -89,10 +83,10 @@ def called_party_answers_call(pstn_poly):
     pstn_call_reference = pstn_poly.get_current_call_reference()
 
     if not pstn_call_reference:
-        return False
+        return False, 'Unable to get call reference from PSTN Poly'
 
     if not pstn_poly.answer_call(pstn_call_reference[1]):
-        return False
+        return False, 'Unable to answer call from PSTN Poly'
 
     time.sleep(5)
 
@@ -115,7 +109,7 @@ def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly: object)
     pstn_media_direction = pstn_poly.media_direction()
 
     if dut_media_direction[1] != 'sendrecv' or pstn_media_direction[1] != 'sendrecv':
-        return False
+        return False, 'Two way path connectivity was not established'
 
     return True
 
@@ -134,7 +128,7 @@ def originating_party_hangs_up(dut_poly: object):
     dut_call_reference = dut_poly.get_current_call_reference()
 
     if not dut_poly.end_call(dut_call_reference[1]):
-        return False
+        return False, 'Unable to end call from DUT Poly'
 
     return True
 
