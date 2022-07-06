@@ -134,8 +134,7 @@ def originating_party_hangs_up(dut_poly: object):
 
 
 def poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly: object, pstn_poly: object):
-    """
-    function poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly, pstn_poly_1)
+    """Performs each test case scenario
 
         - Originate a call from DUT Poly to PSTN Poly
             - Called party receives ringing
@@ -176,4 +175,4 @@ def poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly: object, pstn_poly: objec
 
 
 if __name__ == '__main__':
-    print(poly_1_00_originator_hangs_up_dut_to_pstn())
+    print(__doc__)
