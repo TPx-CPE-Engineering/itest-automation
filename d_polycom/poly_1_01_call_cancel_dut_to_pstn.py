@@ -15,37 +15,37 @@ Scenario:
 import time
 
 
-def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly: object):
+def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
     """Originates call from the DUT Poly to the PSTN poly
 
     Args:
         dut_poly (object): DUT Poly object
-        pstn_poly (object): PSTN Poly object
+        pstn_poly_1 (object): PSTN Poly object
 
     Returns:
         True (tuple): If the call was successfully sent from the DUT Poly
         False (tuple): If the call was unsuccessful from the DUT Poly
     """
 
-    if not dut_poly.dial(pstn_poly.phone_number):
+    if not dut_poly.dial(pstn_poly_1.phone_number):
         return False, 'Unable to originate call from the DUT Poly'
 
     time.sleep(5)
     return True, 'Successfully originated call from the DUT Poly to PSTN Poly 1'
 
 
-def check_if_called_party_is_ringing(pstn_poly: object):
+def check_if_called_party_is_ringing(pstn_poly_1: object):
     """Verifies that the called party receives Ringing from the originating party
 
     Args:
-        pstn_poly (object): PSTN Poly 1 object
+        pstn_poly_1 (object): PSTN Poly 1 object
 
     Returns:
         False (tuple): If the called party did not receive Ringing
         True (tuple): If the called party successfully received Ringing
     """
 
-    if not pstn_poly.is_ringing():
+    if not pstn_poly_1.is_ringing():
         return False, 'Called party did not receive Ringing'
 
     return True, 'Called party received Ringing'
@@ -85,7 +85,7 @@ def release_call_from_dut(dut_poly: object):
     return True, 'Successfully released call from the DUT Poly'
 
 
-def poly_1_01_call_cancel_dut_to_pstn(dut_poly: object, pstn_poly: object):
+def poly_1_01_call_cancel_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
     """Performs each test case scenario
 
         - Originate a call from the DUT Poly to PSTN Poly 1 but call is 
@@ -97,17 +97,17 @@ def poly_1_01_call_cancel_dut_to_pstn(dut_poly: object, pstn_poly: object):
 
     Args: 
         dut_poly (object): DUT Poly object
-        pstn_poly (object) PSTN Poly object
+        pstn_poly_1 (object) PSTN Poly object
 
     Returns:
         False (tuple): If any of the test case scenarios fail
         True (tuple): If all test case scenarios pass
     """
     
-    if not originate_call_from_dut_to_pstn(dut_poly, pstn_poly):
+    if not originate_call_from_dut_to_pstn(dut_poly, pstn_poly_1):
         return False, 'Unable to originate call from DUT Poly to PSTN Poly'
 
-    if not check_if_called_party_is_ringing(pstn_poly):
+    if not check_if_called_party_is_ringing(pstn_poly_1):
         return False, 'PSTN Poly did not receive Ringing'
 
     if not check_if_originating_party_receives_ringback(dut_poly):
