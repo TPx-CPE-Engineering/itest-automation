@@ -530,7 +530,6 @@ class Poly:
         response = self.api_get('/api/v1/webCallControl/callStatus')
         return response
 
-
     def call_status_v2(self):
         """This API provides information about all the calls present on phone.
 
@@ -540,7 +539,6 @@ class Poly:
 
         response = self.api_get('/api/v2/webCallControl/callStatus')
         return response
-
 
     def line_info(self):
         """This API provides details about the phones's line information.
@@ -552,7 +550,6 @@ class Poly:
         response = self.api_get('/api/v1/mgmt/lineInfo')
         return response
 
-
     def line_info_v2(self):
         """This API provides details about the phones's line information.
 
@@ -562,7 +559,6 @@ class Poly:
 
         response = self.api_get('/api/v2/mgmt/lineInfo')
         return response
-
 
     def get_current_call_reference(self, line: int = 0):
         """Retrieves the CallHandle of the current active call.
@@ -583,7 +579,6 @@ class Poly:
 
         call_reference = call_status['data'][line]['CallHandle']
         return True, call_reference
-
 
     def is_ringing(self, line: int = 0):
         """Checks if the Poly's call status is currently 'Ringing'.
@@ -609,7 +604,6 @@ class Poly:
         if ringing_status == '1':
             return True
 
-
     def call_state(self, line: int = 0):
         """Gets the call state of the given line number.
 
@@ -629,7 +623,6 @@ class Poly:
         call_state = call_status['data'][line]['CallState']
 
         return True, call_state
-
 
     def media_direction(self, line: int = 0):
         """Gets the media direction of the given line number.
@@ -651,7 +644,6 @@ class Poly:
 
         return True, media_direction
 
-
     def get_device_uptime(self):
         """Retrieves the current device uptime.
 
@@ -664,4 +656,5 @@ class Poly:
 
 
 if __name__ == '__main__':
-    print(__doc__)
+    # print(__doc__)
+    poly = Poly('192.168.0.90')
