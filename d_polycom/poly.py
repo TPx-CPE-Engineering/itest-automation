@@ -604,7 +604,30 @@ class Poly:
         if ringing_status == '1':
             return True
 
-    def call_state(self, line: int = 0):
+
+    def check_for_ringback(self: object):
+        """Checks if the Poly has a Call State of 'RingBack'
+
+        Args:
+            dut_poly (object): DUT Poly object
+
+        Returns:
+            True (bool): If the PSTN Poly's Call State is 'RingBack'
+            False (bool): If the PSTN Poly's Call State is not 'RingBack'
+        """
+        
+        dut_call_state = self.call_state()
+
+        if not dut_call_state:
+            return False
+
+        if dut_call_state[1] != 'RingBack':
+            return False
+
+        return True
+
+
+    def get_call_state(self, line: int = 0):
         """Gets the call state of the given line number.
 
         Params:
