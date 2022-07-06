@@ -647,7 +647,7 @@ class Poly:
 
         return True, call_state
 
-    def media_direction(self, line: int = 0):
+    def get_media_direction(self, line: int = 0):
         """Gets the media direction of the given line number.
 
         Params:

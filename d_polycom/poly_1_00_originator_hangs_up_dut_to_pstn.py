@@ -105,8 +105,8 @@ def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly: object)
         False (tuple): If a 2-way call path was not successfully established
     """
     
-    dut_media_direction = dut_poly.media_direction()
-    pstn_media_direction = pstn_poly.media_direction()
+    dut_media_direction = dut_poly.get_media_direction()
+    pstn_media_direction = pstn_poly.get_media_direction()
 
     if dut_media_direction[1] != 'sendrecv' or pstn_media_direction[1] != 'sendrecv':
         return False, 'Two way path connectivity was not established'
