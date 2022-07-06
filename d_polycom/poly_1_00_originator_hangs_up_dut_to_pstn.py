@@ -25,7 +25,7 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly: object):
 
     Returns:
         True (bool): If the call was successfully sent from the DUT Poly
-        False (bool): If the call was unsuccessful from the DUT Poly
+        False (tuple): If the call was unsuccessful from the DUT Poly
     """
 
     if not dut_poly.dial(pstn_poly.phone_number):
@@ -43,7 +43,7 @@ def verify_called_party_receives_ringing(pstn_poly: object):
 
     Returns:
         True (bool): If the PSTN Poly's Call State is 'Ringing'
-        False (bool): If the PSTN Poly's Call State is not 'Ringing'
+        False (tuple): If the PSTN Poly's Call State is not 'Ringing'
     """
 
     if not pstn_poly.is_ringing():
@@ -60,7 +60,7 @@ def verify_originating_party_receives_ringback(dut_poly: object):
 
     Returns:
         True (bool): If the PSTN Poly's Call State is 'RingBack'
-        False (bool): If the PSTN Poly's Call State is not 'RingBack'
+        False (tuple): If the PSTN Poly's Call State is not 'RingBack'
     """
      
     if not dut_poly.check_for_ringback():
@@ -77,7 +77,7 @@ def called_party_answers_call(pstn_poly: object):
 
     Returns:
         True (bool): If the call was successfully answered from the PSTN Poly
-        False (bool): If the call was not successfully answered from the PSTN Poly
+        False (tuple): If the call was not successfully answered from the PSTN Poly
     """
     
     pstn_call_reference = pstn_poly.get_current_call_reference()
@@ -102,7 +102,7 @@ def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly: object)
 
     Returns:
         True (bool): If a 2-way call path was successfully established
-        False (bool): If a 2-way call path was not successfully established
+        False (tuple): If a 2-way call path was not successfully established
     """
     
     dut_media_direction = dut_poly.media_direction()
@@ -122,7 +122,7 @@ def originating_party_hangs_up(dut_poly: object):
     
     Returns: 
         True (bool): If the DUT Poly successfully ends the call
-        False (bool): If the DUT Poly is unable to end the call
+        False (tuple): If the DUT Poly is unable to end the call
     """
 
     dut_call_reference = dut_poly.get_current_call_reference()
