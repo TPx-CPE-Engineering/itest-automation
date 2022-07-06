@@ -16,9 +16,6 @@ Scenario:
 import time
 from cpe_engineering.poly.poly_test_plan.iTest.poly import Poly
 
-dut_poly = Poly('192.168.0.85')
-pstn_poly = Poly('192.168.0.212')
-
 
 def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly: object):
     """Originates call from the DUT Poly to the PSTN poly
@@ -142,7 +139,7 @@ def originating_party_hangs_up(dut_poly: object):
     return True
 
 
-def poly_1_00_originator_hangs_up_dut_to_pstn():
+def poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly: object, pstn_poly: object):
     """
     function poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly, pstn_poly_1)
 
@@ -153,6 +150,10 @@ def poly_1_00_originator_hangs_up_dut_to_pstn():
 
         - Originating party hangs up
             - Call is Released
+
+    Args: 
+        dut_poly (object): DUT Poly object
+        pstn_poly (object) PSTN Poly object
 
     Returns:
         test_result (dict): Dictionary containing result of test
