@@ -150,7 +150,8 @@ def poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly: object, pstn_poly: objec
         pstn_poly (object) PSTN Poly object
 
     Returns:
-        test_result (dict): Dictionary containing result of test
+        False (tuple): If any of the test case scenarios fail
+        True (tuple): If all test case scenarios pass
     """
 
     if not originate_call_from_dut_to_pstn(dut_poly, pstn_poly):
@@ -171,7 +172,7 @@ def poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly: object, pstn_poly: objec
     if not originating_party_hangs_up(dut_poly):
         return False, 'Unable to end call from DUT Poly'
 
-    return True
+    return True, 'Test poly_1_00_originator_hangs_up_dut_to_pstn passed'
 
 
 if __name__ == '__main__':
