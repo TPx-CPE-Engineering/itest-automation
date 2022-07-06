@@ -14,10 +14,6 @@ Scenario:
 """
 
 import time
-from cpe_engineering.poly.poly_test_plan.iTest.poly import Poly
-
-dut_poly = Poly('192.168.0.85')
-pstn_poly = Poly('192.168.0.212')
 
 
 def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly: object):
@@ -29,11 +25,11 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly: object):
 
     Returns:
         True (bool): If the call was successfully sent from the DUT Poly
-        False (bool): If the call was unsuccessful from the DUT Poly
+        False (tuple): If the call was unsuccessful from the DUT Poly
     """
 
     if not dut_poly.dial(pstn_poly.phone_number):
-        return False
+        return False, 'Unable to dial PSTN Poly from DUT Poly'
 
     time.sleep(5)
     return True
@@ -47,11 +43,11 @@ def verify_called_party_receives_ringing(pstn_poly: object):
 
     Returns:
         True (bool): If the PSTN Poly's Call State is 'Ringing'
-        False (bool): If the PSTN Poly's Call State is not 'Ringing'
+        False (tuple): If the PSTN Poly's Call State is not 'Ringing'
     """
 
     if not pstn_poly.is_ringing():
-        return False
+        return False, 'PSTN Poly did not ring'
 
     return True
 
@@ -64,21 +60,16 @@ def verify_originating_party_receives_ringback(dut_poly: object):
 
     Returns:
         True (bool): If the PSTN Poly's Call State is 'RingBack'
-        False (bool): If the PSTN Poly's Call State is not 'RingBack'
+        False (tuple): If the PSTN Poly's Call State is not 'RingBack'
     """
      
-    dut_call_state = dut_poly.call_state()
-
-    if not dut_call_state:
-        return False
-
-    if dut_call_state[1] != 'RingBack':
-        return False
+    if not dut_poly.check_for_ringback():
+        return False, 'DUT Poly did not receive RingBack'
 
     return True
 
 
-def called_party_answers_call(pstn_poly):
+def called_party_answers_call(pstn_poly: object):
     """Answers call from the PSTN Poly
 
     Args:
@@ -86,16 +77,16 @@ def called_party_answers_call(pstn_poly):
 
     Returns:
         True (bool): If the call was successfully answered from the PSTN Poly
-        False (bool): If the call was not successfully answered from the PSTN Poly
+        False (tuple): If the call was not successfully answered from the PSTN Poly
     """
     
     pstn_call_reference = pstn_poly.get_current_call_reference()
 
     if not pstn_call_reference:
-        return False
+        return False, 'Unable to get call reference from PSTN Poly'
 
     if not pstn_poly.answer_call(pstn_call_reference[1]):
-        return False
+        return False, 'Unable to answer call from PSTN Poly'
 
     time.sleep(5)
 
@@ -111,14 +102,14 @@ def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly: object)
 
     Returns:
         True (bool): If a 2-way call path was successfully established
-        False (bool): If a 2-way call path was not successfully established
+        False (tuple): If a 2-way call path was not successfully established
     """
     
-    dut_media_direction = dut_poly.media_direction()
-    pstn_media_direction = pstn_poly.media_direction()
+    dut_media_direction = dut_poly.get_media_direction()
+    pstn_media_direction = pstn_poly.get_media_direction()
 
     if dut_media_direction[1] != 'sendrecv' or pstn_media_direction[1] != 'sendrecv':
-        return False
+        return False, 'Two way path connectivity was not established'
 
     return True
 
@@ -131,20 +122,19 @@ def originating_party_hangs_up(dut_poly: object):
     
     Returns: 
         True (bool): If the DUT Poly successfully ends the call
-        False (bool): If the DUT Poly is unable to end the call
+        False (tuple): If the DUT Poly is unable to end the call
     """
 
     dut_call_reference = dut_poly.get_current_call_reference()
 
     if not dut_poly.end_call(dut_call_reference[1]):
-        return False
+        return False, 'Unable to end call from DUT Poly'
 
     return True
 
 
-def poly_1_00_originator_hangs_up_dut_to_pstn():
-    """
-    function poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly, pstn_poly_1)
+def poly_1_00_originator_hangs_up_dut_to_pstn(dut_poly: object, pstn_poly: object):
+    """Performs each test case scenario
 
         - Originate a call from DUT Poly to PSTN Poly
             - Called party receives ringing
@@ -154,8 +144,13 @@ def poly_1_00_originator_hangs_up_dut_to_pstn():
         - Originating party hangs up
             - Call is Released
 
+    Args: 
+        dut_poly (object): DUT Poly object
+        pstn_poly (object) PSTN Poly object
+
     Returns:
-        test_result (dict): Dictionary containing result of test
+        False (tuple): If any of the test case scenarios fail
+        True (tuple): If all test case scenarios pass
     """
 
     if not originate_call_from_dut_to_pstn(dut_poly, pstn_poly):
@@ -176,8 +171,8 @@ def poly_1_00_originator_hangs_up_dut_to_pstn():
     if not originating_party_hangs_up(dut_poly):
         return False, 'Unable to end call from DUT Poly'
 
-    return True
+    return True, 'Test poly_1_00_originator_hangs_up_dut_to_pstn passed'
 
 
 if __name__ == '__main__':
-    print(poly_1_00_originator_hangs_up_dut_to_pstn())
+    print(__doc__)
