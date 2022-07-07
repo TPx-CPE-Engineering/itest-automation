@@ -589,7 +589,7 @@ class Poly:
             - True, call_reference (tuple)_type_: If the CallHandle was successfully retrieved
         """
 
-        call_status = self.call_status_v2()
+        call_status = self.management_call_status_v2()
 
         if not call_status['data']:
             return False
