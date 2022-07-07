@@ -609,7 +609,7 @@ class Poly:
             - True (bool): If the line's current 'Ringing' status is 1.
         """
 
-        call_status = self.call_status_v2()
+        call_status = self.management_call_status_v2()
 
         if not call_status['data']:
             return False
@@ -656,7 +656,7 @@ class Poly:
             - True, call_state (tuple): If the CallState was successfully retrieved.
         """
 
-        call_status = self.call_status_v2()
+        call_status = self.management_call_status_v2()
 
         if not call_status['data']:
             return False
@@ -677,7 +677,7 @@ class Poly:
             - True, media_direction (tuple): If the media direction of the given line was successfully retrieved.
         """
 
-        call_status = self.call_status_v2()
+        call_status = self.management_call_status_v2()
 
         if not call_status['data']:
             return False
@@ -694,7 +694,7 @@ class Poly:
             uptime (dict): Dictionary containing the device's current uptime statistics.
         """
 
-        uptime = self.device_info_v2()['data']['UpTime']
+        uptime = self.management_device_info_v2()['data']['UpTime']
         return uptime
 
 
