@@ -237,7 +237,6 @@ class Poly:
         """
 
         response = self.api_get('/api/v1/mgmt/network/info')
-        print(type(response))
         return response
 
 
@@ -616,7 +615,7 @@ class Poly:
             False (bool): If the PSTN Poly's Call State is not 'RingBack'
         """
         
-        dut_call_state = self.call_state()
+        dut_call_state = self.get_call_state()
 
         if not dut_call_state:
             return False
@@ -680,4 +679,6 @@ class Poly:
 
 if __name__ == '__main__':
     # print(__doc__)
-    poly = Poly('192.168.0.90')
+    poly = Poly('66.17.13.161')
+
+    print(poly.dial('7023063941'))
