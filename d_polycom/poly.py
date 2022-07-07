@@ -99,55 +99,6 @@ class Poly:
         }
 
 
-    def get_error_code_definition(self, error_code: int):
-        """Provides the definition of the given API error code.
-
-        Args:
-            error_code (int): Error code to define.
-
-        Returns:
-            self.API_ERROR_CODES[error_code] (str): Definition of the given API error code.
-        """
-
-        return self.API_ERROR_CODES[error_code]
-
-
-    def get_line_one_phone_number(self):
-        """Gets the phone number registered on line one of the Poly.
-
-        Returns:
-            - line_one_phone_number (str): The phone number registered to line one
-        """
-
-        line_one_phone_number = self.line_info_v2()['data'][0]['Username']
-        return line_one_phone_number
-
-
-    def get_device_info(self):
-        """Gets the Poly's device information.
-
-        Returns:
-            - False, device_info['Status'] (tuple): If unable to retrieve the
-            device info, return the status of the API call
-
-            - True, result (tuple): If the device info was successfully retrieved,
-            return the model number, mac address, and firmware version of the Poly
-        """
-
-        device_info = self.device_info_v2()
-
-        if device_info['Status'] != '2000':
-            return False, device_info['Status']
-
-        result = {
-            'model_number': device_info['data']['ModelNumber'],
-            'mac_address': device_info['data']['MACAddress'],
-            'firmware_version': device_info['data']['Firmware']['Updater']
-        }
-
-        return True, result
-
-
     def api_post(self, path: str):
         """Sends an empty HTTP POST request to the Poly.
 
@@ -193,8 +144,9 @@ class Poly:
         response = json.loads(request.text)
         return response
 
+# Management API
 
-    def restart(self):
+    def management_restart(self):
         """This API executes a safeRestart on phone. safeRestart ensures that all calls
         on the phone are ended before initiating phone restart.
 
@@ -206,7 +158,7 @@ class Poly:
         return response
 
 
-    def reboot(self):
+    def management_reboot(self):
         """This API executes a safeReboot on the phone. safeReboot ensures that all calls
         on the phone are ended before initiating phone reboot.
 
@@ -218,7 +170,7 @@ class Poly:
         return response
 
 
-    def factory_reset(self):
+    def management_factory_reset(self):
         """This API factory-resets the phone.
 
         Returns:
@@ -229,7 +181,7 @@ class Poly:
         return response
 
 
-    def network_info(self):
+    def management_network_info(self):
         """This API provides details about the phone’s network information.
 
         Returns:
@@ -240,7 +192,7 @@ class Poly:
         return response
 
 
-    def device_info(self):
+    def management_device_info(self):
         """This API provides details about the phone's information.
 
         Returns:
@@ -251,7 +203,7 @@ class Poly:
         return response
 
 
-    def device_info_v2(self):
+    def management_device_info_v2(self):
         """This API provides general device information.
 
         Returns:
@@ -261,8 +213,18 @@ class Poly:
         response = self.api_get('/api/v2/mgmt/device/info')
         return response
 
+    
+    def management_device_stats(self):
+        """This API provides details about phone’s CPU and memory usage.
 
-    def network_stats(self):
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+        response = self.api_get('/api/v1/mgmt/device/stats')
+        return response
+
+
+    def management_network_statistics(self):
         """This API provides the phone’s network statistics information.
 
         Returns:
@@ -273,7 +235,85 @@ class Poly:
         return response
 
 
-    def dial(self, dest: str, line: str = '1', _type: str = 'TEL'):
+    def management_poll_for_status(self):
+        """This API polls the current state of the Poly.
+
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+
+        response = self.api_get('/api/v1/mgmt/pollForStatus')
+        return response
+
+
+    def management_running_config(self):
+        """This API provides information about running configuration on phone.
+
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+
+        response = self.api_get('/api/v1/mgmt/device/runningConfig')
+        return response
+
+
+    def management_session_stats(self):
+        """This API provides statistics of active media sessions on phone.
+
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+
+        response = self.api_get('/api/v1/mgmt/media/sessionStats')
+        return response
+
+
+    def management_call_status(self):
+        """This API provides all the information of calls on the phone.
+
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+
+        response = self.api_get('/api/v1/webCallControl/callStatus')
+        return response
+
+
+    def management_call_status_v2(self):
+        """This API provides information about all the calls present on phone.
+
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+
+        response = self.api_get('/api/v2/webCallControl/callStatus')
+        return response
+
+
+    def management_line_info(self):
+        """This API provides details about the phones's line information.
+
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+
+        response = self.api_get('/api/v1/mgmt/lineInfo')
+        return response
+
+
+    def management_line_info_v2(self):
+        """This API provides details about the phones's line information.
+
+        Returns:
+            - response (dict): Dictionary containing the response from the Poly UC API.
+        """
+
+        response = self.api_get('/api/v2/mgmt/lineInfo')
+        return response
+
+# Web Call Control API
+
+    def web_call_control_dial(self, dest: str, line: str = '1', _type: str = 'TEL'):
         """This API enables a user to initiate a call to a given number. Moreover, this API
         initiates the call and returns a response as an acknowledgment of request
         received.
@@ -292,7 +332,7 @@ class Poly:
         return False, response
 
 
-    def end_call(self, call_reference: str):
+    def web_call_control_end_call(self, call_reference: str):
         """This API ends an active call.
 
         Returns:
@@ -309,7 +349,7 @@ class Poly:
         return True, response
 
 
-    def mute_call(self):
+    def web_call_control_mute_call(self):
         """This API enables a user to mute the phone, if applicable.
 
         Returns:
@@ -322,7 +362,7 @@ class Poly:
         return response
 
 
-    def unmute_call(self):
+    def web_call_control_unmute_call(self):
         """This API enables a user to un-mute the phone, if applicable.
 
         Returns:
@@ -335,7 +375,7 @@ class Poly:
         return response
 
 
-    def transfer_call(self, call_reference: str, transfer_dest: str):
+    def web_call_control_transfer_call(self, call_reference: str, transfer_dest: str):
         """This API enables a user to transfer a call. In addition, this API always executes a
         blind transfer.
 
@@ -349,7 +389,7 @@ class Poly:
         return response
 
 
-    def send_dtmf(self, digits: str):
+    def web_call_control_send_dtmf(self, digits: str):
         """This API enables a user to send DTMF tones during an active call.
 
         Returns:
@@ -362,7 +402,7 @@ class Poly:
         return response
 
 
-    def call_logs(self, call_log_type: str = 'all'):
+    def web_call_control_call_logs(self, call_log_type: str = 'all'):
         """This API provides the phone’s call logs.
 
         Params:
@@ -392,7 +432,7 @@ class Poly:
         return response
 
 
-    def sip_status(self):
+    def web_call_control_sip_status(self):
         """This API provides the phone’s SIP level details for the user.
 
         Returns:
@@ -403,7 +443,7 @@ class Poly:
         return response
 
 
-    def hold_call(self, call_reference: str):
+    def web_call_control_hold_call(self, call_reference: str):
         """This API allows the user to hold an active call.
 
         Params:
@@ -419,7 +459,7 @@ class Poly:
         return response
 
 
-    def resume_call(self, call_reference: str):
+    def web_call_control_resume_call(self, call_reference: str):
         """This API resumes the call which was previously on hold.
 
         Params:
@@ -435,7 +475,7 @@ class Poly:
         return response
 
 
-    def answer_call(self, call_reference: str):
+    def web_call_control_answer_call(self, call_reference: str):
         """This API answers an incoming call.
 
         Params:
@@ -455,7 +495,7 @@ class Poly:
         return True, response
 
 
-    def ignore_call(self, call_reference: str):
+    def web_call_control_ignore_call(self, call_reference: str):
         """This API allows the user to ignore an incoming call.
 
         Params:
@@ -471,7 +511,7 @@ class Poly:
         return response
 
 
-    def reject_call(self, call_reference: str):
+    def web_call_control_reject_call(self, call_reference: str):
         """This API allows the user to reject an incoming call.
 
         Params:
@@ -486,78 +526,56 @@ class Poly:
         response = self.api_post_data('/api/v1/callctrl/rejectCall', data)
         return response
 
+# Custom Functions
 
-    def poll_for_status(self):
-        """This API polls the current state of the Poly.
+    def get_error_code_definition(self, error_code: int):
+        """Provides the definition of the given API error code.
 
-        Returns:
-            - response (dict): Dictionary containing the response from the Poly UC API.
-        """
-
-        response = self.api_get('/api/v1/mgmt/pollForStatus')
-        return response
-
-
-    def running_config(self):
-        """This API provides information about running configuration on phone.
+        Args:
+            error_code (int): Error code to define.
 
         Returns:
-            - response (dict): Dictionary containing the response from the Poly UC API.
+            self.API_ERROR_CODES[error_code] (str): Definition of the given API error code.
         """
 
-        response = self.api_get('/api/v1/mgmt/device/runningConfig')
-        return response
+        return self.API_ERROR_CODES[error_code]
 
 
-    def session_stats(self):
-        """This API provides statistics of active media sessions on phone.
+    def get_line_one_phone_number(self):
+        """Gets the phone number registered on line one of the Poly.
 
         Returns:
-            - response (dict): Dictionary containing the response from the Poly UC API.
+            - line_one_phone_number (str): The phone number registered to line one
         """
 
-        response = self.api_get('/api/v1/mgmt/media/sessionStats')
-        return response
+        line_one_phone_number = self.management_line_info_v2()['data'][0]['Username']
+        return line_one_phone_number
 
-    def call_status(self):
-        """This API provides all the information of calls on the phone.
+
+    def get_device_info(self):
+        """Gets the Poly's device information.
 
         Returns:
-            - response (dict): Dictionary containing the response from the Poly UC API.
+            - False, device_info['Status'] (tuple): If unable to retrieve the
+            device info, return the status of the API call
+
+            - True, result (tuple): If the device info was successfully retrieved,
+            return the model number, mac address, and firmware version of the Poly
         """
 
-        response = self.api_get('/api/v1/webCallControl/callStatus')
-        return response
+        device_info = self.management_device_info_v2()
 
-    def call_status_v2(self):
-        """This API provides information about all the calls present on phone.
+        if device_info['Status'] != '2000':
+            return False, device_info['Status']
 
-        Returns:
-            - response (dict): Dictionary containing the response from the Poly UC API.
-        """
+        result = {
+            'model_number': device_info['data']['ModelNumber'],
+            'mac_address': device_info['data']['MACAddress'],
+            'firmware_version': device_info['data']['Firmware']['Updater']
+        }
 
-        response = self.api_get('/api/v2/webCallControl/callStatus')
-        return response
+        return True, result
 
-    def line_info(self):
-        """This API provides details about the phones's line information.
-
-        Returns:
-            - response (dict): Dictionary containing the response from the Poly UC API.
-        """
-
-        response = self.api_get('/api/v1/mgmt/lineInfo')
-        return response
-
-    def line_info_v2(self):
-        """This API provides details about the phones's line information.
-
-        Returns:
-            - response (dict): Dictionary containing the response from the Poly UC API.
-        """
-
-        response = self.api_get('/api/v2/mgmt/lineInfo')
-        return response
 
     def get_current_call_reference(self, line: int = 0):
         """Retrieves the CallHandle of the current active call.
@@ -578,6 +596,7 @@ class Poly:
 
         call_reference = call_status['data'][line]['CallHandle']
         return True, call_reference
+
 
     def is_ringing(self, line: int = 0):
         """Checks if the Poly's call status is currently 'Ringing'.
@@ -646,6 +665,7 @@ class Poly:
 
         return True, call_state
 
+
     def get_media_direction(self, line: int = 0):
         """Gets the media direction of the given line number.
 
@@ -665,6 +685,7 @@ class Poly:
         media_direction = call_status['data'][line]['Media Direction']
 
         return True, media_direction
+
 
     def get_device_uptime(self):
         """Retrieves the current device uptime.
