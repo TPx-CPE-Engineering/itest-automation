@@ -28,7 +28,7 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
         False (tuple): If the call was unsuccessful from the DUT Poly
     """
 
-    if not dut_poly.dial(pstn_poly_1.phone_number):
+    if not dut_poly.web_call_control_dial(pstn_poly_1.phone_number):
         return False, 'Unable to dial PSTN Poly from DUT Poly'
 
     time.sleep(5)
@@ -85,7 +85,7 @@ def called_party_answers_call(pstn_poly_1: object):
     if not pstn_call_reference:
         return False, 'Unable to get call reference from PSTN Poly'
 
-    if not pstn_poly_1.answer_call(pstn_call_reference[1]):
+    if not pstn_poly_1.web_call_control_answer_call(pstn_call_reference[1]):
         return False, 'Unable to answer call from PSTN Poly'
 
     time.sleep(5)
@@ -127,7 +127,7 @@ def originating_party_hangs_up(dut_poly: object):
 
     dut_call_reference = dut_poly.get_current_call_reference()
 
-    if not dut_poly.end_call(dut_call_reference[1]):
+    if not dut_poly.web_call_control_end_call(dut_call_reference[1]):
         return False, 'Unable to end call from DUT Poly'
 
     return True
