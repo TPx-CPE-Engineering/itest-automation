@@ -31,10 +31,10 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
     result = dut_poly.web_call_control_dial(pstn_poly_1.phone_number)
 
     if not result:
-        return False, result
+        return False, result[1]
 
     time.sleep(5)
-    return True, result
+    return True, result[1]
 
 
 def verify_called_party_receives_ringing(pstn_poly_1: object):
@@ -51,9 +51,9 @@ def verify_called_party_receives_ringing(pstn_poly_1: object):
     result = pstn_poly_1.is_ringing()
 
     if not result:
-        return False, result
+        return False, result[1]
 
-    return True, result
+    return True, result[1]
 
 
 def verify_originating_party_receives_ringback(dut_poly: object):
@@ -70,9 +70,9 @@ def verify_originating_party_receives_ringback(dut_poly: object):
     result = dut_poly.check_for_ringback()
      
     if not result:
-        return False, result
+        return False, result[1]
 
-    return True, result
+    return True, result[1]
 
 
 def called_party_answers_call(pstn_poly_1: object):
@@ -94,11 +94,11 @@ def called_party_answers_call(pstn_poly_1: object):
     result = pstn_poly_1.web_call_control_answer_call(pstn_call_reference[1])
 
     if not result:
-        return False, result
+        return False, result[1]
 
     time.sleep(5)
 
-    return True, result
+    return True, result[1]
 
 
 def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly_1: object):
@@ -141,9 +141,9 @@ def originating_party_hangs_up(dut_poly: object):
     result = dut_poly.web_call_control_end_call(dut_call_reference[1])
 
     if not result:
-        return False, result
+        return False, result[1]
 
-    return True, result
+    return True, result[1]
 
 
 if __name__ == '__main__':
