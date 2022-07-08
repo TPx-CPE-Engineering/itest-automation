@@ -87,7 +87,7 @@ def release_call_from_dut(dut_poly: object):
 
     call_reference = dut_poly.get_current_call_reference()
 
-    if not call_reference():
+    if not call_reference:
         return False, call_reference[1]
 
     result = dut_poly.web_call_control_end_call(call_reference[1])
