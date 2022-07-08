@@ -634,15 +634,15 @@ class Poly:
             False (bool): If the PSTN Poly's Call State is not 'RingBack'
         """
         
-        dut_call_state = self.get_call_state()
+        result = self.get_call_state()
 
-        if not dut_call_state:
-            return False, dut_call_state
+        if not result:
+            return False, result[1]
 
-        if dut_call_state[1] != 'RingBack':
-            return False, dut_call_state
+        if result[1] != 'RingBack':
+            return False, result[1]
 
-        return True, dut_call_state
+        return True, result[1]
 
 
     def get_call_state(self, line: int = 0):
