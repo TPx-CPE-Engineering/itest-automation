@@ -612,15 +612,15 @@ class Poly:
         call_status = self.management_call_status_v2()
 
         if not call_status['data']:
-            return False
+            return False, call_status
 
         ringing_status = call_status['data'][line]['Ringing']
 
         if ringing_status == '0':
-            return False
+            return False, {'CallStatus': ringing_status}
 
         if ringing_status == '1':
-            return True
+            return True, {'CallStatus': ringing_status}
 
 
     def check_for_ringback(self: object):
