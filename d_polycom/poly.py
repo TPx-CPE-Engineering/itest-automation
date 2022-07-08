@@ -601,6 +601,9 @@ class Poly:
 
         call_status = self.management_call_status_v2()
 
+        if not call_status['data']:
+            return {'call_reference': None}
+
         call_reference = call_status['data'][line]['CallHandle']
 
         return {'call_reference': call_reference}
