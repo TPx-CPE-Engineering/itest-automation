@@ -64,10 +64,12 @@ def check_if_originating_party_receives_ringback(dut_poly: object):
         True (tuple): If the originating party successfully receives RingBack
     """
 
-    if not dut_poly.check_for_ringback():
-        return False, {'Status': 'Originating party did not receive RingBack'}
+    result = dut_poly.check_for_ringback()
 
-    return True, {'Status': 'Originating party received Ringback'}
+    if not result:
+        return False, result[1]
+
+    return True, result[1]
 
 
 def release_call_from_dut(dut_poly: object):

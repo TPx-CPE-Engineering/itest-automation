@@ -637,12 +637,12 @@ class Poly:
         dut_call_state = self.get_call_state()
 
         if not dut_call_state:
-            return False
+            return False, dut_call_state
 
         if dut_call_state[1] != 'RingBack':
-            return False
+            return False, dut_call_state
 
-        return True
+        return True, dut_call_state
 
 
     def get_call_state(self, line: int = 0):
