@@ -64,15 +64,15 @@ class Poly:
         }
 
         # Set the self phone number
-        self.phone_number = self.get_line_one_phone_number()
+        self.phone_number = self.get_registered_phone_number()['registered_phone_number']
 
         # Set the Poly's device information
         device_info = self.get_device_info()
 
         if device_info:
-            self.model_number = device_info[1]['model_number']
-            self.mac_address = device_info[1]['mac_address']
-            self.firmware_version = device_info[1]['firmware_version']
+            self.model_number = device_info['model_number']
+            self.mac_address = device_info['mac_address']
+            self.firmware_version = device_info['firmware_version']
         else:
             self.model_number = 'Unable to retrieve Device Info'
             self.mac_address = 'Unable to retrieve Device Info'
@@ -109,9 +109,8 @@ class Poly:
             - response (dict): Dictionary containing the response from the Poly UC API.
         """
 
-        request = requests.post(f'https://Polycom:3724@{self.ip_address}{path}', headers=self.HTTP_HEADER, verify=False)
-        response = json.loads(request.text)
-        return response
+        response = requests.post(f'https://Polycom:3724@{self.ip_address}{path}', headers=self.HTTP_HEADER, verify=False)
+        return json.loads(response.text)
 
 
     def api_post_data(self, path: str, data: dict):
@@ -125,9 +124,8 @@ class Poly:
             - response (dict): Dictionary containing the response from the Poly UC API.
         """
 
-        request = requests.post(f'https://Polycom:3724@{self.ip_address}{path}', data=data, headers=self.HTTP_HEADER, verify=False)
-        response = json.loads(request.text)
-        return response
+        response = requests.post(f'https://Polycom:3724@{self.ip_address}{path}', data=data, headers=self.HTTP_HEADER, verify=False)
+        return json.loads(response.text)
 
 
     def api_get(self, path: str):
@@ -140,9 +138,8 @@ class Poly:
             - response (dict): Dictionary containing the response from the Poly UC API.
         """
 
-        request = requests.get(f'https://Polycom:3724@{self.ip_address}{path}', headers=self.HTTP_HEADER, verify=False)
-        response = json.loads(request.text)
-        return response
+        response = requests.get(f'https://Polycom:3724@{self.ip_address}{path}', headers=self.HTTP_HEADER, verify=False)
+        return json.loads(response.text)
 
 # Management API
 
@@ -311,6 +308,26 @@ class Poly:
         response = self.api_get('/api/v2/mgmt/lineInfo')
         return response
 
+
+    def management_get_config(self, param_name: str):
+        """This API provides running configuration value for given configuration parameter.
+
+        Parameters:
+        param_name (str): Name of the configuration parameter to get
+
+        Returns:
+        response (json): Poly UC API HTTP response
+        """
+
+        # data = {"data":[param_name]}
+
+        data = json.dumps({"data":[param_name]})
+
+        request = requests.post('https://Polycom:3724@' + self.ip_address + '/api/v1/mgmt/config/get', headers=self.HTTP_HEADER, data=data, verify=False)
+        response = json.loads(request.text)
+
+        return response
+
 # Web Call Control API
 
     def web_call_control_dial(self, dest: str, line: str = '1', _type: str = 'TEL'):
@@ -326,10 +343,7 @@ class Poly:
 
         response = self.api_post_data('/api/v1/callctrl/dial', data)
 
-        if response['Status'] == '2000':
-            return True, response
-
-        return False, response
+        return response
 
 
     def web_call_control_end_call(self, call_reference: str):
@@ -343,10 +357,7 @@ class Poly:
 
         response = self.api_post_data('/api/v1/callctrl/endCall', data)
 
-        if response['Status'] != '2000':
-            return False
-
-        return True, response
+        return response
 
 
     def web_call_control_mute_call(self):
@@ -489,10 +500,7 @@ class Poly:
 
         response = self.api_post_data('/api/v1/callctrl/answerCall', data)
 
-        if response['Status'] != '2000':
-            return False
-
-        return True, response
+        return response
 
 
     def web_call_control_ignore_call(self, call_reference: str):
@@ -541,15 +549,17 @@ class Poly:
         return self.API_ERROR_CODES[error_code]
 
 
-    def get_line_one_phone_number(self):
+    def get_line_one_sip_user(self):
         """Gets the phone number registered on line one of the Poly.
 
         Returns:
             - line_one_phone_number (str): The phone number registered to line one
         """
 
-        line_one_phone_number = self.management_line_info_v2()['data'][0]['Username']
-        return line_one_phone_number
+        line_info = self.management_line_info_v2()
+
+        get_line_one_sip_user = line_info['data'][0]['Username']
+        return get_line_one_sip_user
 
 
     def get_device_info(self):
@@ -574,7 +584,7 @@ class Poly:
             'firmware_version': device_info['data']['Firmware']['Updater']
         }
 
-        return True, result
+        return result
 
 
     def get_current_call_reference(self, line: int = 0):
@@ -591,14 +601,12 @@ class Poly:
 
         call_status = self.management_call_status_v2()
 
-        if not call_status['data']:
-            return False, call_status
-
         call_reference = call_status['data'][line]['CallHandle']
-        return True, call_reference
+
+        return {'call_reference': call_reference}
 
 
-    def is_ringing(self, line: int = 0):
+    def get_ringing_status(self, line: int = 0):
         """Checks if the Poly's call status is currently 'Ringing'.
 
         Params:
@@ -611,16 +619,13 @@ class Poly:
 
         call_status = self.management_call_status_v2()
 
-        if not call_status['data']:
-            return False, call_status
-
         ringing_status = call_status['data'][line]['Ringing']
 
         if ringing_status == '0':
-            return False, {'Ringing': ringing_status}
+            return {'Ringing': ringing_status}
 
         if ringing_status == '1':
-            return True, {'Ringing': ringing_status}
+            return {'Ringing': ringing_status}
 
 
     def check_for_ringback(self: object):
@@ -636,13 +641,7 @@ class Poly:
         
         result = self.get_call_state()
 
-        if not result:
-            return False, {'CallState': result[1]}
-
-        if result[1] != 'RingBack':
-            return False, {'CallState': result[1]}
-
-        return True, {'CallState': result[1]}
+        return result
 
 
     def get_call_state(self, line: int = 0):
@@ -658,12 +657,9 @@ class Poly:
 
         call_status = self.management_call_status_v2()
 
-        if not call_status['data']:
-            return False
-
         call_state = call_status['data'][line]['CallState']
 
-        return True, call_state
+        return {'CallState': call_state}
 
 
     def get_media_direction(self, line: int = 0):
@@ -679,12 +675,9 @@ class Poly:
 
         call_status = self.management_call_status_v2()
 
-        if not call_status['data']:
-            return False
-
         media_direction = call_status['data'][line]['Media Direction']
 
-        return True, media_direction
+        return {'media_direction': media_direction}
 
 
     def get_device_uptime(self):
@@ -695,11 +688,28 @@ class Poly:
         """
 
         uptime = self.management_device_info_v2()['data']['UpTime']
-        return uptime
+        return json.dumps({'Uptime': uptime})
+
+
+    def get_registered_phone_number(self):
+        """Retreives the registered Broadsoft userId from the Poly's config
+
+        Returns:
+           response (dict): Registered phone number of the Poly
+        """
+
+        registered_phone_number = self.management_get_config('reg.1.broadsoft.userId')
+        registered_phone_number = registered_phone_number['data']['reg.1.broadsoft.userId']['Value']
+
+        registered_phone_number = registered_phone_number.split('@')
+        registered_phone_number = registered_phone_number[0]
+        
+        response = {
+            'registered_phone_number': registered_phone_number
+        }
+
+        return response
 
 
 if __name__ == '__main__':
-    # print(__doc__)
-    poly = Poly('66.17.13.161')
-
-    print(poly.dial('7023063941'))
+    print(__doc__)
