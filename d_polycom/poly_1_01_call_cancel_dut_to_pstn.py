@@ -47,10 +47,12 @@ def check_if_called_party_is_ringing(pstn_poly_1: object):
         True (tuple): If the called party successfully received Ringing
     """
 
-    if not pstn_poly_1.is_ringing():
-        return False, {'Status': 'Called party did not receive \'Ringing\''}
+    result = pstn_poly_1.is_ringing()
 
-    return True, {'Status': 'Called party received \'Ringing\''}
+    if not result:
+        return False, result[1]
+
+    return True, result[1]
 
 
 def check_if_originating_party_receives_ringback(dut_poly: object):
@@ -83,7 +85,12 @@ def release_call_from_dut(dut_poly: object):
         True (tuple): If the call was successfully released from the DUT Poly
     """
 
-    result = dut_poly.web_call_control_end_call()
+    call_reference = dut_poly.get_current_call_reference()
+
+    if not call_reference():
+        return False, call_reference[1]
+
+    result = dut_poly.web_call_control_end_call(call_reference[1])
 
     if not result:
         return False, result[1]
