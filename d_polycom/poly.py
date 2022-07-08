@@ -585,14 +585,14 @@ class Poly:
                 - Defaults to 0.
 
         Returns:
-            - False (bool): If unable to get the CallHandle of an active call on the given line.
-            - True, call_reference (tuple)_type_: If the CallHandle was successfully retrieved
+            - False (tuple): If unable to get the CallHandle of an active call on the given line.
+            - True, call_reference (tuple): If the CallHandle was successfully retrieved
         """
 
         call_status = self.management_call_status_v2()
 
         if not call_status['data']:
-            return False
+            return False, call_status
 
         call_reference = call_status['data'][line]['CallHandle']
         return True, call_reference
