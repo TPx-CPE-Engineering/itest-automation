@@ -15,7 +15,6 @@ Scenario:
 
 import time
 import json
-from poly import Poly
 
 
 def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
