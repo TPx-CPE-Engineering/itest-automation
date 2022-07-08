@@ -51,9 +51,9 @@ def verify_called_party_receives_ringing(pstn_poly_1: object):
     result = pstn_poly_1.is_ringing()
 
     if not result:
-        return False, {'Status': 'Called party did not receive ringing'}
+        return False, result[1]
 
-    return True
+    return True, result[1]
 
 
 def verify_originating_party_receives_ringback(dut_poly: object):
