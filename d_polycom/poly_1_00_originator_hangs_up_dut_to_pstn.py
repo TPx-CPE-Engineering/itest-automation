@@ -14,6 +14,8 @@ Scenario:
 """
 
 import time
+import json
+from poly import Poly
 
 
 def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
@@ -30,11 +32,9 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
 
     result = dut_poly.web_call_control_dial(pstn_poly_1.phone_number)
 
-    if not result:
-        return False, result[1]
-
     time.sleep(5)
-    return True, result[1]
+
+    return json.dumps(result)
 
 
 def verify_called_party_receives_ringing(pstn_poly_1: object):
@@ -48,12 +48,9 @@ def verify_called_party_receives_ringing(pstn_poly_1: object):
         False (tuple): If the PSTN Poly's Call State is not 'Ringing'
     """
 
-    result = pstn_poly_1.is_ringing()
+    result = pstn_poly_1.get_ringing_status()
 
-    if not result:
-        return False, result[1]
-
-    return True, result[1]
+    return json.dumps(result)
 
 
 def verify_originating_party_receives_ringback(dut_poly: object):
@@ -68,11 +65,8 @@ def verify_originating_party_receives_ringback(dut_poly: object):
     """
 
     result = dut_poly.check_for_ringback()
-     
-    if not result:
-        return False, result[1]
 
-    return True, result[1]
+    return json.dumps(result)
 
 
 def called_party_answers_call(pstn_poly_1: object):
@@ -86,19 +80,13 @@ def called_party_answers_call(pstn_poly_1: object):
         False (tuple): If the call was not successfully answered from the PSTN Poly
     """
     
-    pstn_call_reference = pstn_poly_1.get_current_call_reference()
+    pstn_call_reference = pstn_poly_1.get_current_call_reference()['call_reference']
 
-    if not pstn_call_reference:
-        return False, pstn_call_reference
-
-    result = pstn_poly_1.web_call_control_answer_call(pstn_call_reference[1])
-
-    if not result:
-        return False, result[1]
+    result = pstn_poly_1.web_call_control_answer_call(pstn_call_reference)
 
     time.sleep(5)
 
-    return True, result[1]
+    return json.dumps(result)
 
 
 def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly_1: object):
@@ -113,25 +101,21 @@ def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly_1: objec
         False (tuple): If a 2-way call path was not successfully established
     """
     
-    dut_media_direction = dut_poly.get_media_direction()
-    pstn_media_direction = pstn_poly_1.get_media_direction()
+    dut_media_direction = dut_poly.get_media_direction()['media_direction']
+    pstn_media_direction = pstn_poly_1.get_media_direction()['media_direction']
 
-    if dut_media_direction[1] != 'sendrecv':
-        return False, {
-            'dut_media_direction': dut_media_direction[1]
-        }
+    if dut_media_direction != 'sendrecv':
+        return {'dut_media_direction': dut_media_direction}
         
-    if pstn_media_direction[1] != 'sendrecv':
-        return False, {
-            'pstn_media_direction': pstn_media_direction[1]
-        }
+    if pstn_media_direction != 'sendrecv':
+        return {'pstn_media_direction': pstn_media_direction}
 
     result = {
-        'dut_media_direction': dut_media_direction[1],
-        'pstn_media_direction': pstn_media_direction[1]
+        'dut_media_direction': dut_media_direction,
+        'pstn_media_direction': pstn_media_direction
     }
 
-    return True, result
+    return json.dumps(result)
 
 
 def originating_party_hangs_up(dut_poly: object):
@@ -145,14 +129,11 @@ def originating_party_hangs_up(dut_poly: object):
         False (tuple): If the DUT Poly is unable to end the call
     """
 
-    dut_call_reference = dut_poly.get_current_call_reference()
+    dut_call_reference = dut_poly.get_current_call_reference()['call_reference']
 
-    result = dut_poly.web_call_control_end_call(dut_call_reference[1])
-
-    if not result:
-        return False, result[1]
-
-    return True, result[1]
+    result = dut_poly.web_call_control_end_call(dut_call_reference)
+    
+    return json.dumps(result)
 
 
 if __name__ == '__main__':
