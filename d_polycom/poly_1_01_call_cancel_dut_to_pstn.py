@@ -27,11 +27,13 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
         False (tuple): If the call was unsuccessful from the DUT Poly
     """
 
-    if not dut_poly.dial(pstn_poly_1.phone_number):
-        return False, 'Unable to originate call from the DUT Poly'
+    result = dut_poly.web_call_control_dial(pstn_poly_1.phone_number)
+
+    if not result:
+        return False, result[1]
 
     time.sleep(5)
-    return True, 'Successfully originated call from the DUT Poly to PSTN Poly 1'
+    return True, result[1]
 
 
 def check_if_called_party_is_ringing(pstn_poly_1: object):
@@ -46,9 +48,9 @@ def check_if_called_party_is_ringing(pstn_poly_1: object):
     """
 
     if not pstn_poly_1.is_ringing():
-        return False, 'Called party did not receive Ringing'
+        return False, {'Status': 'Called party did not receive \'Ringing\''}
 
-    return True, 'Called party received Ringing'
+    return True, {'Status': 'Called party received \'Ringing\''}
 
 
 def check_if_originating_party_receives_ringback(dut_poly: object):
@@ -63,9 +65,9 @@ def check_if_originating_party_receives_ringback(dut_poly: object):
     """
 
     if not dut_poly.check_for_ringback():
-        return False, 'Originating party did not receive RingBack'
+        return False, {'Status': 'Originating party did not receive RingBack'}
 
-    return True, 'Originating party received Ringback'
+    return True, {'Status': 'Originating party received Ringback'}
 
 
 def release_call_from_dut(dut_poly: object):
@@ -79,44 +81,12 @@ def release_call_from_dut(dut_poly: object):
         True (tuple): If the call was successfully released from the DUT Poly
     """
 
-    if not dut_poly.end_call():
-        return False, 'Unable to release call from the DUT Poly'
+    result = dut_poly.web_call_control_end_call()
 
-    return True, 'Successfully released call from the DUT Poly'
+    if not result:
+        return False, result[1]
 
-
-def poly_1_01_call_cancel_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
-    """Performs each test case scenario
-
-        - Originate a call from the DUT Poly to PSTN Poly 1 but call is 
-        hung up before it is answered.
-
-        1.) Called party receives ringing
-        2.) Originating party receives ring back
-        3.) Call is released from the DUT Poly
-
-    Args: 
-        dut_poly (object): DUT Poly object
-        pstn_poly_1 (object) PSTN Poly object
-
-    Returns:
-        False (tuple): If any of the test case scenarios fail
-        True (tuple): If all test case scenarios pass
-    """
-    
-    if not originate_call_from_dut_to_pstn(dut_poly, pstn_poly_1):
-        return False, 'Unable to originate call from DUT Poly to PSTN Poly'
-
-    if not check_if_called_party_is_ringing(pstn_poly_1):
-        return False, 'PSTN Poly did not receive Ringing'
-
-    if not check_if_originating_party_receives_ringback(dut_poly):
-        return False, 'DUT Poly did not receive RingBack'
-
-    if not release_call_from_dut(dut_poly):
-        return False, 'Unable to release call from the DUT Poly'
-
-    return True, 'Test case poly_1_01_call_cancel_dut_to_pstn passed'
+    return True, result[1]
 
 
 if __name__ == '__main__':
