@@ -51,9 +51,9 @@ def verify_called_party_receives_ringing(pstn_poly_1: object):
     result = pstn_poly_1.is_ringing()
 
     if not result:
-        return False, result[1]
+        return False, {'Status': 'Called party did not receive ringing'}
 
-    return True, result[1]
+    return True
 
 
 def verify_originating_party_receives_ringback(dut_poly: object):
@@ -70,9 +70,9 @@ def verify_originating_party_receives_ringback(dut_poly: object):
     result = dut_poly.check_for_ringback()
      
     if not result:
-        return False, result[1]
+        return False, {'Status': 'Originating party did not receive RingBack'}
 
-    return True, result[1]
+    return True
 
 
 def called_party_answers_call(pstn_poly_1: object):
@@ -117,12 +117,21 @@ def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly_1: objec
     pstn_media_direction = pstn_poly_1.get_media_direction()
 
     if dut_media_direction[1] != 'sendrecv':
-        return False, dut_media_direction
-    
+        return False, {
+            'dut_media_direction': dut_media_direction[1]
+        }
+        
     if pstn_media_direction[1] != 'sendrecv':
-        return False, pstn_media_direction
+        return False, {
+            'pstn_media_direction': pstn_media_direction[1]
+        }
 
-    return True, (dut_media_direction, pstn_media_direction)
+    result = {
+        'dut_media_direction': dut_media_direction[1],
+        'pstn_media_direction': pstn_media_direction[1]
+    }
+
+    return True, result
 
 
 def originating_party_hangs_up(dut_poly: object):
