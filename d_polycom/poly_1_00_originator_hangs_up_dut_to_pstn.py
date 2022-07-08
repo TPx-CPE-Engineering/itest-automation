@@ -70,9 +70,9 @@ def verify_originating_party_receives_ringback(dut_poly: object):
     result = dut_poly.check_for_ringback()
      
     if not result:
-        return False, {'Status': 'Originating party did not receive RingBack'}
+        return False, result[1]
 
-    return True
+    return True, result[1]
 
 
 def called_party_answers_call(pstn_poly_1: object):
