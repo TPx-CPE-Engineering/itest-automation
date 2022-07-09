@@ -37,7 +37,7 @@ def check_if_called_party_is_ringing(pstn_poly_1: object):
         pstn_poly_1 (object): PSTN Poly 1 object
     """
 
-    result = pstn_poly_1.is_ringing()
+    result = pstn_poly_1.get_ringing_status()
 
     print(json.dumps(result))
 
