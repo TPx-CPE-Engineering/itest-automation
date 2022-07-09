@@ -33,7 +33,7 @@ def originate_call_from_dut_to_pstn(dut_poly: object, pstn_poly_1: object):
 
     time.sleep(5)
 
-    return json.dumps(result)
+    print(json.dumps(result))
 
 
 def verify_called_party_receives_ringing(pstn_poly_1: object):
@@ -49,7 +49,7 @@ def verify_called_party_receives_ringing(pstn_poly_1: object):
 
     result = pstn_poly_1.get_ringing_status()
 
-    return json.dumps(result)
+    print(json.dumps(result))
 
 
 def verify_originating_party_receives_ringback(dut_poly: object):
@@ -65,7 +65,7 @@ def verify_originating_party_receives_ringback(dut_poly: object):
 
     result = dut_poly.check_for_ringback()
 
-    return json.dumps(result)
+    print(json.dumps(result))
 
 
 def called_party_answers_call(pstn_poly_1: object):
@@ -85,7 +85,7 @@ def called_party_answers_call(pstn_poly_1: object):
 
     time.sleep(5)
 
-    return json.dumps(result)
+    print(json.dumps(result))
 
 
 def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly_1: object):
@@ -114,7 +114,7 @@ def verify_two_way_call_path_is_established(dut_poly: object, pstn_poly_1: objec
         'pstn_media_direction': pstn_media_direction
     }
 
-    return json.dumps(result)
+    print(json.dumps(result))
 
 
 def originating_party_hangs_up(dut_poly: object):
@@ -132,7 +132,7 @@ def originating_party_hangs_up(dut_poly: object):
 
     result = dut_poly.web_call_control_end_call(dut_call_reference)
     
-    return json.dumps(result)
+    print(json.dumps(result))
 
 
 if __name__ == '__main__':
