@@ -66,7 +66,8 @@ def create_edge(edge_id, enterprise_id):
     DUT_EDGE = OSPFVeloCloudEdge(edge_id=edge_id, enterprise_id=enterprise_id)
 
     # Save settings before modifying in order to reformat Edge
-    DUT_EDGE.save_module_settings_to_file(module_name='deviceSettings', filename='ospf_config.txt')
+    DUT_EDGE.save_module_to_restore(module_name='deviceSettings', path='C:/Users/dataeng/PycharmProjects/iTest_Automation/d_velocloud/ospf/',
+                                    filename='ospf_device_settings')
 
     # Steps to configure edge for OSPF
     # Find a Interface that is in VLAN ID 1, in this case it'll be 'GE2'
