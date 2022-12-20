@@ -410,24 +410,40 @@ class VeloCloudEdge(object):
 
         return {}
 
-    def save_module_settings_to_file(self, module_name, filename='edge_module_config.txt', enterprise_level=False):
+    def save_module_to_restore(self, module_name, path, filename, enterprise_level=False):
         """
         Save a module settings to a file. This file can later be used to reformat Edge.
 
         :param module_name: Name of module to save
-        :param filename: Name of file
+        :param path: Path where the file will be save
+        :param filename: Name of the file
         :param enterprise_level: Module level, either on Edge or Enterprise, default False
         :return: None
         """
 
         if enterprise_level:
             # Module wishing to save exists in the enterprise level
-            module_settings = self.get_module_from_enterprise_profile(module_name=module_name)
+            module = self.get_module_from_enterprise_profile(module_name=module_name)
         else:
-            module_settings = self.get_module_from_edge_specific_profile(module_name=module_name)
+            module = self.get_module_from_edge_specific_profile(module_name=module_name)
 
-        with open(filename, 'w') as outfile:
-            json.dump(module_settings, outfile)
+        file = path + filename + ".json"
+
+        try:
+            with open(file, 'w') as outfile:
+                json.dump(module, outfile)
+                outfile.close()
+        except Exception as err:
+            print({'error': err})
+
+    def restore_module(self, path, filename):
+        file = path + filename + '.json'
+        file = open(file, "r")
+
+        module_as_str = file.read()
+        module = json.loads(module_as_str)
+
+        self.update_configuration_module(module=module)
 
     def add_firewall_rule_to_segment(self, firewall_rule, segment_name):
         """
