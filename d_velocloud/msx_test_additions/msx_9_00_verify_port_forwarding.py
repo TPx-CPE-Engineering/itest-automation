@@ -63,9 +63,42 @@ def ssh_connect(host, port, username, password):
         print('Timeout Error')
 
 
+def save_module_data(path, filename):
+    DUT_EDGE.save_module_to_restore(module_name='firewall', path=path, filename=filename, enterprise_level=False)
+    print(f'Firewall settings saved into file: "{path + filename}" successfully')
+
+
+def restore_module_data(path, filename):
+    DUT_EDGE.restore_module(path=path, filename=filename)
+    print(f'Firewall settings restored from file: "{path + filename}" successfully')
+
+
+def modify_ssh_rule(segment_name):
+    # Get Edge's firewall module
+    firewall_module = DUT_EDGE.get_module_from_edge_specific_profile(module_name='firewall')
+
+    segment = DUT_EDGE.get_a_device_settings_segment(segment_name=segment_name)
+    if segment is None:
+        print({'error': f"No segment {segment_name} found"})
+        return
+
+    for rule in firewall_module['data']['inbound']:
+        if 'itest' in rule['name'].lower() and rule['action']['nat']['lan_port'] == 22 and rule['match'][
+           'dport_high'] == DUT_EDGE.cpe_ssh_port and rule['match']['dport_low'] == DUT_EDGE.cpe_ssh_port:
+
+            # Save rule and modify it
+            modified_rule = rule
+            modified_rule['action']['segmentId'] = segment['segment']['segmentId']
+
+            # Remove rule
+            firewall_module['data']['inbound'].remove(rule)
+
+            # Add modified rule
+            firewall_module['data']['inbound'].append(modified_rule)
+
+    print(DUT_EDGE.update_configuration_module(module=firewall_module))
+
+
 if __name__ == "__main__":
-    create_edge(edge_id=7, enterprise_id=1, ssh_port=2201)
-    # import time
-    # remove_ssh_rule()
-    # time.sleep(30)
-    # add_ssh_rule()
+    create_edge(edge_id=8, enterprise_id=1, ssh_port=2202)
+    modify_ssh_rule(segment_name='Voice Segment')
