@@ -306,8 +306,7 @@ class VeloCloudEdge(object):
         params = {'edgeId': self.id,
                   'enterpriseId': self.enterprise_id}
 
-        exit_result = self.client.call_api(method=method, params=params)
-        print(exit_result)
+        return self.client.call_api(method=method, params=params)
 
     @staticmethod
     def print_as_json(text):
