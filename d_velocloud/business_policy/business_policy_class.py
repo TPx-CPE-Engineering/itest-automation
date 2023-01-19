@@ -10,8 +10,8 @@ from typing import Optional
 
 
 class BPVeloCloudEdge(VeloCloudEdge):
-    def __init__(self, edge_id, enterprise_id):
-        super().__init__(edge_id, enterprise_id)
+    def __init__(self, edge_id, enterprise_id, ssh_port):
+        super().__init__(edge_id, enterprise_id, cpe_ssh_port=ssh_port)
 
     # Any related to Business Policy(BP) test case/s you can add it here
     def get_active_wan_interfaces(self):
@@ -73,6 +73,79 @@ class BPVeloCloudEdge(VeloCloudEdge):
         else:
             print({'error': 'No metrics to show'})
             return None
+
+    def add_business_policy_rule(self, rule, segment_name):
+        qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
+
+        qos_desired_segment = None
+        if len(qos_module['data']['segments']) != 0:
+            # check if the desired segment is already added in the QOS
+            for segment in qos_module['data']['segments']:
+                if segment['segment']['name'] == segment_name:
+                    qos_desired_segment = segment
+
+        if qos_desired_segment is None:
+            # Create the desired segment
+            segments = self.get_device_settings_segments()
+
+            desired_segment = None
+            for segment in segments:
+                if segment['segment']['name'] == segment_name:
+                    desired_segment = segment
+
+            if desired_segment is None:
+                print({'error': f'No segment: {segment_name} found'})
+                return
+
+            segment = {
+                'segmentId': desired_segment['segment']['segmentId'],
+                'name': desired_segment['segment']['name'],
+                'type': desired_segment['segment']['type'],
+                'segmentLogicalId': 'cc562233-20aa-4716-a613-5556935b4946'
+            }
+
+            qos_desired_segment = {
+                'segment': segment,
+                'rules': [],
+                'webProxy': {'providers': []}
+            }
+
+        qos_desired_segment['rules'].append(rule)
+
+        qos_module['data']['segments'].append(qos_desired_segment)
+
+        res = self.update_configuration_module(module=qos_module)
+        print(res)
+
+    def remove_business_policy_rule(self, rule_name, segment_name):
+        qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
+
+        desired_qos_segment = None
+        for segment in qos_module['data']['segments']:
+            if segment['segment']['name'] == segment_name:
+                desired_qos_segment = segment
+
+        if desired_qos_segment is None:
+            print({'error': f'No segment: {segment_name} found'})
+            return
+
+        new_rules = []
+        for rule in desired_qos_segment['rules']:
+            if rule['name'] != rule_name:
+                new_rules.append(rule)
+
+        desired_qos_segment['rules'] = new_rules
+
+        all_segments = []
+        for segment in qos_module['data']['segments']:
+            if segment['segment']['name'] != segment_name:
+                all_segments.append(segment)
+        all_segments.append(desired_qos_segment)
+
+        qos_module['data']['segments'] = all_segments
+
+        res = self.update_configuration_module(module=qos_module)
+        print(res)
 
 
 if __name__ == '__main__':
