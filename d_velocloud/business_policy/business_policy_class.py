@@ -68,7 +68,6 @@ class BPVeloCloudEdge(VeloCloudEdge):
 
         if len(all_data) != 0:
             df2 = pd.DataFrame(all_data)
-            print(df2.to_string())
             return df2
         else:
             print({'error': 'No metrics to show'})
@@ -114,8 +113,7 @@ class BPVeloCloudEdge(VeloCloudEdge):
 
         qos_module['data']['segments'].append(qos_desired_segment)
 
-        res = self.update_configuration_module(module=qos_module)
-        print(res)
+        return self.update_configuration_module(module=qos_module)
 
     def remove_business_policy_rule(self, rule_name, segment_name):
         qos_module = self.get_module_from_edge_specific_profile(module_name='QOS')
@@ -144,10 +142,118 @@ class BPVeloCloudEdge(VeloCloudEdge):
 
         qos_module['data']['segments'] = all_segments
 
-        res = self.update_configuration_module(module=qos_module)
-        print(res)
+        return self.update_configuration_module(module=qos_module)
 
 
 if __name__ == '__main__':
-    edge = BPVeloCloudEdge(edge_id=10, enterprise_id=1)
-    edge.get_live_icmp_transport_metrics(max_seconds=180)
+    edge = BPVeloCloudEdge(edge_id=10, enterprise_id=1, ssh_port=2201)
+    # edge.get_live_icmp_transport_metrics(max_seconds=180)
+    bp_rule = {
+            'name': 'Route ICMP Traffic to WAN: 123',
+            'match': {
+              'appid': 70,
+              'classid': -1,
+              'dscp': -1,
+              'sip': 'any',
+              'sport_high': -1,
+              'sport_low': -1,
+              'ssm': '255.255.255.255',
+              'svlan': -1,
+              'os_version': -1,
+              'hostname': '',
+              'dip': 'any',
+              'ipVersion': 'IPv4',
+              'dport_low': -1,
+              'dport_high': -1,
+              'dsm': '255.255.255.255',
+              'dvlan': -1,
+              'dInterface': '',
+              'proto': -1,
+              's_rule_type': 'prefix',
+              'd_rule_type': 'prefix',
+              'sInterface': ''
+            },
+            'action': {
+              'routeType': 'edge2Any',
+              'userDisableConditionalBh': False,
+              'edge2EdgeRouteAction': {
+                'interface': 'auto',
+                'subinterfaceId': -1,
+                'linkInternalLogicalId': '00000001-431e-41c2-95dd-34aa8cda9cb1',
+                'linkPolicy': 'fixed',
+                'routeCfg': {},
+                'routePolicy': 'direct',
+                'serviceGroup': 'ALL',
+                'vlanId': -1,
+                'wanlink': 'auto',
+                'linkCosLogicalId': None,
+                'linkOuterDscpTag': None,
+                'linkInnerDscpTag': None
+              },
+              'edge2DataCenterRouteAction': {
+                'interface': 'auto',
+                'subinterfaceId': -1,
+                'linkInternalLogicalId': '00000001-431e-41c2-95dd-34aa8cda9cb1',
+                'linkPolicy': 'fixed',
+                'routeCfg': {},
+                'routePolicy': 'auto',
+                'serviceGroup': 'ALL',
+                'vlanId': -1,
+                'wanlink': 'auto',
+                'linkCosLogicalId': None,
+                'linkOuterDscpTag': None,
+                'linkInnerDscpTag': None
+              },
+              'edge2CloudRouteAction': {
+                'interface': 'auto',
+                'subinterfaceId': -1,
+                'linkInternalLogicalId': '00000001-431e-41c2-95dd-34aa8cda9cb1',
+                'linkPolicy': 'fixed',
+                'routeCfg': {},
+                'routePolicy': 'direct',
+                'serviceGroup': 'ALL',
+                'vlanId': -1,
+                'wanlink': 'auto',
+                'linkCosLogicalId': None,
+                'linkOuterDscpTag': None,
+                'linkInnerDscpTag': None
+              },
+              'QoS': {
+                'type': 'transactional',
+                'rxScheduler': {
+                  'bandwidth': -1,
+                  'bandwidthCapPct': -1,
+                  'queueLen': -1,
+                  'burst': -1,
+                  'latency': -1,
+                  'priority': 'normal'
+                },
+                'txScheduler': {
+                  'bandwidth': -1,
+                  'bandwidthCapPct': -1,
+                  'queueLen': -1,
+                  'burst': -1,
+                  'latency': -1,
+                  'priority': 'normal'
+                }
+              },
+              'nat': {
+                'sourceIp': 'no',
+                'destIp': 'no'
+              },
+              'natIpVersion': None,
+              'natV6': {
+                'sourceIp': 'no',
+                'destIp': 'no'
+              },
+              'sla': {
+                'latencyMs': '0',
+                'lossPct': '0.0',
+                'jitterMs': '0'
+              }
+            },
+            'ruleLogicalId': '209ba481-6e32-41e8-9360-1dd90f206d58'
+          }
+    # edge.add_business_policy_rule(rule=bp_rule, segment_name='Voice Segment')
+    edge.remove_business_policy_rule(rule_name='Route ICMP Traffic to WAN: 123', segment_name='Voice Segment')
+
