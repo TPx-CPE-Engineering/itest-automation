@@ -45,7 +45,10 @@ class BPVeloCloudEdge(VeloCloudEdge):
 
             if response['status']['isActive']:
                 if response['data']:
-                    link_data = response['data']['linkStats']['data']
+                    try:
+                        link_data = response['data']['linkStats']['data']
+                    except KeyError:
+                        continue
 
                     for link in link_data:
                         ts_datetime = self.convert_to_datetime(timestamp=link['timestamp'], timezone='America/Los_Angeles')
