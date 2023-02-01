@@ -1,4 +1,4 @@
-from business_policy_class import BPVeloCloudEdge
+from d_velocloud.business_policy.business_policy_class import BPVeloCloudEdge
 import pandas as pd
 import json
 
@@ -18,9 +18,11 @@ def get_wan_links(print_itest_message=False):
         }
         wan_links.append(link)
 
-    if print_itest_message:
-        wan_link_names = [link['name'] for link in wan_links]
-        print(f"Available WAN Links: \"{', '.join(wan_link_names)}\"")
+    # print(wan_links)
+    # if print_itest_message:
+    #     # wan_link_names = [link['name'] for link in wan_links]
+    #     # print(f"Available WAN Links: \"{', '.join(wan_link_names)}\"")
+    #     print(json.dumps(wan_links))
 
     return wan_links
 
@@ -142,6 +144,7 @@ def add_bp_rule_to_route_icmp_traffic_to_wan_link(wan_link_ip):
             'ruleLogicalId': '209ba481-6e32-41e8-9360-1dd90f206d58'
           }
         DUT_EDGE.add_business_policy_rule(rule=bp_rule, segment_name='Voice Segment')
+        print(f"Business policy rule to route ICMP traffic to {desired_wan_link['ipAddress']} in the Voice Segment added successfully")
     else:
         print({'error': f'No WAN link {wan_link_ip} found'})
 
@@ -149,6 +152,7 @@ def add_bp_rule_to_route_icmp_traffic_to_wan_link(wan_link_ip):
 def remove_bp_rule_to_route_icmp_traffic_to_wan_link(wan_link_ip):
     rule_name = f'iTest Route ICMP Traffic to WAN Link: {wan_link_ip}'
     DUT_EDGE.remove_business_policy_rule(rule_name=rule_name, segment_name='Voice Segment')
+    print(f"Business policy rule to route ICMP traffic to {wan_link_ip} in the Voice Segment removed successfully")
 
 
 def did_icmp_traffic_increase(wan_link_ip, max_seconds):
