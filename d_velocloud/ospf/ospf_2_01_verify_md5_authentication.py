@@ -40,7 +40,7 @@ def stop_ix_network(disconnect_ports=True):
 
 
 def restore_settings():
-    file = 'ospf_config.txt'
+    file = 'C:/Users/dataeng/PycharmProjects/iTest_Automation/d_velocloud/ospf/ospf_device_settings.json'
     print(DUT_EDGE.restore_config_from_filename(filename=file))
     DUT_EDGE.delete_filename(filename=file)
 
@@ -77,7 +77,7 @@ def create_edge(edge_id, enterprise_id):
     ))
 
     # Add Interface Config to Edge
-    print(DUT_EDGE.add_routed_interface(interface=OSPF_INTERFACE))
+    print(DUT_EDGE.add_routed_interface(interface=OSPF_INTERFACE, vlan_id=1))
 
     # Initiate Ix Network
     IX_NETWORK = IxNetwork(clear_config=True)
